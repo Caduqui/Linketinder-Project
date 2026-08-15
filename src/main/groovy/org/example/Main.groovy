@@ -10,9 +10,11 @@ class Main {
     static List<Candidato> candidatos = []
     static List<Empresa> empresas = []
     static Scanner scanner = new Scanner(System.in)
+    static Cadastro cadastro
 
     static void main(String[] args) {
         carregarDados()
+        cadastro = new Cadastro(candidatos, empresas, new ScannerLeitorEntrada(scanner))
         menu()
     }
 
@@ -146,79 +148,20 @@ class Main {
                     }
                     break
                 case "3":
-                    cadastrarCandidato()
+                    cadastro.cadastrarCandidato()
+                    println "Candidato cadastrado com sucesso!"
                     break
                 case "4":
-                    cadastrarEmpresa()
+                    cadastro.cadastrarEmpresa()
+                    println "Empresa cadastrada com sucesso!"
                     break
                 case "0":
                     e = false
                     break;
                 default:
                     println "Opção inválida."
-
             }
         }
-    }
-
-    static void cadastrarCandidato() {
-        print "Nome: "
-        def nome = scanner.nextLine()
-
-        print "Email: "
-        def email = scanner.nextLine()
-
-        print "CPF: "
-        def cpf = scanner.nextLine()
-
-        print "Idade: "
-        def idade = scanner.nextLine().toInteger()
-
-        print "Estado: "
-        def estado = scanner.nextLine()
-
-        print "CEP: "
-        def cep = scanner.nextLine()
-
-        print "Descrição: "
-        def descricao = scanner.nextLine()
-
-        print "Competências: "
-        def competencias = scanner.nextLine().split(",").collect { it.trim() }
-
-        candidatos << new Candidato(nome, email, cpf, idade, estado, cep, descricao, competencias)
-
-        println "Candidato cadastrado!"
-    }
-
-    static void cadastrarEmpresa() {
-        print "Nome: "
-        def nome = scanner.nextLine()
-
-        print "Email: "
-        def email = scanner.nextLine()
-
-        print "CNPJ: "
-        def cnpj = scanner.nextLine()
-
-        print "País: "
-        def pais = scanner.nextLine()
-
-        print "Estado: "
-        def estado = scanner.nextLine()
-
-        print "CEP: "
-        def cep = scanner.nextLine()
-
-        print "Descrição: "
-        def descricao = scanner.nextLine()
-
-        print "Competências: "
-        def competencias = scanner.nextLine().split(",").collect { it.trim() }
-
-        empresas << new Empresa(nome, email, cnpj, pais, estado, cep, descricao, competencias)
-
-        println "Empresa cadastrada!"
     }
 }
 
