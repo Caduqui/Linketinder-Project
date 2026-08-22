@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+
+body {
+  padding: 0;
+  margin: 0;
+}
+
+.cabecalho {
+  background-color: #CCFBF1;
+}
+
+nav {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 0 0 1rem 0;
+}
+
+h1 {
+  margin: 0;
+  padding: 0.4rem 0 1rem 0;
+}
+
+h1,h2 {
+  text-align: center;
+  font-family: "Inter", sans-serif;
+}
+
+h2 {
+  width: 25rem;
+  margin: 1rem 3rem;
+  background-color: #0D9488;
+  border-radius: 8px;
+}
+
+h3 {
+  margin: 1rem;
+  font-family: "Inter", sans-serif;
+}
+
+.blur-nome {
+  filter: blur(4px);
+}
+
+button {
+  width: 10rem;
+  align-self: center;
+  cursor: pointer;
+  border-radius: 8px;
+  background-color: #0F766E;
+  color: #FFFFFF;
+  border: none;
+  height: 1.4rem;
+}
+
+button:hover {
+  background-color: #115E59;
+}
+
+.container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.empresa_container {
+  display: flex;
+}
+
+.painel {
+  width: 35rem;
+  margin: 0 2rem;
+}
+
+ul {
+  width: 30rem;
+  list-style-type: none;
+  margin: 1rem;
+  padding: 0;
+}
+
+.card {
+  background-color: #F0FDFA;
+  border-radius: 10px;
+}
+
+/* Cadastro */
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cadastro_container {
+  margin: 2rem;
+}
+
+

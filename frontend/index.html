@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>LinkeTinder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="cabecalho">
+    <h1>Seja bem-vindo ao LinkerTinder</h1>
+    <nav>
+        <button id="buttonTelaCadastro">Cadastro</button>
+        <button id="buttonTelaCandidato">Candidato</button>
+        <button id="buttonTelaEmpresa">Empresa</button>
+    </nav>
+</header>
+
+<main>
+    <section class="container">
+
+        <div class="cadastro_container">
+            <h3>Cadastrar Novo Candidato</h3>
+            <form id="form-candidato">
+                <input type="text" id="candidato_nome" placeholder="Nome" required>
+                <input type="email" id="candidato_email" placeholder="Email" required>
+                <input type="text" id="candidato_cpf" placeholder="CPF" required>
+                <input type="number" id="candidato_idade" placeholder="Idade" required>
+                <input type="text" id="candidato_estado" placeholder="Estado" required>
+                <input type="text" id="candidato_cep" placeholder="CEP" required>
+                <input type="text" id="candidato_descricao" placeholder="Descrição" required>
+                <input type="text" id="candidato_competencias" placeholder="Competências (separadas por vírgula)" required>
+                <button type="submit">Cadastrar Candidato</button>
+            </form>
+        </div>
+
+        <div class="cadastro_container">
+            <h3>Cadastrar Nova Empresa</h3>
+            <form id="form-empresa">
+                <input type="text" id="empresa_nome" placeholder="Nome da Empresa" required>
+                <input type="email" id="empresa_email" placeholder="Email" required>
+                <input type="text" id="empresa_cnpj" placeholder="CNPJ" required>
+                <input type="text" id="empresa_pais" placeholder="País" required>
+                <input type="text" id="empresa_estado" placeholder="Estado" required>
+                <input type="text" id="empresa_cep" placeholder="CEP" required>
+                <input type="text" id="empresa_descricao" placeholder="Descrição da vaga" required>
+                <input type="text" id="empresa_competencias" placeholder="Competências (separadas por vírgula)" required>
+                <button type="submit">Cadastrar Empresa</button>
+            </form>
+        </div>
+    </section>
+</main>
+
+<footer></footer>
+<script type="module" src="main.ts"></script>
+</body>
+</html>

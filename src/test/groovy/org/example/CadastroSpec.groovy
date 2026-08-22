@@ -19,7 +19,7 @@ class CadastroSpec extends Specification{
         def operacao = new Cadastro (candidatos, empresas, leitor)
 
         when:
-        println "Chamando operacao.cadastrarCandidato()"
+        println "Chamando operacao cadastrarCandidato()"
         def novoCandidato = operacao.cadastrarCandidato()
 
         then:
@@ -52,7 +52,7 @@ class CadastroSpec extends Specification{
         def operacao = new Cadastro(candidatos, empresas, leitor)
 
         when:
-        println "Chamando operacao.cadastrarEmpresa()"
+        println "Chamando operacao cadastrarEmpresa()"
         def novaEmpresa = operacao.cadastrarEmpresa()
 
         then:
