@@ -6,23 +6,19 @@ package org.example
  */
 
 abstract class TipoPessoa implements Pessoa {
-    def nome
-    def email
-    def cep
-    def estado
-    def descricao
-    def competencias = []
+    String nome
+    String email
+    String pais
+    String cep
+    String descricao
+    String senha
 
-    TipoPessoa(def nome, def email, def cep, def estado, def descricao, def competencias) {
+    TipoPessoa(String nome, String email, String pais, String cep, String descricao, String senha) {
         this.nome = nome
         this.email = email
         this.cep = cep
-        this.estado = estado
+        this.pais = pais
         this.descricao = descricao
-        this.competencias = competencias
-    }
-
-    String formatarCompetencias() {
-        competencias ? competencias.join(", ") : "Nenhuma competência cadastrada"
+        this.senha = senha
     }
 }

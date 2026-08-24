@@ -4,31 +4,28 @@
     <meta charset="UTF-8">
     <title>Linketinder</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+
 <header class="cabecalho">
     <h1>Seja bem-vindo ao LinkerTinder</h1>
     <nav>
         <button id="buttonTelaCadastro">Cadastro</button>
         <button id="buttonTelaCandidato">Candidato</button>
         <button id="buttonTelaEmpresa">Empresa</button>
+        <button id="buttonTelaVaga">Vagas</button>
     </nav>
 </header>
 
-<main class="empresa_container">
+<main>
     <div class="painel">
         <h2>Visão da Empresa</h2>
+
+        <div id="vaga-atual"></div>
+
         <h3>Candidatos Disponíveis</h3>
         <ul id="lista-candidatos"></ul>
-
-
     </div>
-    <div>
-        <h3>Métricas de Competências</h3>
-        <canvas id="chartCompetencias" width="1300px" height="450px"></canvas>
-    </div>
-
 </main>
 
 <script type="module" src="main.ts"></script>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Linketinder</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<header class="cabecalho">
+    <h1>Seja bem-vindo ao LinkerTinder</h1>
+    <nav>
+        <button id="buttonTelaCadastro">Cadastro</button>
+        <button id="buttonTelaCandidato">Candidato</button>
+        <button id="buttonTelaEmpresa">Empresa</button>
+        <button id="buttonTelaVaga">Vagas</button>
+    </nav>
+</header>
+
+<main class="vaga_container">
+    <section class="container">
+
+        <div class="cadastro_container">
+            <h3>Cadastrar Nova Vaga</h3>
+
+            <form id="form-vaga">
+                <input type="text" id="vaga_nome" placeholder="Nome" required>
+                <input type="text" id="vaga_descricao" placeholder="Descrição" required>
+                <input type="text" id="vaga_estado" placeholder="Estado" required>
+                <input type="text" id="vaga_cidade" placeholder="Cidade" required>
+                <input type="text" id="vaga_competencias" placeholder="Competencias" required>
+                <button type="submit">Cadastrar Vaga</button>
+            </form>
+        </div>
+    </section>
+
+</main>
+
+<script type="module" src="main.ts"></script>
+</body>
+</html>

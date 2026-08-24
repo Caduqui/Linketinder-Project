@@ -6,13 +6,11 @@ package org.example
  */
 
 class Empresa extends TipoPessoa {
-    def cnpj
-    def pais
+    String cnpj
 
-    Empresa(def nome, def email, def cnpj, def pais, def estado, def cep, def descricao, List<String> competencias) {
-        super (nome, email, cep, estado, descricao, competencias)
+    Empresa(String nome, String email, String cnpj, String pais, String cep, String descricao, String senha) {
+        super (nome, email, pais, cep, descricao, senha)
         this.cnpj = cnpj
-        this.pais = pais
     }
 
     @Override
@@ -21,9 +19,7 @@ class Empresa extends TipoPessoa {
         println "email: ${email}"
         println "CNPJ: ${cnpj}"
         println "pais: ${pais}"
-        println "Estado: ${estado}"
         println "CEP: ${cep}"
         println "Descrição: ${descricao}"
-        println "Competencias: ${formatarCompetencias()}"
     }
 }
