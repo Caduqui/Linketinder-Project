@@ -6,6 +6,7 @@ package org.example
  */
 
 class Empresa extends TipoPessoa {
+    Integer id
     String cnpj
 
     Empresa(String nome, String email, String cnpj, String pais, String cep, String descricao, String senha) {

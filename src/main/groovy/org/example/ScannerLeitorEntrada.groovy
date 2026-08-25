@@ -1,5 +1,10 @@
 package org.example
 
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
+
 class ScannerLeitorEntrada implements LeitorEntrada{
 
     final Scanner scanner

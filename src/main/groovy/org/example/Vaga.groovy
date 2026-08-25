@@ -1,7 +1,12 @@
 package org.example
 
-class Vaga {
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
 
+class Vaga {
+    Integer id
     String nome
     String descricao
     String estado

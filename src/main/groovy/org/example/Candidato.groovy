@@ -6,6 +6,7 @@ package org.example
  */
 
 class Candidato extends TipoPessoa{
+    Integer id
     String sobrenome
     def dataNascimento
     String cpf
