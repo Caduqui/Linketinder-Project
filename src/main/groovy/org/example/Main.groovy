@@ -30,6 +30,7 @@ class Main {
             println "2- Empresas"
             println "3- Competências"
             println "4- Vagas"
+            println "5- Venha encontrar seu match"
             println "0- Sair"
             print "Escolha sua opção: "
 
@@ -45,6 +46,9 @@ class Main {
                     break
                 case "4":
                     menuVagas()
+                    break
+                case "5":
+                    menuCurtidas()
                     break
                 case "0":
                     return
@@ -191,6 +195,41 @@ class Main {
                 case "4":
                     cadastro.excluirVaga()
                     println "Vaga excluída com sucesso!"
+                    break
+                case "0":
+                    return
+                default:
+                    println "Opção inválida."
+            }
+        }
+    }
+
+    static void menuCurtidas() {
+        while (true) {
+            println "\nMATCHES"
+            println "1- Candidato curtir uma vaga"
+            println "2- Empresa curtir um candidato"
+            println "3- Listar matches"
+            println "0- Voltar"
+            print "Escolha sua opção: "
+
+            switch (scanner.nextLine().trim()) {
+                case "1":
+                    cadastro.candidatoCurtirVaga()
+                    break
+                case "2":
+                    cadastro.empresaCurtirCandidato()
+                    break
+                case "3":
+                    List<Match> matches = cadastro.listarMatches()
+
+                    if (matches.isEmpty()) {
+                        println "\nNenhum match ocorreu até o momento"
+                    } else {
+                        matches.each {
+                            it.exibirMatch()
+                        }
+                    }
                     break
                 case "0":
                     return

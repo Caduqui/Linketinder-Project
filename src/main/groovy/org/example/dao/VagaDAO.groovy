@@ -277,4 +277,50 @@ class VagaDAO {
 
         return vaga
     }
+
+    List<Vaga> listarPorEmpresa(Integer idEmpresa) {
+        List<Vaga> vagas = []
+
+        String sql = """
+            SELECT * FROM vagas
+            WHERE id_empresa = ?
+            ORDER BY id
+        """
+
+        Connection conexao = ConexaoBanco.conectar()
+        PreparedStatement statement = conexao.prepareStatement(sql)
+
+        statement.setInt(1, idEmpresa)
+
+        ResultSet resultado = statement.executeQuery()
+
+        EmpresaDAO empresaDAO = new EmpresaDAO()
+        Empresa empresa = empresaDAO.buscarPorId(idEmpresa)
+
+        while(resultado.next()) {
+
+            Integer idVaga = resultado.getInt("id")
+
+            List<String> competencias = buscarCompetenciasDaVaga(idVaga)
+
+            Vaga vaga = new Vaga(
+                    resultado.getString("nome"),
+                    resultado.getString("descricao"),
+                    resultado.getString("estado"),
+                    resultado.getString("cidade"),
+                    empresa,
+                    competencias
+            )
+
+            vaga.id = idVaga
+            vagas << vaga
+        }
+
+        resultado.close()
+        statement.close()
+        conexao.close()
+
+        return vagas
+    }
+
 }
