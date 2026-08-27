@@ -257,6 +257,23 @@ function salvarVagas(): void {
     window.location.href = 'vaga.html'
 });
 
+function carregarSeletorEmpresas(): void {
+
+    const select = document.getElementById("vaga-empresa") as HTMLSelectElement | null;
+
+    if (!select) {
+        return;
+    }
+
+    empresas.forEach(empresa => {
+        const option = document.createElement("option");
+
+        option.value = empresa.id.toString();
+        option.textContent = empresa.nome;
+
+        select.appendChild(option);
+    });
+}
 
 function renderizarCandidatosAnonimos(): void {
     const lista = document.getElementById("lista-candidatos")!;
@@ -274,25 +291,95 @@ function renderizarCandidatosAnonimos(): void {
     });
 }
 
+function calcularAfinidade(candidato: Candidato, vaga: Vaga): number {
+    if (vaga.competencias.length === 0) {
+        return 0;
+    }
+
+    const competenciasCandidato = candidato.competencias.map(competencia => competencia.trim().toLowerCase());
+    const competenciasVaga = vaga.competencias.map(competencia => competencia.trim().toLowerCase());
+    const competenciasEmComum = competenciasVaga.filter(competencia => competenciasCandidato.includes(competencia));
+
+    return Math.round((competenciasEmComum.length / competenciasVaga.length) * 100)
+}
+
 function renderizarVagasAnonimas(): void {
     const lista = document.getElementById("lista-vagas")!;
     lista.innerHTML = "";
 
-    vagas.forEach(v => {
-        const empresa = empresas.find(e => e.id === v.idEmpresa);
+    const candidatoAtualIdString = localStorage.getItem("candidatoAtualId");
 
+    if (!candidatoAtualIdString) {
+        lista.innerHTML = `
+            <li class="card"> 
+                Nenhum candidato selecionado.
+            </li>
+        `;
+        return;
+    }
+
+    const candidatoAtualId = Number(candidatoAtualIdString);
+    const candidatoAtual = candidatos.find(candidato => candidato.id === candidatoAtualId);
+
+    if (!candidatoAtual) {
+        lista.innerHTML = `
+            <li class="card">
+                Candidato não encontrado.
+            </li>
+        `;
+        return;
+    }
+
+    vagas.forEach(vaga => {
+        const afinidade = calcularAfinidade(candidatoAtual, vaga);
         const li = document.createElement("li");
+
         li.className = "card";
         li.innerHTML = `
-            <strong>Vaga ${v.id}</strong>
-            <p ><strong>Nome:</strong> ${v.nome}</p>
-            <p ><strong>Empresa:</strong> ${empresa?.nome ?? "Empresa não encontrada"}</p>
-            <p><strong>Descrição da Vaga:</strong> ${v.descricao}</p>
-            <p><strong>Localização:</strong> ${v.cidade} - ${v.estado}</p>
-            <p><strong>Competências:</strong> ${v.competencias.join(", ")}</p>
+            <strong>Vaga ${vaga.id}</strong>
+            <p ><strong>Nome:</strong> ${vaga.nome}</p>
+            <p><strong>Descrição da Vaga:</strong> ${vaga.descricao}</p>
+            <p><strong>Localização:</strong> ${vaga.cidade} - ${vaga.estado}</p>
+            <p><strong>Competências:</strong> ${vaga.competencias.join(", ")}</p>
+            <p><strong>Índice de afinidade:</strong> ${afinidade}%</p>
         `;
         lista.appendChild(li);
     });
+}
+
+function carregarSeletorCandidatos(): void {
+    const select = document.getElementById("selecionar-candidato") as HTMLSelectElement | null;
+
+    if (!select) {
+        return;
+    }
+
+    candidatos.forEach(candidato => {
+        const option = document.createElement("option");
+
+        option.value = candidato.id.toString();
+        option.textContent = `${candidato.nome} ${candidato.sobrenome}`;
+
+        select.appendChild(option);
+    });
+
+    const candidatoAtualId = localStorage.getItem("candidatoAtualId");
+
+    if (candidatoAtualId) {
+        select.value = candidatoAtualId;
+    }
+
+    select.addEventListener("change", () => {
+        if (!select.value) {
+            localStorage.removeItem("candidatoAtualId");
+            return;
+        }
+
+        localStorage.setItem("candidatoAtualId", select.value);
+
+        renderizarVagasAnonimas();
+    });
+
 }
 
 function atualizarGrafico(): void {
@@ -355,6 +442,9 @@ export function inicializarApp(): void {
             };
             candidatos.push(novoCandidato);
             salvarCandidatos();
+
+            localStorage.setItem("candidatoAtualId", novoCandidato.id.toString());
+
             formCandidato.reset();
 
             window.location.href = "candidato.html";
@@ -390,19 +480,12 @@ export function inicializarApp(): void {
         formVaga.addEventListener("submit", (e) => {
             e.preventDefault();
 
-            // pegamos o ID com o localstorage para fazer a verificacao
-            const empresaAtualIdString = localStorage.getItem("empresaAtualId");
+            const idEmpresa = Number((document.getElementById("vaga-empresa") as HTMLSelectElement).value);
 
-            if (!empresaAtualIdString) {
-                alert("Cadastre uma empresa antes de cadastrar uma vaga.");
-
-                window.location.href = "index.html";
-
+            if (!idEmpresa) {
+                alert("Selecione uma empresa!")
                 return;
             }
-
-            // verificado transformamos em numero para usar em idEmpresa
-            const empresaAtualId = Number(empresaAtualIdString);
 
             const novaVaga: Vaga = {
                 id: vagas.length + 1,
@@ -410,39 +493,28 @@ export function inicializarApp(): void {
                 descricao: (document.getElementById("vaga_descricao") as HTMLInputElement).value,
                 estado: (document.getElementById("vaga_estado") as HTMLInputElement).value,
                 cidade: (document.getElementById("vaga_cidade") as HTMLInputElement).value,
-                idEmpresa: empresaAtualId,
+                idEmpresa: idEmpresa,
                 competencias: (document.getElementById("vaga_competencias") as HTMLInputElement).value.split(",").map(s => s.trim())
             };
 
             vagas.push(novaVaga);
             salvarVagas();
-            localStorage.setItem("vagaAtualId", novaVaga.id.toString());
             formVaga.reset();
             window.location.href = "empresa.html";
-            // renderizarVagasAnonimas
-        })
+        });
     }
-}
-
-function renderizarVagaAtual(): void {
-    const vagaAtualId = Number(localStorage.getItem("vagaAtualId"));
-
-    const vagaAtual = vagas.find(v => v.id === vagaAtualId);
-    const vagaAtualContainer = document.getElementById("vaga-atual");
-
-    if (!vagaAtualContainer || !vagaAtual) {
-        return;
-    }
-
-    vagaAtualContainer.innerHTML = `
-        <h3>Vaga: ${vagaAtual.nome} </h3>
-        <p><strong>Descrição:</strong> ${vagaAtual.descricao}</p>
-        <p><strong>Competências procuradas:</strong> ${vagaAtual.competencias.join(", ")}</p>
-    `;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     inicializarApp()
+
+    if (document.getElementById("selecionar-candidato")) {
+        carregarSeletorCandidatos();
+    }
+
+    if (document.getElementById("vaga-empresa")) {
+        carregarSeletorEmpresas();
+    }
 
     if (document.getElementById("lista-candidatos")) {
         renderizarCandidatosAnonimos();
@@ -456,7 +528,4 @@ document.addEventListener("DOMContentLoaded", () => {
         atualizarGrafico();
     }
 
-    if (document.getElementById("vaga-atual")) {
-        renderizarVagaAtual();
-    }
 });
