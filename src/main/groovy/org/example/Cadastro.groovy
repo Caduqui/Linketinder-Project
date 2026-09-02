@@ -2,7 +2,9 @@ package org.example
 
 import org.example.dao.CandidatoDAO
 import org.example.dao.CompetenciaDAO
+import org.example.dao.CurtidaDAO
 import org.example.dao.EmpresaDAO
+import org.example.dao.MatchDAO
 import org.example.dao.VagaDAO
 
 /**
@@ -16,8 +18,8 @@ class Cadastro {
     final EmpresaDAO empresaDAO = new EmpresaDAO()
     final VagaDAO vagaDAO = new VagaDAO()
     final CompetenciaDAO competenciaDAO = new CompetenciaDAO()
-    final List<Curtida> curtidas = []
-    final List<Match> matches = []
+    final CurtidaDAO curtidaDAO = new CurtidaDAO()
+    final MatchDAO matchDAO = new MatchDAO()
     final LeitorEntrada leitor
 
     Cadastro(LeitorEntrada leitor) {
@@ -313,28 +315,25 @@ class Cadastro {
             return false
         }
 
-        boolean jaCurtiu = curtidas.any { curtida ->
-            curtida.ehCurtidaDoCandidato() && curtida.candidato.id == candidato.id && curtida.vaga.id == vaga.id
+        boolean curtiu = curtidaDAO.candidatoCurtirVaga(candidato.id, vaga.id)
 
-        }
-
-        if (jaCurtiu) {
+        if (!curtiu) {
             println "O candidato já curtiu essa vaga."
             return false
         }
 
-        curtidas << new Curtida(candidato, vaga)
         println "\nVaga curtida com sucesso"
 
-        if (criarMatchSePossivel(candidato, vaga.empresa, vaga)) {
-            println "\nMATCH! A empresa já havia curtido este candidato para essa vaga!"
-        } else if (matchJaExiste(candidato.id, vaga.empresa.id, vaga.id)) {
-            println "Você já possui match para essa vaga!"
+        boolean houveMatch = matchDAO.criarMatchSePossivel(candidato.id, vaga.empresa.id, vaga.id)
+
+        if (houveMatch) {
+            println "\nMATCH! A empresa já havia curtido você para essa vaga."
         } else {
             println "Ainda não houve match."
         }
 
         return true
+
     }
 
     boolean empresaCurtirCandidato() {
@@ -407,20 +406,19 @@ class Cadastro {
             return false
         }
 
-        boolean empresaJaCurtiu = curtidas.any { curtida ->
-            curtida.ehCurtidaDaEmpresa() &&  curtida.empresa.id == empresa.id && curtida.candidato.id == candidato.id && curtida.vaga.id == vaga.id
-        }
+        boolean curtiu = curtidaDAO.empresaCurtirCandidato(idEmpresa, idCandidato, idVaga)
 
-        if (empresaJaCurtiu) {
+        if (!curtiu) {
             println "A empresa já curtiu esse candidato para essa vaga"
             return false
         }
 
-        curtidas << new Curtida(empresa, candidato, vaga)
         println "\nCandidato curtido com sucesso para a vaga ${vaga.nome}!"
 
-        if (criarMatchSePossivel(candidato, empresa, vaga)) {
-            println "\nMATCH! O candidato já havia curtido essa vaga!"
+        boolean houveMatch = matchDAO.criarMatchSePossivel(candidato.id, empresa.id, vaga.id)
+
+        if (houveMatch) {
+            println "\nMATCH! O candidato já havia curtido essa vaga."
         } else {
             println "Ainda não houve match."
         }
@@ -428,35 +426,7 @@ class Cadastro {
         return true
     }
 
-    boolean criarMatchSePossivel(Candidato candidato, Empresa empresa, Vaga vaga) {
-        if (matchJaExiste(candidato.id, empresa.id, vaga.id)) {
-            return false
-        }
-
-        boolean candidatoCurtiuVaga = curtidas.any {curtida ->
-            curtida.ehCurtidaDoCandidato() && curtida.candidato.id == candidato.id && curtida.vaga.id == vaga.id
-        }
-
-        boolean empresaCurtiuCandidato = curtidas.any {curtida ->
-            curtida.ehCurtidaDaEmpresa() && curtida.candidato.id == candidato.id && curtida.empresa.id == empresa.id && curtida.vaga.id == vaga.id
-        }
-
-        if (candidatoCurtiuVaga && empresaCurtiuCandidato) {
-            matches << new Match(candidato, empresa, vaga)
-            return true
-        }
-
-        return false
-    }
-
-    boolean matchJaExiste(Integer idCandidato, Integer idEmpresa, Integer idVaga) {
-        return matches.any {match ->
-            match.candidato.id == idCandidato && match.empresa.id == idEmpresa && match.vaga.id == idVaga
-        }
-    }
-
     List<Match> listarMatches() {
-        return matches
+        return matchDAO.listar()
     }
-
 }
