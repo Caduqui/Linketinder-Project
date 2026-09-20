@@ -28,7 +28,7 @@ class Vaga {
     }
 
     void exibirDados() {
-        println "\nVaga: ${nome}"
+        println "\nID: ${id} | Vaga: ${nome}"
         println "Empresa: ${empresa.nome}"
         println "Descrição: ${descricao}"
         println "Local: ${cidade} - ${estado}"

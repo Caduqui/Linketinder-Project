@@ -2,6 +2,7 @@ package org.example
 
 import java.sql.Connection
 import java.sql.DriverManager
+import java.sql.PreparedStatement
 
 /**
  *
@@ -9,11 +10,19 @@ import java.sql.DriverManager
  */
 
 class ConexaoBanco {
-    static Connection conectar() {
-        String url = "jdbc:postgresql://localhost:5432/linketinder"
-        String usuario = "postgres"
-        String senha = "postgres"
+    static final String URL = "jdbc:postgresql://localhost:5432/linketinder"
+    static final String USUARIO = "postgres"
+    static final String SENHA = "postgres"
 
-        return DriverManager.getConnection(url, usuario, senha)
+    static Connection conectar() {
+        return DriverManager.getConnection(URL, USUARIO, SENHA)
+    }
+
+    static <T> T executar(String sql, Closure<T> acao) {
+        conectar().withCloseable { Connection conexao ->
+            conexao.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+                acao(statement)
+            }
+        }
     }
 }

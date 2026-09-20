@@ -16,10 +16,10 @@ class Empresa extends TipoPessoa {
 
     @Override
     void exibirDados() {
-        println "\nEmpresa: ${nome}"
+        println "\nID: ${id} | Empresa: ${nome}"
         println "email: ${email}"
         println "CNPJ: ${cnpj}"
-        println "pais: ${pais}"
+        println "País: ${pais}"
         println "CEP: ${cep}"
         println "Descrição: ${descricao}"
     }

@@ -3,11 +3,14 @@ package org.example.dao
 import org.example.ConexaoBanco
 import org.example.Match
 
-import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
 class MatchDAO {
+
+    final CandidatoDAO candidatoDAO = new CandidatoDAO()
+    final EmpresaDAO empresaDAO = new EmpresaDAO()
+    final VagaDAO vagaDAO = new VagaDAO()
 
     boolean criarMatchSePossivel(Integer idCandidato, Integer idEmpresa, Integer idVaga) {
         String sql = """
@@ -24,49 +27,35 @@ class MatchDAO {
                 ON CONFLICT (id_candidato,id_empresa,id_vaga) DO NOTHING
         """
 
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setInt(1, idCandidato)
-        statement.setInt(2, idEmpresa)
-        statement.setInt(3, idVaga)
-
-        int linhasAfetadas = statement.executeUpdate()
-
-        statement.close()
-        conexao.close()
-
-        return linhasAfetadas > 0
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setInt(1, idCandidato)
+            statement.setInt(2, idEmpresa)
+            statement.setInt(3, idVaga)
+            statement.executeUpdate() > 0
+        }
     }
 
     List<Match> listar() {
-
-        List<Match> matches = []
-
         String sql = """
             SELECT * FROM matches ORDER BY id
         """
 
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-        ResultSet resultado = statement.executeQuery()
-
-        CandidatoDAO candidatoDAO = new CandidatoDAO()
-        EmpresaDAO empresaDAO = new EmpresaDAO()
-        VagaDAO vagaDAO = new VagaDAO()
-
-        while (resultado.next()) {
-            def candidato = candidatoDAO.buscarPorId(resultado.getInt("id_candidato"))
-            def empresa = empresaDAO.buscarPorId(resultado.getInt("id_empresa"))
-            def vaga = vagaDAO.buscarPorId(resultado.getInt("id_vaga"))
-
-            matches << new Match(candidato, empresa, vaga)
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.executeQuery().withCloseable { ResultSet resultado ->
+                List<Match> matches = []
+                while (resultado.next()) {
+                    matches << mapearMatch(resultado)
+                }
+                return matches
+            }
         }
+    }
 
-        resultado.close()
-        statement.close()
-        conexao.close()
-
-        return matches
+    Match mapearMatch(ResultSet resultado) {
+        return new Match(
+                candidatoDAO.buscarPorId(resultado.getInt("id_candidato")),
+                empresaDAO.buscarPorId(resultado.getInt("id_empresa")),
+                vagaDAO.buscarPorId(resultado.getInt("id_vaga"))
+        )
     }
 }

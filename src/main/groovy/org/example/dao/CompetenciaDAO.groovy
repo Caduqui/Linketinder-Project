@@ -3,7 +3,6 @@ package org.example.dao
 import org.example.Competencia
 import org.example.ConexaoBanco
 
-import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
@@ -15,86 +14,73 @@ import java.sql.ResultSet
 class CompetenciaDAO {
 
     void inserir(Competencia competencia) {
-
         String sql = """
             INSERT INTO competencias (nome)
             VALUES (?)
             RETURNING id
         """
 
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-        statement.setString(1, competencia.nome)
-        ResultSet resultado = statement.executeQuery()
-
-        if (resultado.next()) {
-            competencia.id = resultado.getInt("id")
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setString(1, competencia.nome)
+            statement.executeQuery().withCloseable { ResultSet resultado ->
+                if (resultado.next()) {
+                    competencia.id = resultado.getInt("id")
+                }
+            }
         }
-
-        resultado.close()
-        statement.close()
-        conexao.close()
     }
 
     List<Competencia> listar() {
-
-        List<Competencia> competencias = []
-
         String sql = """
             SELECT * FROM competencias ORDER BY id
         """
 
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-        ResultSet resultado = statement.executeQuery()
-
-        while (resultado.next()) {
-
-            Competencia competencia = new Competencia(resultado.getString("nome"))
-            competencia.id = resultado.getInt("id")
-            competencias << competencia
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.executeQuery().withCloseable { ResultSet resultado ->
+                List<Competencia> competencias = []
+                while (resultado.next()) {
+                    competencias << mapearCompetencia(resultado)
+                }
+                return competencias
+            }
         }
-
-        resultado.close()
-        statement.close()
-        conexao.close()
-
-        return competencias
     }
 
     void atualizar(Competencia competencia) {
-
         String sql = """
             UPDATE competencias 
                 SET nome = ?
                 WHERE id = ? 
         """
 
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setString(1, competencia.nome)
-        statement.setInt(2, competencia.id)
-        statement.executeUpdate()
-        statement.close()
-        conexao.close()
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setString(1, competencia.nome)
+            statement.setInt(2, competencia.id)
+            statement.executeUpdate()
+        }
     }
 
     void deletar(Integer id) {
-
         String sql = """
             DELETE FROM competencias
                 WHERE id = ?
         """
 
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setInt(1, id)
+            statement.executeUpdate()
+        }
+    }
 
-        statement.setInt(1, id)
-        statement.executeUpdate()
+    Competencia buscarPorId(Integer id) {
+        String sql = """
+            SELECT * FROM competencias WHERE id = ?
+        """
 
-        statement.close()
-        conexao.close()
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setInt(1, id)
+            buscarUma(statement)
+        }
     }
 
     Competencia buscarPorNome(String nome) {
@@ -102,82 +88,47 @@ class CompetenciaDAO {
             SELECT * FROM competencias WHERE nome = ?
         """
 
-        Connection conexao  = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setString(1, nome)
-
-        ResultSet resultado = statement.executeQuery()
-
-        Competencia competencia = null
-
-        if (resultado.next()) {
-            competencia = new Competencia(resultado.getString("nome"))
-            competencia.id = resultado.getInt("id")
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setString(1, nome)
+            buscarUma(statement)
         }
+    }
 
-        resultado.close()
-        statement.close()
-        conexao.close()
+    Competencia buscarOuInserir(String nome) {
+        Competencia competencia = buscarPorNome(nome)
+
+        if (competencia == null) {
+            competencia = new Competencia(nome)
+            inserir(competencia)
+        }
 
         return competencia
     }
 
-    Competencia buscarPorId(Integer id) {
-
+    boolean estaVinculadoACandidatoOuVaga (Integer id) {
         String sql = """
-            SELECT * FROM competencias WHERE id = ?
+            SELECT EXISTS (SELECT 1 FROM candidato_competencia WHERE id_competencia = ?)
+                OR EXISTS (SELECT 1 FROM vaga_competencia WHERE id_competencia = ?) AS vinculada
         """
 
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setInt(1, id)
-        ResultSet resultado = statement.executeQuery()
-
-        Competencia competencia = null
-
-        if (resultado.next()) {
-            competencia = new Competencia(resultado.getString("nome"))
-            competencia.id = resultado.getInt("id")
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setInt(1, id)
+            statement.setInt(2, id)
+            statement.executeQuery().withCloseable { ResultSet resultado ->
+                resultado.next() && resultado.getBoolean("vinculada")
+            }
         }
+    }
 
-        resultado.close()
-        statement.close()
-        conexao.close()
+    private static Competencia buscarUma(PreparedStatement statement) {
+        statement.executeQuery().withCloseable { ResultSet resultado ->
+            resultado.next() ? mapearCompetencia(resultado) : null
+        }
+    }
 
+    private static Competencia mapearCompetencia(ResultSet resultado) {
+        Competencia competencia = new Competencia(resultado.getString("nome"))
+        competencia.id = resultado.getInt("id")
         return competencia
     }
-
-    // impede de excluir uma competencia se ela estiver associado a um candidato
-    boolean estaEmUso (Integer id) {
-        String sql = """
-            SELECT
-                (SELECT COUNT(*) FROM candidato_competencia
-                WHERE id_competencia = ?) +
-                (SELECT COUNT(*) FROM vaga_competencia
-                WHERE id_competencia = ?) AS quantidade
-        """
-
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setInt(1, id)
-        statement.setInt(2, id)
-
-        ResultSet resultado = statement.executeQuery()
-
-        boolean emUso = false
-
-        if (resultado.next()) {
-            emUso = resultado.getInt("quantidade") > 0
-        }
-
-        resultado.close()
-        statement.close()
-        conexao.close()
-
-        return emUso
-    }
-
 }

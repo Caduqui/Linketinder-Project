@@ -2,10 +2,8 @@ package org.example.dao
 
 import org.example.Competencia
 import org.example.ConexaoBanco
-import org.example.Empresa
 import org.example.Vaga
 
-import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
@@ -16,144 +14,25 @@ import java.sql.ResultSet
 
 class VagaDAO {
 
+    private final CompetenciaDAO competenciaDAO = new CompetenciaDAO()
+    private final EmpresaDAO empresaDAO = new EmpresaDAO()
+
     void inserir(Vaga vaga) {
 
         String sql = """
             INSERT INTO vagas (nome, descricao, estado, cidade, id_empresa) VALUES (?, ?, ?, ?, ?) RETURNING id
         """
 
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setString(1, vaga.nome)
-        statement.setString(2, vaga.descricao)
-        statement.setString(3, vaga.estado)
-        statement.setString(4, vaga.cidade)
-        statement.setInt(5, vaga.empresa.id)
-
-        ResultSet resultado = statement.executeQuery()
-
-        if (resultado.next()) {
-            vaga.id = resultado.getInt("id")
-        }
-
-        resultado.close()
-        statement.close()
-        conexao.close()
-
-        CompetenciaDAO competenciaDAO = new CompetenciaDAO()
-
-        vaga.competencias.each { nomeCompetencia ->
-
-            Competencia competencia =
-                    competenciaDAO.buscarPorNome(nomeCompetencia)
-
-            if (competencia == null) {
-                competencia = new Competencia(nomeCompetencia)
-                competenciaDAO.inserir(competencia)
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            preencherDados(statement, vaga)
+            statement.executeQuery().withCloseable { ResultSet resultado ->
+                if (resultado.next()) {
+                    vaga.id = resultado.getInt("id")
+                }
             }
-
-            inserirRelacaoVagaCompetencia(
-                    vaga.id,
-                    competencia.id
-            )
-        }
-    }
-
-    void inserirRelacaoVagaCompetencia(
-            Integer idVaga,
-            Integer idCompetencia
-    ) {
-
-        String sql = """
-            INSERT INTO vaga_competencia (id_vaga, id_competencia) VALUES (?, ?)
-        """
-
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setInt(1, idVaga)
-        statement.setInt(2, idCompetencia)
-
-        statement.executeUpdate()
-
-        statement.close()
-        conexao.close()
-    }
-
-    List<String> buscarCompetenciasDaVaga(Integer idVaga) {
-
-        List<String> competencias = []
-
-        String sql = """
-            SELECT comp.nome FROM competencias AS comp, vaga_competencia AS vc
-            WHERE comp.id = vc.id_competencia
-            AND vc.id_vaga = ?
-        """
-
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setInt(1, idVaga)
-
-        ResultSet resultado = statement.executeQuery()
-
-        while (resultado.next()) {
-            competencias << resultado.getString("nome")
         }
 
-        resultado.close()
-        statement.close()
-        conexao.close()
-
-        return competencias
-    }
-
-    List<Vaga> listar() {
-
-        List<Vaga> vagas = []
-
-        String sql = """
-            SELECT * FROM vagas ORDER BY id
-        """
-
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-        ResultSet resultado = statement.executeQuery()
-
-        EmpresaDAO empresaDAO = new EmpresaDAO()
-
-        while (resultado.next()) {
-
-            Empresa empresa =
-                    empresaDAO.buscarPorId(
-                            resultado.getInt("id_empresa")
-                    )
-
-            List<String> competencias =
-                    buscarCompetenciasDaVaga(
-                            resultado.getInt("id")
-                    )
-
-            Vaga vaga = new Vaga(
-                    resultado.getString("nome"),
-                    resultado.getString("descricao"),
-                    resultado.getString("estado"),
-                    resultado.getString("cidade"),
-                    empresa,
-                    competencias
-            )
-
-            vaga.id = resultado.getInt("id")
-
-            vagas << vaga
-        }
-
-        resultado.close()
-        statement.close()
-        conexao.close()
-
-        return vagas
+        salvarCompetencias(vaga)
     }
 
     void atualizar(Vaga vaga) {
@@ -164,163 +43,124 @@ class VagaDAO {
             WHERE id = ?
         """
 
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            preencherDados(statement, vaga)
+            statement.setInt(6, vaga.id)
+            statement.executeUpdate()
+        }
 
+        removerCompetenciasDaVaga(vaga.id)
+        salvarCompetencias(vaga)
+    }
+
+    void deletar(Integer id) {
+        ["vaga_competencia", "curtida_candidato_vaga", "curtida_empresa_candidato", "matches"].each { String tabela ->
+            removerRegistrosDaVaga(tabela, id)
+        }
+
+        ConexaoBanco.executar("DELETE FROM vagas WHERE id = ?") { PreparedStatement statement ->
+            statement.setInt(1, id)
+            statement.executeUpdate()
+        }
+    }
+
+    List<Vaga> listar() {
+        return buscarVagas("SELECT * FROM vagas ORDER BY id")
+    }
+
+    List<Vaga> listarPorEmpresa(Integer idEmpresa) {
+        return buscarVagas("SELECT * FROM vagas WHERE id_empresa = ? ORDER BY id", idEmpresa)
+    }
+
+    Vaga buscarPorId(Integer id) {
+        List<Vaga> vagas = buscarVagas("SELECT * FROM vagas WHERE id = ?", id)
+        return vagas ? vagas.first() : null
+    }
+
+    List<Vaga> buscarVagas( String sql, Integer parametro = null ) {
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            if (parametro != null) {
+                statement.setInt(1, parametro)
+            }
+            statement.executeQuery().withCloseable { ResultSet resultado ->
+                List<Vaga> vagas = []
+                while (resultado.next()) {
+                    vagas << mapearVaga(resultado)
+                }
+                return vagas
+            }
+        }
+    }
+
+    List<String> buscarCompetenciasDaVaga(Integer idVaga) {
+        String sql = """
+            SELECT comp.nome FROM competencias AS comp, vaga_competencia AS vc
+            WHERE comp.id = vc.id_competencia
+            AND vc.id_vaga = ?
+        """
+
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setInt(1, idVaga)
+            statement.executeQuery().withCloseable { ResultSet resultado ->
+                List<String> competencias = []
+                while (resultado.next()) {
+                    competencias << resultado.getString("nome")
+                }
+                return competencias
+            }
+        }
+    }
+
+    void removerCompetenciasDaVaga(Integer idVaga) {
+        removerRegistrosDaVaga("vaga_competencia", idVaga)
+    }
+
+    void inserirRelacaoVagaCompetencia( Integer idVaga, Integer idCompetencia) {
+        String sql = """
+            INSERT INTO vaga_competencia (id_vaga, id_competencia) VALUES (?, ?)
+        """
+
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setInt(1, idVaga)
+            statement.setInt(2, idCompetencia)
+            statement.executeUpdate()
+        }
+    }
+
+    void salvarCompetencias(Vaga vaga) {
+        vaga.competencias.each { String nomeCompetencia ->
+            Competencia competencia = competenciaDAO.buscarOuInserir(nomeCompetencia)
+            inserirRelacaoVagaCompetencia(vaga.id, competencia.id)
+        }
+    }
+
+    static void removerRegistrosDaVaga(String tabela, Integer idVaga) {
+        ConexaoBanco.executar("DELETE FROM ${tabela} WHERE id_vaga = ?") { PreparedStatement statement ->
+            statement.setInt(1, idVaga)
+            statement.executeUpdate()
+        }
+    }
+
+    static void preencherDados(PreparedStatement statement, Vaga vaga) {
         statement.setString(1, vaga.nome)
         statement.setString(2, vaga.descricao)
         statement.setString(3, vaga.estado)
         statement.setString(4, vaga.cidade)
         statement.setInt(5, vaga.empresa.id)
-        statement.setInt(6, vaga.id)
-
-        statement.executeUpdate()
-
-        statement.close()
-        conexao.close()
-
-        removerCompetenciasDaVaga(vaga.id)
-
-        CompetenciaDAO competenciaDAO = new CompetenciaDAO()
-
-        vaga.competencias.each { nomeCompetencia ->
-
-            Competencia competencia =
-                    competenciaDAO.buscarPorNome(nomeCompetencia)
-
-            if (competencia == null) {
-                competencia = new Competencia(nomeCompetencia)
-                competenciaDAO.inserir(competencia)
-            }
-
-            inserirRelacaoVagaCompetencia(
-                    vaga.id,
-                    competencia.id
-            )
-        }
     }
 
-    void removerCompetenciasDaVaga(Integer idVaga) {
+    Vaga mapearVaga(ResultSet resultado) {
+        Integer id = resultado.getInt("id")
 
-        String sql = """
-            DELETE FROM vaga_competencia
-            WHERE id_vaga = ?
-        """
-
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setInt(1, idVaga)
-
-        statement.executeUpdate()
-
-        statement.close()
-        conexao.close()
-    }
-
-    void deletar(Integer id) {
-
-        removerCompetenciasDaVaga(id)
-
-        String sql = """
-            DELETE FROM vagas
-            WHERE id = ?
-        """
-
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setInt(1, id)
-
-        statement.executeUpdate()
-
-        statement.close()
-        conexao.close()
-    }
-
-
-    Vaga buscarPorId(Integer id) {
-
-        String sql = """
-            SELECT * FROM vagas
-            WHERE id = ?
-        """
-
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setInt(1, id)
-        ResultSet resultado = statement.executeQuery()
-
-        Vaga vaga = null
-
-        if (resultado.next()) {
-
-            EmpresaDAO empresaDAO = new EmpresaDAO()
-
-            Empresa empresa = empresaDAO.buscarPorId(resultado.getInt("id_empresa"))
-            List<String> competencias = buscarCompetenciasDaVaga(id)
-            vaga = new Vaga(
-                    resultado.getString("nome"),
-                    resultado.getString("descricao"),
-                    resultado.getString("estado"),
-                    resultado.getString("cidade"),
-                    empresa,
-                    competencias
-            )
-            vaga.id = resultado.getInt("id")
-        }
-
-        resultado.close()
-        statement.close()
-        conexao.close()
-
+        Vaga vaga = new Vaga(
+                resultado.getString("nome"),
+                resultado.getString("descricao"),
+                resultado.getString("estado"),
+                resultado.getString("cidade"),
+                empresaDAO.buscarPorId(resultado.getInt("id_empresa")),
+                buscarCompetenciasDaVaga(id)
+        )
+        vaga.id = id
         return vaga
     }
-
-    List<Vaga> listarPorEmpresa(Integer idEmpresa) {
-        List<Vaga> vagas = []
-
-        String sql = """
-            SELECT * FROM vagas
-            WHERE id_empresa = ?
-            ORDER BY id
-        """
-
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setInt(1, idEmpresa)
-
-        ResultSet resultado = statement.executeQuery()
-
-        EmpresaDAO empresaDAO = new EmpresaDAO()
-        Empresa empresa = empresaDAO.buscarPorId(idEmpresa)
-
-        while(resultado.next()) {
-
-            Integer idVaga = resultado.getInt("id")
-
-            List<String> competencias = buscarCompetenciasDaVaga(idVaga)
-
-            Vaga vaga = new Vaga(
-                    resultado.getString("nome"),
-                    resultado.getString("descricao"),
-                    resultado.getString("estado"),
-                    resultado.getString("cidade"),
-                    empresa,
-                    competencias
-            )
-
-            vaga.id = idVaga
-            vagas << vaga
-        }
-
-        resultado.close()
-        statement.close()
-        conexao.close()
-
-        return vagas
-    }
-
 }

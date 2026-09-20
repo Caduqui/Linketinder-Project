@@ -1,9 +1,14 @@
 package org.example
 
-import org.example.dao.CandidatoDAO
-import org.example.dao.CompetenciaDAO
-import org.example.dao.EmpresaDAO
-import org.example.dao.VagaDAO
+import org.example.Cadastro.CadastroCandidato
+import org.example.Cadastro.CadastroCompetencia
+import org.example.Cadastro.CadastroCrud
+import org.example.Cadastro.CadastroCurtida
+import org.example.Cadastro.CadastroEmpresa
+import org.example.Cadastro.CadastroVaga
+import org.example.Cadastro.EntradaDados
+
+import java.sql.SQLException
 
 /**
  *
@@ -12,226 +17,95 @@ import org.example.dao.VagaDAO
 
 class Main {
 
-    static CandidatoDAO candidatoDAO = new CandidatoDAO()
-    static EmpresaDAO empresaDAO = new EmpresaDAO()
-    static CompetenciaDAO competenciaDAO = new CompetenciaDAO()
-    static VagaDAO vagaDAO = new VagaDAO()
-    static Scanner scanner = new Scanner(System.in)
-    static Cadastro cadastro
+    static final String OPCAO_VOLTAR = "0"
+    static final List<String> OPCOES_CRUD = ["Listar", "Cadastrar", "Atualizar", "Excluir"]
+
+    static final Scanner scanner = new Scanner(System.in)
+    static final EntradaDados entrada = new EntradaDados(new ScannerLeitorEntrada(scanner))
+    static final CadastroCandidato cadastroCandidato = new CadastroCandidato(entrada)
+    static final CadastroEmpresa cadastroEmpresa = new CadastroEmpresa(entrada)
+    static final CadastroCompetencia cadastroCompetencia = new CadastroCompetencia(entrada)
+    static final CadastroVaga cadastroVaga = new CadastroVaga(entrada, cadastroEmpresa)
+    static final CadastroCurtida cadastroCurtida = new CadastroCurtida(cadastroCandidato, cadastroEmpresa, cadastroVaga)
 
     static void main(String[] args) {
-        cadastro = new Cadastro(new ScannerLeitorEntrada(scanner))
-        menu()
-    }
-
-    static void menu() {
         while (true) {
-            println "\n1- Candidatos"
-            println "2- Empresas"
-            println "3- Competências"
-            println "4- Vagas"
-            println "5- Venha encontrar seu match"
-            println "0- Sair"
-            print "Escolha sua opção: "
+            exibirOpcoes("Bem vindo ao linketinder", ["Candidatos", "Empresas", "Competências", "Vagas", "Venha encontrar seu match"], "Sair")
+            String opcao = lerOpcao()
+            if (opcao == OPCAO_VOLTAR) {
+                return
+            }
 
-            switch (scanner.nextLine().trim()) {
-                case "1":
-                    menuCandidatos()
-                    break
-                case "2":
-                    menuEmpresas()
-                    break
-                case "3":
-                    menuCompetencias()
-                    break
-                case "4":
-                    menuVagas()
-                    break
-                case "5":
-                    menuCurtidas()
-                    break
-                case "0":
-                    return
-                default:
-                    println "Opção inválida."
+            try {
+                abrirMenu(opcao)
+            } catch (SQLException e) {
+                println "Erro ao acessar o banco de dados: ${e.message}"
             }
         }
     }
 
-    static void menuCandidatos() {
-        while (true) {
-            println "\nCANDIDATOS"
-            println "1- Listar"
-            println "2- Cadastrar"
-            println "3- Atualizar"
-            println "4- Excluir"
-            println "0- Voltar"
-            print "Escolha sua opção: "
-
-            switch (scanner.nextLine().trim()) {
-                case "1":
-                    candidatoDAO.listar().each {
-                        it.exibirDados()
-                    }
-                    break
-                case "2":
-                    cadastro.cadastrarCandidato()
-                    println "Candidato cadastrado com sucesso!"
-                    break
-                case "3":
-                    cadastro.atualizarCandidato()
-                    println "Candidato atualizado com sucesso!"
-                    break
-                case "4":
-                    if (cadastro.excluirCandidato()) {
-                        println "Candidato excluído com sucesso!"
-                    }
-
-                    break
-                case "0":
-                    return
-                default:
-                    println "Opção inválida."
-            }
+    static void abrirMenu(String opcao) {
+        switch (opcao) {
+            case "1":
+                menuCrud("Candidatos", cadastroCandidato)
+                break
+            case "2":
+                menuCrud("Empresas", cadastroEmpresa)
+                break
+            case "3":
+                menuCrud("Competencias", cadastroCompetencia)
+                break
+            case "4":
+                menuCrud("Vagas", cadastroVaga)
+                break
+            case "5":
+                menuCurtidas()
+                break
+            default:
+                println "Opção inválida."
         }
     }
 
-    static void menuEmpresas() {
+    static void menuCrud(String titulo, CadastroCrud cadastro) {
         while (true) {
-            println "\nEMPRESAS"
-            println "1- Listar"
-            println "2- Cadastrar"
-            println "3- Atualizar"
-            println "4- Excluir"
-            println "0- Voltar"
-            print "Escolha sua opção: "
+            exibirOpcoes(titulo, OPCOES_CRUD, "Voltar")
 
-            switch (scanner.nextLine().trim()) {
+            switch (lerOpcao()) {
                 case "1":
-                    empresaDAO.listar().each {
-                        it.exibirDados()
-                    }
+                    cadastro.listar()
                     break
                 case "2":
-                    cadastro.cadastrarEmpresa()
-                    println "Empresa cadastrada com sucesso!"
+                    cadastro.cadastrar()
                     break
                 case "3":
-                    cadastro.atualizarEmpresa()
-                    println "Empresa atualizada com sucesso!"
+                    cadastro.atualizar()
                     break
                 case "4":
-                    cadastro.excluirEmpresa()
-                    println "Empresa excluída com sucesso!"
+                    cadastro.excluir()
                     break
-                case "0":
+                case OPCAO_VOLTAR:
                     return
                 default:
-                    println "Opção inválida."
-            }
-        }
-    }
-
-    static void menuCompetencias() {
-        while (true) {
-            println "\nCOMPETÊNCIAS"
-            println "1- Listar"
-            println "2- Cadastrar"
-            println "3- Atualizar"
-            println "4- Excluir"
-            println "0- Voltar"
-            print "Escolha sua opção: "
-
-            switch (scanner.nextLine().trim()) {
-                case "1":
-                    competenciaDAO.listar().each {
-                        it.exibirDados()
-                    }
-                    break
-                case "2":
-                    cadastro.cadastrarCompetencia()
-                    println "Competência cadastrada com sucesso!"
-                    break
-                case "3":
-                    cadastro.atualizarCompetencia()
-                    println "Competência atualizada com sucesso!"
-                    break
-                case "4":
-                    cadastro.excluirCompetencia()
-                    println "Competência excluída com sucesso!"
-                    break
-                case "0":
-                    return
-                default:
-                    println "Opção inválida."
-            }
-        }
-    }
-
-    static void menuVagas() {
-        while (true) {
-            println "\nVAGAS"
-            println "1- Listar"
-            println "2- Cadastrar"
-            println "3- Atualizar"
-            println "4- Excluir"
-            println "0- Voltar"
-            print "Escolha sua opção: "
-
-            switch (scanner.nextLine().trim()) {
-                case "1":
-                    vagaDAO.listar().each {
-                        it.exibirDados()
-                    }
-                    break
-                case "2":
-                    cadastro.cadastrarVaga()
-                    println "Vaga cadastrada com sucesso!"
-                    break
-                case "3":
-                    cadastro.atualizarVaga()
-                    println "Vaga atualizada com sucesso!"
-                    break
-                case "4":
-                    cadastro.excluirVaga()
-                    println "Vaga excluída com sucesso!"
-                    break
-                case "0":
-                    return
-                default:
-                    println "Opção inválida."
+                    println "Opção inválida"
             }
         }
     }
 
     static void menuCurtidas() {
         while (true) {
-            println "\nMATCHES"
-            println "1- Candidato curtir uma vaga"
-            println "2- Empresa curtir um candidato"
-            println "3- Listar matches"
-            println "0- Voltar"
-            print "Escolha sua opção: "
+            exibirOpcoes("Matches", ["Candidato curtir uma vaga", "Empresa curtir um candidato", "Listar matches"], "Voltar")
 
-            switch (scanner.nextLine().trim()) {
+            switch (lerOpcao()) {
                 case "1":
-                    cadastro.candidatoCurtirVaga()
+                    cadastroCurtida.candidatoCurtirVaga()
                     break
                 case "2":
-                    cadastro.empresaCurtirCandidato()
+                    cadastroCurtida.empresaCurtirCandidato()
                     break
                 case "3":
-                    List<Match> matches = cadastro.listarMatches()
-
-                    if (matches.isEmpty()) {
-                        println "\nNenhum match ocorreu até o momento"
-                    } else {
-                        matches.each {
-                            it.exibirMatch()
-                        }
-                    }
+                    cadastroCurtida.listarMatches()
                     break
-                case "0":
+                case OPCAO_VOLTAR:
                     return
                 default:
                     println "Opção inválida."
@@ -239,5 +113,16 @@ class Main {
         }
     }
 
-}
+    static void exibirOpcoes(String titulo, List<String> opcoes, String textoVoltar) {
+        println "\n${titulo}"
+        opcoes.eachWithIndex{ String opcao, int indice ->
+            println "${indice + 1}- ${opcao}"
+        }
+        println "${OPCAO_VOLTAR}- ${textoVoltar}"
+        print "Escolha sua opção: "
+    }
 
+    static String lerOpcao() {
+        return scanner.nextLine().trim()
+    }
+}

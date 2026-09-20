@@ -5,18 +5,15 @@ class Match {
     Empresa empresa
     Vaga vaga
 
-    Match(candidato, empresa, vaga) {
+    Match(Candidato candidato, Empresa empresa, Vaga vaga) {
         this.candidato = candidato
         this.empresa = empresa
         this.vaga = vaga
     }
 
-    void exibirMatch() {
-        println "\nCandidatos e Vagas que houveram matches:\n"
-        println "Candidato: ${candidato.nome}"
-        println "E-mail do candidato: ${candidato.email}"
+    void exibirDados() {
+        println "\nCandidato: ${candidato.nome} (${candidato.email})"
         println "Vaga: ${vaga.nome}"
-        println "Empresa: ${empresa.nome}"
-        println "E-mail da empresa: ${empresa.email}"
+        println "Empresa: ${empresa.nome} (${empresa.email})"
     }
 }

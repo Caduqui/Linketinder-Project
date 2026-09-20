@@ -4,7 +4,6 @@ import org.example.Candidato
 import org.example.Competencia
 import org.example.ConexaoBanco
 
-import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Date
@@ -16,6 +15,8 @@ import java.sql.Date
 
 class CandidatoDAO {
 
+    private final CompetenciaDAO competenciaDAO = new CompetenciaDAO()
+
     void inserir(Candidato candidato) {
 
         String sql = """
@@ -23,199 +24,132 @@ class CandidatoDAO {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
         """
 
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setString(1, candidato.nome)
-        statement.setString(2, candidato.sobrenome)
-        statement.setDate(3, Date.valueOf(candidato.dataNascimento.toString()))
-        statement.setString(4, candidato.email)
-        statement.setString(5, candidato.cpf)
-        statement.setString(6, candidato.pais)
-        statement.setString(7, candidato.cep)
-        statement.setString(8, candidato.descricao)
-        statement.setString(9, candidato.senha)
-        statement.setString(10, candidato.formacao)
-
-        ResultSet resultado = statement.executeQuery()
-
-        if (resultado.next()) {
-            candidato.id = resultado.getInt("id")
-        }
-
-        resultado.close()
-        statement.close()
-        conexao.close()
-
-
-        CompetenciaDAO competenciaDAO = new CompetenciaDAO()
-
-        candidato.competencias.each { nomeCompetencia ->
-
-            Competencia competencia =
-                    competenciaDAO.buscarPorNome(nomeCompetencia)
-
-            if (competencia == null) {
-                competencia = new Competencia(nomeCompetencia)
-                competenciaDAO.inserir(competencia)
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            preencherDados(statement, candidato)
+            statement.executeQuery().withCloseable { ResultSet resultado ->
+                if (resultado.next()) {
+                    candidato.id = resultado.getInt("id")
+                }
             }
-
-            inserirRelacaoCandidatoCompetencia(
-                    candidato.id,
-                    competencia.id
-            )
         }
+
+        salvarCompetencias(candidato)
     }
 
     Candidato buscarPorId(Integer id) {
-
         String sql = """
             SELECT * FROM candidatos WHERE id = ?
         """
 
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setInt(1, id)
-        ResultSet resultado = statement.executeQuery()
-        Candidato candidato = null
-
-        if (resultado.next()) {
-
-            List<String> competencias = buscarCompetenciasDoCandidato(id)
-
-            candidato = new Candidato(
-                    resultado.getString("nome"),
-                    resultado.getString("sobrenome"),
-                    resultado.getDate("data_nascimento").toString(),
-                    resultado.getString("email"),
-                    resultado.getString("cpf"),
-                    resultado.getString("pais"),
-                    resultado.getString("cep"),
-                    resultado.getString("descricao"),
-                    resultado.getString("senha"),
-                    resultado.getString("formacao"),
-                    competencias
-            )
-
-            candidato.id = resultado.getInt("id")
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setInt(1, id)
+            statement.executeQuery().withCloseable { ResultSet resultado ->
+                resultado.next() ? mapearCandidato(resultado) : null
+            }
         }
-
-        resultado.close()
-        statement.close()
-        conexao.close()
-
-        return candidato
-    }
-
-    void inserirRelacaoCandidatoCompetencia(
-            Integer idCandidato,
-            Integer idCompetencia
-    ) {
-
-        String sql = """
-            INSERT INTO candidato_competencia (id_candidato, id_competencia) VALUES (?, ?)
-        """
-
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setInt(1, idCandidato)
-        statement.setInt(2, idCompetencia)
-
-        statement.executeUpdate()
-
-        statement.close()
-        conexao.close()
     }
 
     List<Candidato> listar() {
-
-        List<Candidato> candidatos = []
-
         String sql = """
             SELECT * FROM candidatos ORDER BY id
         """
 
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-        ResultSet resultado = statement.executeQuery()
-
-        while (resultado.next()) {
-
-            List<String> competencias =
-                    buscarCompetenciasDoCandidato(
-                            resultado.getInt("id")
-                    )
-
-            Candidato candidato = new Candidato(
-                    resultado.getString("nome"),
-                    resultado.getString("sobrenome"),
-                    resultado.getDate("data_nascimento").toString(),
-                    resultado.getString("email"),
-                    resultado.getString("cpf"),
-                    resultado.getString("pais"),
-                    resultado.getString("cep"),
-                    resultado.getString("descricao"),
-                    resultado.getString("senha"),
-                    resultado.getString("formacao"),
-                    competencias
-            )
-
-            candidato.id = resultado.getInt("id")
-
-            candidatos << candidato
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.executeQuery().withCloseable { ResultSet resultado ->
+                List<Candidato> candidatos = []
+                while(resultado.next()) {
+                    candidatos << mapearCandidato(resultado)
+                }
+                return candidatos
+            }
         }
-
-        resultado.close()
-        statement.close()
-        conexao.close()
-
-        return candidatos
-    }
-
-    List<String> buscarCompetenciasDoCandidato(Integer idCandidato) {
-
-        List<String> competencias = []
-
-        String sql = """
-            SELECT comp.nome FROM competencias AS comp, candidato_competencia AS cc
-            WHERE comp.id = cc.id_competencia
-            AND cc.id_candidato = ?
-        """
-
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setInt(1, idCandidato)
-
-        ResultSet resultado = statement.executeQuery()
-
-        while (resultado.next()) {
-            competencias << resultado.getString("nome")
-        }
-
-        resultado.close()
-        statement.close()
-        conexao.close()
-
-        return competencias
     }
 
     void atualizar(Candidato candidato) {
-
         String sql = """
             UPDATE candidatos
             SET nome = ?, sobrenome = ?, data_nascimento = ?, email = ?, cpf = ?, pais = ?, cep = ?, descricao = ?, senha = ?, formacao = ?
             WHERE id = ?
         """
 
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            preencherDados(statement, candidato)
+            statement.setInt(11, candidato.id)
+            statement.executeUpdate()
+        }
 
+        removerCompetenciasDoCandidato(candidato.id)
+        salvarCompetencias(candidato)
+    }
+
+
+
+    void deletar(Integer id) {
+        ["candidato_competencia", "curtida_candidato_vaga", "curtida_empresa_candidato", "matches"].each { String tabela ->
+            removerRegistrosDoCandidato(tabela, id)
+        }
+
+        ConexaoBanco.executar("DELETE FROM candidatos WHERE id = ?") { PreparedStatement statement ->
+            statement.setInt(1, id)
+            statement.executeUpdate()
+        }
+    }
+
+    List<String> buscarCompetenciasDoCandidato(Integer idCandidato) {
+        String sql = """
+            SELECT comp.nome FROM competencias AS comp, candidato_competencia AS cc
+            WHERE comp.id = cc.id_competencia
+            AND cc.id_candidato = ?
+        """
+
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setInt(1, idCandidato)
+
+            statement.executeQuery().withCloseable { ResultSet resultado ->
+                List<String> competencias = []
+
+                while (resultado.next()) {
+                    competencias << resultado.getString("nome")
+                }
+                return competencias
+            }
+        }
+    }
+
+    void inserirRelacaoCandidatoCompetencia(Integer idCandidato, Integer idCompetencia) {
+        String sql = """
+            INSERT INTO candidato_competencia (id_candidato, id_competencia) VALUES (?, ?)
+        """
+
+        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setInt(1, idCandidato)
+            statement.setInt(2, idCompetencia)
+            statement.executeUpdate()
+        }
+    }
+
+    void removerCompetenciasDoCandidato(Integer idCandidato) {
+            removerRegistrosDoCandidato("candidato_competencia", idCandidato)
+    }
+
+    void salvarCompetencias(Candidato candidato) {
+        candidato.competencias.each { String nomeCompetencia ->
+            Competencia competencia = competenciaDAO.buscarOuInserir(nomeCompetencia)
+            inserirRelacaoCandidatoCompetencia(candidato.id, competencia.id)
+        }
+    }
+
+    void removerRegistrosDoCandidato(String tabela, Integer idCandidato) {
+        ConexaoBanco.executar("DELETE FROM ${tabela} WHERE id_candidato = ?") { PreparedStatement statement ->
+            statement.setInt(1, idCandidato)
+            statement.executeUpdate()
+        }
+    }
+
+    static void preencherDados(PreparedStatement statement, Candidato candidato) {
         statement.setString(1, candidato.nome)
         statement.setString(2, candidato.sobrenome)
-        statement.setDate(3, Date.valueOf(candidato.dataNascimento.toString()))
+        statement.setDate(3, Date.valueOf(candidato.dataNascimento))
         statement.setString(4, candidato.email)
         statement.setString(5, candidato.cpf)
         statement.setString(6, candidato.pais)
@@ -223,73 +157,27 @@ class CandidatoDAO {
         statement.setString(8, candidato.descricao)
         statement.setString(9, candidato.senha)
         statement.setString(10, candidato.formacao)
-        statement.setInt(11, candidato.id)
-
-        statement.executeUpdate()
-
-        statement.close()
-        conexao.close()
-
-
-        // Remove as relações antigas
-        removerCompetenciasDoCandidato(candidato.id)
-
-        // Cadastra novamente as competências atuais
-        CompetenciaDAO competenciaDAO = new CompetenciaDAO()
-
-        candidato.competencias.each { nomeCompetencia ->
-
-            Competencia competencia =
-                    competenciaDAO.buscarPorNome(nomeCompetencia)
-
-            if (competencia == null) {
-                competencia = new Competencia(nomeCompetencia)
-                competenciaDAO.inserir(competencia)
-            }
-
-            inserirRelacaoCandidatoCompetencia(
-                    candidato.id,
-                    competencia.id
-            )
-        }
     }
 
-    void removerCompetenciasDoCandidato(Integer idCandidato) {
+    Candidato mapearCandidato(ResultSet resultado) {
+        Integer id = resultado.getInt("id")
 
-        String sql = """
-            DELETE FROM candidato_competencia
-            WHERE id_candidato = ?
-        """
+        Candidato candidato = new Candidato(
+                resultado.getString("nome"),
+                resultado.getString("sobrenome"),
+                resultado.getDate("data_nascimento").toLocalDate(),
+                resultado.getString("email"),
+                resultado.getString("cpf"),
+                resultado.getString("pais"),
+                resultado.getString("cep"),
+                resultado.getString("descricao"),
+                resultado.getString("senha"),
+                resultado.getString("formacao"),
+                buscarCompetenciasDoCandidato(id)
+        )
+        candidato.id = id
 
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setInt(1, idCandidato)
-
-        statement.executeUpdate()
-
-        statement.close()
-        conexao.close()
-    }
-
-    void deletar(Integer id) {
-
-        removerCompetenciasDoCandidato(id)
-
-        String sql = """
-            DELETE FROM candidatos
-            WHERE id = ?
-        """
-
-        Connection conexao = ConexaoBanco.conectar()
-        PreparedStatement statement = conexao.prepareStatement(sql)
-
-        statement.setInt(1, id)
-
-        statement.executeUpdate()
-
-        statement.close()
-        conexao.close()
+        return candidato
     }
 
 }

@@ -1,5 +1,7 @@
 package org.example
 
+import java.time.LocalDate
+
 /**
  *
  * @author Guilherme Lima Conte
@@ -8,12 +10,12 @@ package org.example
 class Candidato extends TipoPessoa{
     Integer id
     String sobrenome
-    def dataNascimento
+    LocalDate dataNascimento
     String cpf
     String formacao
     List<String> competencias = []
 
-    Candidato (String nome, String sobrenome, def dataNascimento,String email, String cpf, String pais, String cep, String descricao, String senha, String formacao, List<String> competencias) {
+    Candidato (String nome, String sobrenome, LocalDate dataNascimento,String email, String cpf, String pais, String cep, String descricao, String senha, String formacao, List<String> competencias) {
         super(nome, email, pais, cep, descricao, senha)
         this.sobrenome = sobrenome
         this.cpf = cpf
@@ -28,7 +30,7 @@ class Candidato extends TipoPessoa{
 
     @Override
     void exibirDados() {
-        println "\nCandidato: ${nome} ${sobrenome}"
+        println "\nID: ${id} | Candidato: ${nome} ${sobrenome}"
         println "Data de nascimento: ${dataNascimento}"
         println "email: ${email}"
         println "CPF: ${cpf}"
@@ -36,6 +38,13 @@ class Candidato extends TipoPessoa{
         println "CEP: ${cep}"
         println "Descrição: ${descricao}"
         println "Formação: ${formacao}"
+        println "Competências: ${formatarCompetencias()}"
+    }
+
+    void exibirDadosAnonimos() {
+        println "\nID: ${id}"
+        println "Formação: ${formacao}"
+        println "Descrição: ${descricao}"
         println "Competências: ${formatarCompetencias()}"
     }
 }
