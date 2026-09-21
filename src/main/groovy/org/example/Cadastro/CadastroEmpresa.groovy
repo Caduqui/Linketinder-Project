@@ -1,34 +1,39 @@
 package org.example.Cadastro
 
 import org.example.Empresa
-import org.example.dao.EmpresaDAO
+import org.example.repositorio.EmpresaRepositorio
+
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
 
 class CadastroEmpresa implements CadastroCrud {
 
-    final EmpresaDAO empresaDAO
+    final EmpresaRepositorio empresaRepositorio
     final EntradaDados entrada
 
-    CadastroEmpresa(EntradaDados entrada, EmpresaDAO empresaDAO = new EmpresaDAO()) {
+    CadastroEmpresa(EntradaDados entrada, EmpresaRepositorio empresaRepositorio) {
         this.entrada = entrada
-        this.empresaDAO = empresaDAO
+        this.empresaRepositorio = empresaRepositorio
     }
 
     @Override
     void listar() {
-        empresaDAO.listar().each {
+        empresaRepositorio.listar().each {
             it.exibirDados()
         }
     }
 
     void listarNomes() {
-        empresaDAO.listar().each {
+        empresaRepositorio.listar().each {
             println "ID: ${it.id} - ${it.nome}"
         }
     }
 
     @Override
     boolean cadastrar() {
-        empresaDAO.inserir(lerDadosEmpresa())
+        empresaRepositorio.inserir(lerDadosEmpresa())
         println "Empresa cadastrada com sucesso!"
         return true
     }
@@ -42,7 +47,7 @@ class CadastroEmpresa implements CadastroCrud {
 
         Empresa atualizada = lerDadosEmpresa()
         atualizada.id = empresa.id
-        empresaDAO.atualizar(atualizada)
+        empresaRepositorio.atualizar(atualizada)
         println "Empresa atualizada com sucesso!"
         return true
     }
@@ -54,12 +59,12 @@ class CadastroEmpresa implements CadastroCrud {
             return false
         }
 
-        if (empresaDAO.possuiVagas(empresa.id)) {
+        if (empresaRepositorio.possuiVagas(empresa.id)) {
             println "Não é possível excluir a empresa porque ela possui vagas cadastradas."
             return false
         }
 
-        empresaDAO.deletar(empresa.id)
+        empresaRepositorio.deletar(empresa.id)
         println "Empresa excluída com sucesso!"
         return true
     }
@@ -70,7 +75,7 @@ class CadastroEmpresa implements CadastroCrud {
                 return null
             }
 
-            Empresa empresa = empresaDAO.buscarPorId(id)
+            Empresa empresa = empresaRepositorio.buscarPorId(id)
             if (empresa == null) {
                 println "Empresa não encontrada"
             }

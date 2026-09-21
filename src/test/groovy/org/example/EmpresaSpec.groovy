@@ -1,7 +1,11 @@
 package org.example
 
 import spock.lang.Specification
-import spock.lang.Unroll
+
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
 
 class EmpresaSpec extends Specification {
 

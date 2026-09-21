@@ -14,11 +14,11 @@ class ConexaoBanco {
     static final String USUARIO = "postgres"
     static final String SENHA = "postgres"
 
-    static Connection conectar() {
+    Connection conectar() {
         return DriverManager.getConnection(URL, USUARIO, SENHA)
     }
 
-    static <T> T executar(String sql, Closure<T> acao) {
+    def <T> T executar(String sql, Closure<T> acao) {
         conectar().withCloseable { Connection conexao ->
             conexao.prepareStatement(sql).withCloseable { PreparedStatement statement ->
                 acao(statement)

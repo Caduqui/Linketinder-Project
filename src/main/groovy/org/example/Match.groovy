@@ -1,5 +1,10 @@
 package org.example
 
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
+
 class Match {
     Candidato candidato
     Empresa empresa

@@ -3,6 +3,11 @@ package org.example
 import spock.lang.Specification
 import spock.lang.Unroll
 
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
+
 class VagaSpec extends Specification {
 
     Vaga criarVaga(List<String> competencias = ["Groovy", "SQL"]) {

@@ -1,10 +1,15 @@
 package org.example.Cadastro
 
 import org.example.Candidato
-import org.example.dao.CandidatoDAO
+import org.example.repositorio.CandidatoRepositorio
 import spock.lang.Specification
 
 import java.time.LocalDate
+
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
 
 class CadastroCandidatoSpec extends Specification{
 
@@ -22,10 +27,10 @@ class CadastroCandidatoSpec extends Specification{
             "Competências: " : "Java, Docker"
     ]
 
-    CandidatoDAO candidatoDAO = Mock(CandidatoDAO)
+    CandidatoRepositorio candidatoRepositorio = Mock(CandidatoRepositorio)
 
     CadastroCandidato cadastroCom(Map<String, String> respostas) {
-        return new CadastroCandidato(EntradaFalsa.comRespostas(respostas), candidatoDAO)
+        return new CadastroCandidato(EntradaFalsa.comRespostas(respostas), candidatoRepositorio)
     }
 
     Candidato candidatoExistente(Integer id) {
@@ -52,7 +57,7 @@ class CadastroCandidatoSpec extends Specification{
         boolean cadastrou = cadastro.cadastrar()
 
         then:
-        1 * candidatoDAO.inserir({ Candidato candidato ->
+        1 * candidatoRepositorio.inserir({ Candidato candidato ->
             candidato.nome == "Fernanda" &&
                     candidato.sobrenome == "Costa" &&
                     candidato.dataNascimento == LocalDate.of(1999, 5, 10) &&
@@ -65,13 +70,13 @@ class CadastroCandidatoSpec extends Specification{
     def "atualizar mantém o ID do candidato escolhido"() {
         given:
         CadastroCandidato cadastro = cadastroCom(DADOS_CANDIDATO + ["ID do candidato: ": "1"])
-        candidatoDAO.buscarPorId(1) >> candidatoExistente(1)
+        candidatoRepositorio.buscarPorId(1) >> candidatoExistente(1)
 
         when:
         boolean atualizou = cadastro.atualizar()
 
         then:
-        1 * candidatoDAO.atualizar({ Candidato candidato ->
+        1 * candidatoRepositorio.atualizar({ Candidato candidato ->
             candidato.id == 1 && candidato.nome == "Fernanda"
         })
         atualizou
@@ -80,26 +85,26 @@ class CadastroCandidatoSpec extends Specification{
     def "atualizar não altera nada quando o candidato não existe"() {
         given:
         CadastroCandidato cadastro = cadastroCom(["ID do candidato: ": "99"])
-        candidatoDAO.buscarPorId(99) >> null
+        candidatoRepositorio.buscarPorId(99) >> null
 
         when:
         boolean atualizou = cadastro.atualizar()
 
         then:
-        0 * candidatoDAO.atualizar(_)
+        0 * candidatoRepositorio.atualizar(_)
         !atualizou
     }
 
     def "excluir remove o candidato existente"() {
         given:
         CadastroCandidato cadastro = cadastroCom(["ID do candidato: ": "1"])
-        candidatoDAO.buscarPorId(1) >> candidatoExistente(1)
+        candidatoRepositorio.buscarPorId(1) >> candidatoExistente(1)
 
         when:
         boolean excluiu = cadastro.excluir()
 
         then:
-        1 * candidatoDAO.deletar(1)
+        1 * candidatoRepositorio.deletar(1)
         excluiu
     }
 
@@ -111,8 +116,8 @@ class CadastroCandidatoSpec extends Specification{
         boolean excluiu = cadastro.excluir()
 
         then:
-        0 * candidatoDAO.buscarPorId(_)
-        0 * candidatoDAO.deletar(_)
+        0 * candidatoRepositorio.buscarPorId(_)
+        0 * candidatoRepositorio.deletar(_)
         !excluiu
     }
 

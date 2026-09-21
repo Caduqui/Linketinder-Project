@@ -4,21 +4,26 @@ import org.example.Candidato
 import org.example.Empresa
 import org.example.SaidaConsole
 import org.example.Vaga
-import org.example.dao.CurtidaDAO
-import org.example.dao.MatchDAO
+import org.example.repositorio.CurtidaRepositorio
+import org.example.repositorio.MatchRepositorio
 import spock.lang.Specification
 
 import java.time.LocalDate
+
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
 
 class CadastroCurtidaSpec extends Specification {
 
     CadastroCandidato cadastroCandidato = Mock(CadastroCandidato)
     CadastroEmpresa cadastroEmpresa = Mock(CadastroEmpresa)
     CadastroVaga cadastroVaga = Mock(CadastroVaga)
-    CurtidaDAO curtidaDAO = Mock(CurtidaDAO)
-    MatchDAO matchDAO = Mock(MatchDAO)
+    CurtidaRepositorio curtidaRepositorio = Mock(CurtidaRepositorio)
+    MatchRepositorio matchRepositorio = Mock(MatchRepositorio)
 
-    CadastroCurtida cadastroCurtida = new CadastroCurtida(cadastroCandidato, cadastroEmpresa, cadastroVaga, curtidaDAO, matchDAO)
+    CadastroCurtida cadastroCurtida = new CadastroCurtida(cadastroCandidato, cadastroEmpresa, cadastroVaga, curtidaRepositorio, matchRepositorio)
 
     Candidato candidato = new Candidato(
             "Ana",
@@ -62,13 +67,13 @@ class CadastroCurtidaSpec extends Specification {
         given:
         cadastroCandidato.selecionarCandidato(_) >> candidato
         cadastroVaga.selecionarVaga(_) >> vaga
-        curtidaDAO.candidatoCurtirVaga(1, 10) >> true
+        curtidaRepositorio.candidatoCurtirVaga(1, 10) >> true
 
         when:
         String saida = SaidaConsole.capturar { assert cadastroCurtida.candidatoCurtirVaga() }
 
         then:
-        1 * matchDAO.criarMatchSePossivel(1, 5, 10) >> true
+        1 * matchRepositorio.criarMatchSePossivel(1, 5, 10) >> true
         saida.contains("MATCH")
     }
 
@@ -76,13 +81,13 @@ class CadastroCurtidaSpec extends Specification {
         given:
         cadastroCandidato.selecionarCandidato(_) >> candidato
         cadastroVaga.selecionarVaga(_) >> vaga
-        curtidaDAO.candidatoCurtirVaga(1, 10) >> false
+        curtidaRepositorio.candidatoCurtirVaga(1, 10) >> false
 
         when:
         boolean curtiu = cadastroCurtida.candidatoCurtirVaga()
 
         then:
-        0 * matchDAO.criarMatchSePossivel(*_)
+        0 * matchRepositorio.criarMatchSePossivel(*_)
         !curtiu
     }
 
@@ -96,8 +101,8 @@ class CadastroCurtidaSpec extends Specification {
         boolean curtiu = cadastroCurtida.empresaCurtirCandidato()
 
         then:
-        1 * curtidaDAO.empresaCurtirCandidato(5, 1, 10) >> true
-        1 * matchDAO.criarMatchSePossivel(1, 5, 10) >> false
+        1 * curtidaRepositorio.empresaCurtirCandidato(5, 1, 10) >> true
+        1 * matchRepositorio.criarMatchSePossivel(1, 5, 10) >> false
         curtiu
     }
 
@@ -110,13 +115,13 @@ class CadastroCurtidaSpec extends Specification {
         boolean curtiu = cadastroCurtida.empresaCurtirCandidato()
 
         then:
-        0 * curtidaDAO.empresaCurtirCandidato(*_)
+        0 * curtidaRepositorio.empresaCurtirCandidato(*_)
         !curtiu
     }
 
     def "listarMatches avisa quando ainda não há matches"() {
         given:
-        matchDAO.listar() >> []
+        matchRepositorio.listar() >> []
 
         when:
         String saida = SaidaConsole.capturar { cadastroCurtida.listarMatches() }

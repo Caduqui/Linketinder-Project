@@ -5,6 +5,11 @@ import org.example.LeitorEntrada
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
+
 class EntradaDados {
     static final int TAMANHO_MINIMO_SENHA = 6
     final LeitorEntrada leitor

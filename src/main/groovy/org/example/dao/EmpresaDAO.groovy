@@ -2,6 +2,7 @@ package org.example.dao
 
 import org.example.ConexaoBanco
 import org.example.Empresa
+import org.example.repositorio.EmpresaRepositorio
 
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -11,8 +12,15 @@ import java.sql.ResultSet
  * @author Guilherme Lima Conte
  */
 
-class EmpresaDAO {
+class EmpresaDAO implements EmpresaRepositorio{
 
+    final ConexaoBanco conexaoBanco
+
+    EmpresaDAO(ConexaoBanco conexaoBanco) {
+        this.conexaoBanco = conexaoBanco
+    }
+
+    @Override
     void inserir(Empresa empresa) {
         String sql = """
             INSERT INTO empresas (nome, email, cnpj, pais, cep, descricao, senha)
@@ -20,7 +28,7 @@ class EmpresaDAO {
             RETURNING id
         """
 
-        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
             preencherDados(statement, empresa)
             statement.executeQuery().withCloseable { ResultSet resultado ->
                 if (resultado.next()) {
@@ -30,12 +38,13 @@ class EmpresaDAO {
         }
     }
 
+    @Override
     List<Empresa> listar() {
         String sql = """
             SELECT * FROM empresas ORDER BY id
         """
 
-        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
             statement.executeQuery().withCloseable { ResultSet resultado ->
                 List<Empresa> empresas = []
                 while (resultado.next()) {
@@ -46,6 +55,7 @@ class EmpresaDAO {
         }
     }
 
+    @Override
     void atualizar(Empresa empresa) {
         String sql = """
             UPDATE empresas 
@@ -53,26 +63,28 @@ class EmpresaDAO {
                 WHERE id = ?
             """
 
-        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
             preencherDados(statement, empresa)
             statement.setInt(8, empresa.id)
             statement.executeUpdate()
         }
     }
 
+    @Override
     void deletar(Integer id) {
-        ConexaoBanco.executar("DELETE FROM empresas WHERE id = ?") { PreparedStatement statement ->
+        conexaoBanco.executar("DELETE FROM empresas WHERE id = ?") { PreparedStatement statement ->
             statement.setInt(1, id)
             statement.executeUpdate()
         }
     }
 
+    @Override
     Empresa buscarPorId(Integer id) {
         String sql = """
             SELECT * FROM empresas WHERE id = ?
         """
 
-        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
             statement.setInt(1, id)
             statement.executeQuery().withCloseable { ResultSet resultado ->
                 resultado.next() ? mapearEmpresa(resultado) : null
@@ -80,6 +92,7 @@ class EmpresaDAO {
         }
     }
 
+    @Override
     boolean possuiVagas(Integer idEmpresa) {
 
         String sql = """
@@ -87,7 +100,7 @@ class EmpresaDAO {
                 (SELECT 1 FROM vagas WHERE id_empresa = ?) AS possui
         """
 
-        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
             statement.setInt(1, idEmpresa)
             statement.executeQuery().withCloseable { ResultSet resultado ->
                 resultado.next() && resultado.getBoolean("possui")

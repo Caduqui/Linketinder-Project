@@ -3,6 +3,9 @@ package org.example.dao
 import org.example.Competencia
 import org.example.ConexaoBanco
 import org.example.Vaga
+import org.example.repositorio.CompetenciaRepositorio
+import org.example.repositorio.EmpresaRepositorio
+import org.example.repositorio.VagaRepositorio
 
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -12,18 +15,26 @@ import java.sql.ResultSet
  * @author Guilherme Lima Conte
  */
 
-class VagaDAO {
+class VagaDAO implements VagaRepositorio{
 
-    private final CompetenciaDAO competenciaDAO = new CompetenciaDAO()
-    private final EmpresaDAO empresaDAO = new EmpresaDAO()
+    final ConexaoBanco conexaoBanco
+    final CompetenciaRepositorio competenciaRepositorio
+    final EmpresaRepositorio empresaRepositorio
 
+    VagaDAO(ConexaoBanco conexaoBanco, CompetenciaRepositorio competenciaRepositorio, EmpresaRepositorio empresaRepositorio) {
+        this.conexaoBanco = conexaoBanco
+        this.competenciaRepositorio = competenciaRepositorio
+        this.empresaRepositorio = empresaRepositorio
+    }
+
+    @Override
     void inserir(Vaga vaga) {
 
         String sql = """
             INSERT INTO vagas (nome, descricao, estado, cidade, id_empresa) VALUES (?, ?, ?, ?, ?) RETURNING id
         """
 
-        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
             preencherDados(statement, vaga)
             statement.executeQuery().withCloseable { ResultSet resultado ->
                 if (resultado.next()) {
@@ -35,6 +46,7 @@ class VagaDAO {
         salvarCompetencias(vaga)
     }
 
+    @Override
     void atualizar(Vaga vaga) {
 
         String sql = """
@@ -43,7 +55,7 @@ class VagaDAO {
             WHERE id = ?
         """
 
-        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
             preencherDados(statement, vaga)
             statement.setInt(6, vaga.id)
             statement.executeUpdate()
@@ -53,32 +65,36 @@ class VagaDAO {
         salvarCompetencias(vaga)
     }
 
+    @Override
     void deletar(Integer id) {
         ["vaga_competencia", "curtida_candidato_vaga", "curtida_empresa_candidato", "matches"].each { String tabela ->
             removerRegistrosDaVaga(tabela, id)
         }
 
-        ConexaoBanco.executar("DELETE FROM vagas WHERE id = ?") { PreparedStatement statement ->
+        conexaoBanco.executar("DELETE FROM vagas WHERE id = ?") { PreparedStatement statement ->
             statement.setInt(1, id)
             statement.executeUpdate()
         }
     }
 
+    @Override
     List<Vaga> listar() {
         return buscarVagas("SELECT * FROM vagas ORDER BY id")
     }
 
+    @Override
     List<Vaga> listarPorEmpresa(Integer idEmpresa) {
         return buscarVagas("SELECT * FROM vagas WHERE id_empresa = ? ORDER BY id", idEmpresa)
     }
 
+    @Override
     Vaga buscarPorId(Integer id) {
         List<Vaga> vagas = buscarVagas("SELECT * FROM vagas WHERE id = ?", id)
         return vagas ? vagas.first() : null
     }
 
     List<Vaga> buscarVagas( String sql, Integer parametro = null ) {
-        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
             if (parametro != null) {
                 statement.setInt(1, parametro)
             }
@@ -99,7 +115,7 @@ class VagaDAO {
             AND vc.id_vaga = ?
         """
 
-        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
             statement.setInt(1, idVaga)
             statement.executeQuery().withCloseable { ResultSet resultado ->
                 List<String> competencias = []
@@ -120,7 +136,7 @@ class VagaDAO {
             INSERT INTO vaga_competencia (id_vaga, id_competencia) VALUES (?, ?)
         """
 
-        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
             statement.setInt(1, idVaga)
             statement.setInt(2, idCompetencia)
             statement.executeUpdate()
@@ -129,13 +145,13 @@ class VagaDAO {
 
     void salvarCompetencias(Vaga vaga) {
         vaga.competencias.each { String nomeCompetencia ->
-            Competencia competencia = competenciaDAO.buscarOuInserir(nomeCompetencia)
+            Competencia competencia = competenciaRepositorio.buscarOuInserir(nomeCompetencia)
             inserirRelacaoVagaCompetencia(vaga.id, competencia.id)
         }
     }
 
-    static void removerRegistrosDaVaga(String tabela, Integer idVaga) {
-        ConexaoBanco.executar("DELETE FROM ${tabela} WHERE id_vaga = ?") { PreparedStatement statement ->
+    void removerRegistrosDaVaga(String tabela, Integer idVaga) {
+        conexaoBanco.executar("DELETE FROM ${tabela} WHERE id_vaga = ?") { PreparedStatement statement ->
             statement.setInt(1, idVaga)
             statement.executeUpdate()
         }
@@ -157,7 +173,7 @@ class VagaDAO {
                 resultado.getString("descricao"),
                 resultado.getString("estado"),
                 resultado.getString("cidade"),
-                empresaDAO.buscarPorId(resultado.getInt("id_empresa")),
+                empresaRepositorio.buscarPorId(resultado.getInt("id_empresa")),
                 buscarCompetenciasDaVaga(id)
         )
         vaga.id = id

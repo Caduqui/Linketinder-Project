@@ -4,23 +4,28 @@ import org.example.Candidato
 import org.example.Empresa
 import org.example.Match
 import org.example.Vaga
-import org.example.dao.CurtidaDAO
-import org.example.dao.MatchDAO
+import org.example.repositorio.CurtidaRepositorio
+import org.example.repositorio.MatchRepositorio
+
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
 
 class CadastroCurtida {
 
-    final CurtidaDAO curtidaDAO
-    final MatchDAO matchDAO
+    final CurtidaRepositorio curtidaRepositorio
+    final MatchRepositorio matchRepositorio
     final CadastroCandidato cadastroCandidato
     final CadastroEmpresa cadastroEmpresa
     final CadastroVaga cadastroVaga
 
-    CadastroCurtida(cadastroCandidato, cadastroEmpresa, cadastroVaga, CurtidaDAO curtidaDAO = new CurtidaDAO(), MatchDAO matchDAO = new MatchDAO()) {
+    CadastroCurtida(CadastroCandidato cadastroCandidato, CadastroEmpresa cadastroEmpresa, CadastroVaga cadastroVaga, CurtidaRepositorio curtidaRepositorio, MatchRepositorio matchRepositorio) {
         this.cadastroCandidato = cadastroCandidato
         this.cadastroEmpresa = cadastroEmpresa
         this.cadastroVaga = cadastroVaga
-        this.curtidaDAO = curtidaDAO
-        this.matchDAO = matchDAO
+        this.curtidaRepositorio = curtidaRepositorio
+        this.matchRepositorio = matchRepositorio
     }
 
 
@@ -40,7 +45,7 @@ class CadastroCurtida {
             return false
         }
 
-        if (!curtidaDAO.candidatoCurtirVaga(candidato.id, vaga.id)) {
+        if (!curtidaRepositorio.candidatoCurtirVaga(candidato.id, vaga.id)) {
             println "O candidato já curtiu essa vaga."
             return false
         }
@@ -71,7 +76,7 @@ class CadastroCurtida {
             return false
         }
 
-        if (!curtidaDAO.empresaCurtirCandidato(empresa.id, candidato.id, vaga.id)) {
+        if (!curtidaRepositorio.empresaCurtirCandidato(empresa.id, candidato.id, vaga.id)) {
             println "A empresa já curtiu esse candidato para essa vaga."
             return false
         }
@@ -82,7 +87,7 @@ class CadastroCurtida {
     }
 
     void listarMatches() {
-        List<Match> matches = matchDAO.listar()
+        List<Match> matches = matchRepositorio.listar()
 
         if (matches.isEmpty()) {
             println "\nNenhum match ocorreu até o momento."
@@ -96,7 +101,7 @@ class CadastroCurtida {
     }
 
     void informarMatch(Integer idCandidato, Integer idEmpresa, Integer idVaga) {
-        if (matchDAO.criarMatchSePossivel(idCandidato, idEmpresa, idVaga)) {
+        if (matchRepositorio.criarMatchSePossivel(idCandidato, idEmpresa, idVaga)) {
             println "\nMATCH!! A curtida entre vocês dois foi recíproca!!"
         } else {
             println "ainda não houve match."

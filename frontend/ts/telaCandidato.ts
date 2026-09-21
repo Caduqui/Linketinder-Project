@@ -82,7 +82,6 @@ export function carregarSeletorCandidatos(): void {
     select.addEventListener("change", () => {
         if (!select.value) {
             localStorage.removeItem("candidatoAtualId");
-            return;
         }
 
         localStorage.setItem("candidatoAtualId", select.value);

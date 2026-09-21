@@ -2,16 +2,34 @@ package org.example.dao
 
 import org.example.ConexaoBanco
 import org.example.Match
+import org.example.repositorio.CandidatoRepositorio
+import org.example.repositorio.EmpresaRepositorio
+import org.example.repositorio.MatchRepositorio
+import org.example.repositorio.VagaRepositorio
 
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
-class MatchDAO {
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
 
-    final CandidatoDAO candidatoDAO = new CandidatoDAO()
-    final EmpresaDAO empresaDAO = new EmpresaDAO()
-    final VagaDAO vagaDAO = new VagaDAO()
+class MatchDAO implements MatchRepositorio{
 
+    final ConexaoBanco conexaoBanco
+    final CandidatoRepositorio candidatoRepositorio
+    final EmpresaRepositorio empresaRepositorio
+    final VagaRepositorio vagaRepositorio
+
+    MatchDAO(ConexaoBanco conexaoBanco, CandidatoRepositorio candidatoRepositorio, EmpresaRepositorio empresaRepositorio, VagaRepositorio vagaRepositorio) {
+        this.conexaoBanco = conexaoBanco
+        this.candidatoRepositorio = candidatoRepositorio
+        this.empresaRepositorio = empresaRepositorio
+        this.vagaRepositorio = vagaRepositorio
+    }
+
+    @Override
     boolean criarMatchSePossivel(Integer idCandidato, Integer idEmpresa, Integer idVaga) {
         String sql = """
             INSERT INTO matches (id_candidato,id_empresa,id_vaga)
@@ -27,7 +45,7 @@ class MatchDAO {
                 ON CONFLICT (id_candidato,id_empresa,id_vaga) DO NOTHING
         """
 
-        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
             statement.setInt(1, idCandidato)
             statement.setInt(2, idEmpresa)
             statement.setInt(3, idVaga)
@@ -35,12 +53,13 @@ class MatchDAO {
         }
     }
 
+    @Override
     List<Match> listar() {
         String sql = """
             SELECT * FROM matches ORDER BY id
         """
 
-        ConexaoBanco.executar(sql) { PreparedStatement statement ->
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
             statement.executeQuery().withCloseable { ResultSet resultado ->
                 List<Match> matches = []
                 while (resultado.next()) {
@@ -53,9 +72,9 @@ class MatchDAO {
 
     Match mapearMatch(ResultSet resultado) {
         return new Match(
-                candidatoDAO.buscarPorId(resultado.getInt("id_candidato")),
-                empresaDAO.buscarPorId(resultado.getInt("id_empresa")),
-                vagaDAO.buscarPorId(resultado.getInt("id_vaga"))
+                candidatoRepositorio.buscarPorId(resultado.getInt("id_candidato")),
+                empresaRepositorio.buscarPorId(resultado.getInt("id_empresa")),
+                vagaRepositorio.buscarPorId(resultado.getInt("id_vaga"))
         )
     }
 }

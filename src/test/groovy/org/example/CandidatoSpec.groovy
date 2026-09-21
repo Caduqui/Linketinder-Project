@@ -5,6 +5,11 @@ import spock.lang.Unroll
 
 import java.time.LocalDate
 
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
+
 class CandidatoSpec extends Specification{
 
     Candidato criarCandidato(List<String> competencias = ["Java", "SQL"]) {

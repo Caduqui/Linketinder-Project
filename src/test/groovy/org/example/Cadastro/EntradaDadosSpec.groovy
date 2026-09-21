@@ -6,6 +6,11 @@ import spock.lang.Unroll
 
 import java.time.LocalDate
 
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
+
 class EntradaDadosSpec extends Specification{
 
     LeitorEntrada leitor = Mock(LeitorEntrada)

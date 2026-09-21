@@ -2,16 +2,21 @@ package org.example.Cadastro
 
 import org.example.Empresa
 import org.example.Vaga
-import org.example.dao.VagaDAO
+import org.example.repositorio.VagaRepositorio
 import spock.lang.Specification
+
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
 
 class CadastroVagaSpec extends Specification{
 
-    VagaDAO vagaDAO = Mock(VagaDAO)
+    VagaRepositorio vagaRepositorio = Mock(VagaRepositorio)
     CadastroEmpresa cadastroEmpresa = Mock(CadastroEmpresa)
 
     CadastroVaga cadastroCom(Map<String, String> respostas) {
-        return new CadastroVaga(EntradaFalsa.comRespostas(respostas), cadastroEmpresa, vagaDAO)
+        return new CadastroVaga(EntradaFalsa.comRespostas(respostas), cadastroEmpresa, vagaRepositorio)
     }
 
     Empresa empresa(Integer id) {
@@ -56,7 +61,7 @@ class CadastroVagaSpec extends Specification{
 
         then:
         2 * cadastroEmpresa.selecionarEmpresa(_) >>> [null, empresa(1)]
-        1 * vagaDAO.inserir({ Vaga vaga ->
+        1 * vagaRepositorio.inserir({ Vaga vaga ->
             vaga.empresa.id == 1 && vaga.estado == "MT" && vaga.competencias == ["Groovy", "SQL"]
         })
         cadastrou
@@ -66,7 +71,7 @@ class CadastroVagaSpec extends Specification{
         given:
         Empresa empresaAtual = empresa(1)
         CadastroVaga cadastro = cadastroCom(["ID da vaga: ": "20"])
-        vagaDAO.listarPorEmpresa(1) >> [vaga(10, empresaAtual)]
+        vagaRepositorio.listarPorEmpresa(1) >> [vaga(10, empresaAtual)]
 
         expect:
         cadastro.selecionarVagaDaEmpresa(empresaAtual) == null
@@ -76,7 +81,7 @@ class CadastroVagaSpec extends Specification{
         given:
         Empresa empresaAtual = empresa(1)
         CadastroVaga cadastro = cadastroCom(["ID da vaga: ": "10"])
-        vagaDAO.listarPorEmpresa(1) >> [vaga(10, empresaAtual)]
+        vagaRepositorio.listarPorEmpresa(1) >> [vaga(10, empresaAtual)]
 
         expect:
         cadastro.selecionarVagaDaEmpresa(empresaAtual).id == 10
@@ -85,7 +90,7 @@ class CadastroVagaSpec extends Specification{
     def "selecionarVagaDaEmpresa retorna null quando a empresa não tem vagas"() {
         given:
         CadastroVaga cadastro = cadastroCom([:])
-        vagaDAO.listarPorEmpresa(1) >> []
+        vagaRepositorio.listarPorEmpresa(1) >> []
 
         expect:
         cadastro.selecionarVagaDaEmpresa(empresa(1)) == null

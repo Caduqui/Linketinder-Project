@@ -1,42 +1,47 @@
 package org.example.Cadastro
 
 import org.example.Candidato
-import org.example.dao.CandidatoDAO
+import org.example.repositorio.CandidatoRepositorio
 
 import java.time.LocalDate
 
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
+
 class CadastroCandidato implements CadastroCrud{
 
-    final CandidatoDAO candidatoDAO
+    final CandidatoRepositorio candidatoRepositorio
     final EntradaDados entrada
 
-    CadastroCandidato(EntradaDados entrada, CandidatoDAO candidatoDAO = new CandidatoDAO()) {
+    CadastroCandidato(EntradaDados entrada, CandidatoRepositorio candidatoRepositorio) {
         this.entrada = entrada
-        this.candidatoDAO = candidatoDAO
+        this.candidatoRepositorio = candidatoRepositorio
     }
 
     @Override
     void listar() {
-        candidatoDAO.listar().each {
+        candidatoRepositorio.listar().each {
             it.exibirDados()
         }
     }
 
     void listarNomes() {
-        candidatoDAO.listar().each { candidato ->
+        candidatoRepositorio.listar().each { candidato ->
             println "ID: ${candidato.id} - ${candidato.nome} ${candidato.sobrenome}"
         }
     }
 
     void listarAnonimos() {
-        candidatoDAO.listar().each {
+        candidatoRepositorio.listar().each {
             it.exibirDadosAnonimos()
         }
     }
 
     @Override
     boolean cadastrar() {
-        candidatoDAO.inserir(lerDadosCandidato())
+        candidatoRepositorio.inserir(lerDadosCandidato())
         println "Candidato cadastrado com sucesso!"
         return true
     }
@@ -50,7 +55,7 @@ class CadastroCandidato implements CadastroCrud{
 
         Candidato atualizado = lerDadosCandidato()
         atualizado.id = candidato.id
-        candidatoDAO.atualizar(atualizado)
+        candidatoRepositorio.atualizar(atualizado)
         println "Candidato atualizado com sucesso!"
         return true
     }
@@ -62,7 +67,7 @@ class CadastroCandidato implements CadastroCrud{
             return false
         }
 
-        candidatoDAO.deletar(candidato.id)
+        candidatoRepositorio.deletar(candidato.id)
         println "Candidato excluído com sucesso!"
         return true
     }
@@ -73,7 +78,7 @@ class CadastroCandidato implements CadastroCrud{
             return null
         }
 
-        Candidato candidato = candidatoDAO.buscarPorId(id)
+        Candidato candidato = candidatoRepositorio.buscarPorId(id)
         if (candidato == null) {
             println "Candidato não encontrado"
         }

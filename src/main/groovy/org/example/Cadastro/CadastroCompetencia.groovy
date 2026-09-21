@@ -1,21 +1,26 @@
 package org.example.Cadastro
 
 import org.example.Competencia
-import org.example.dao.CompetenciaDAO
+import org.example.repositorio.CompetenciaRepositorio
+
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
 
 class CadastroCompetencia implements CadastroCrud{
 
-    final CompetenciaDAO competenciaDAO
+    final CompetenciaRepositorio competenciaRepositorio
     final EntradaDados entrada
 
-    CadastroCompetencia(EntradaDados entrada, CompetenciaDAO competenciaDAO = new CompetenciaDAO()) {
+    CadastroCompetencia(EntradaDados entrada, CompetenciaRepositorio competenciaRepositorio) {
         this.entrada = entrada
-        this.competenciaDAO = competenciaDAO
+        this.competenciaRepositorio = competenciaRepositorio
     }
 
     @Override
     void listar() {
-        competenciaDAO.listar().each {
+        competenciaRepositorio.listar().each {
             it.exibirDados()
         }
     }
@@ -28,7 +33,7 @@ class CadastroCompetencia implements CadastroCrud{
             return false
         }
 
-        competenciaDAO.inserir(new Competencia(nome))
+        competenciaRepositorio.inserir(new Competencia(nome))
         println "Competência cadastrada com sucesso!"
         return true
     }
@@ -46,7 +51,7 @@ class CadastroCompetencia implements CadastroCrud{
         }
 
         competencia.nome = novoNome
-        competenciaDAO.atualizar(competencia)
+        competenciaRepositorio.atualizar(competencia)
         println "Competência atualizada com sucesso!"
         return true
     }
@@ -58,12 +63,12 @@ class CadastroCompetencia implements CadastroCrud{
             return false
         }
 
-        if (competenciaDAO.estaVinculadoACandidatoOuVaga(competencia.id)) {
+        if (competenciaRepositorio.estaVinculadoACandidatoOuVaga(competencia.id)) {
             println "Não é possível excluir a competência porque ela está relacionada a candidato(s) ou vaga(s)."
             return false
         }
 
-        competenciaDAO.deletar(competencia.id)
+        competenciaRepositorio.deletar(competencia.id)
         println "Competência excluída com sucesso!"
         return true
     }
@@ -74,7 +79,7 @@ class CadastroCompetencia implements CadastroCrud{
             return null
         }
 
-        Competencia competencia = competenciaDAO.buscarPorId(id)
+        Competencia competencia = competenciaRepositorio.buscarPorId(id)
         if (competencia == null) {
             println "Competência não encontrada."
         }
@@ -90,7 +95,7 @@ class CadastroCompetencia implements CadastroCrud{
             return null
         }
 
-        if (competenciaDAO.buscarPorNome(nome) != null) {
+        if (competenciaRepositorio.buscarPorNome(nome) != null) {
             println "Essa competência já está cadastrada!"
             return null
         }

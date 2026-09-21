@@ -7,6 +7,18 @@ import org.example.Cadastro.CadastroCurtida
 import org.example.Cadastro.CadastroEmpresa
 import org.example.Cadastro.CadastroVaga
 import org.example.Cadastro.EntradaDados
+import org.example.dao.CandidatoDAO
+import org.example.dao.CompetenciaDAO
+import org.example.dao.CurtidaDAO
+import org.example.dao.EmpresaDAO
+import org.example.dao.MatchDAO
+import org.example.dao.VagaDAO
+import org.example.repositorio.CandidatoRepositorio
+import org.example.repositorio.CompetenciaRepositorio
+import org.example.repositorio.CurtidaRepositorio
+import org.example.repositorio.EmpresaRepositorio
+import org.example.repositorio.MatchRepositorio
+import org.example.repositorio.VagaRepositorio
 
 import java.sql.SQLException
 
@@ -22,11 +34,20 @@ class Main {
 
     static final Scanner scanner = new Scanner(System.in)
     static final EntradaDados entrada = new EntradaDados(new ScannerLeitorEntrada(scanner))
-    static final CadastroCandidato cadastroCandidato = new CadastroCandidato(entrada)
-    static final CadastroEmpresa cadastroEmpresa = new CadastroEmpresa(entrada)
-    static final CadastroCompetencia cadastroCompetencia = new CadastroCompetencia(entrada)
-    static final CadastroVaga cadastroVaga = new CadastroVaga(entrada, cadastroEmpresa)
-    static final CadastroCurtida cadastroCurtida = new CadastroCurtida(cadastroCandidato, cadastroEmpresa, cadastroVaga)
+
+    static final ConexaoBanco conexaoBanco = new ConexaoBanco()
+    static final CompetenciaRepositorio competenciaRepositorio = new CompetenciaDAO(conexaoBanco)
+    static final CandidatoRepositorio candidatoRepositorio = new CandidatoDAO(conexaoBanco, competenciaRepositorio)
+    static final EmpresaRepositorio empresaRepositorio = new EmpresaDAO(conexaoBanco)
+    static final VagaRepositorio vagaRepositorio = new VagaDAO(conexaoBanco, competenciaRepositorio, empresaRepositorio)
+    static final CurtidaRepositorio curtidaRepositorio = new CurtidaDAO(conexaoBanco)
+    static final MatchRepositorio matchRepositorio = new MatchDAO(conexaoBanco, candidatoRepositorio, empresaRepositorio, vagaRepositorio)
+
+    static final CadastroCandidato cadastroCandidato = new CadastroCandidato(entrada, candidatoRepositorio)
+    static final CadastroEmpresa cadastroEmpresa = new CadastroEmpresa(entrada, empresaRepositorio)
+    static final CadastroCompetencia cadastroCompetencia = new CadastroCompetencia(entrada, competenciaRepositorio)
+    static final CadastroVaga cadastroVaga = new CadastroVaga(entrada, cadastroEmpresa, vagaRepositorio)
+    static final CadastroCurtida cadastroCurtida = new CadastroCurtida(cadastroCandidato, cadastroEmpresa, cadastroVaga, curtidaRepositorio, matchRepositorio)
 
     static void main(String[] args) {
         while (true) {

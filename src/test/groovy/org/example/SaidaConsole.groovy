@@ -1,5 +1,10 @@
 package org.example
 
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
+
 class SaidaConsole {
 
     static String capturar(Closure acao) {

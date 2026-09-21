@@ -2,6 +2,11 @@ package org.example.Cadastro
 
 import org.example.LeitorEntrada
 
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
+
 class EntradaFalsa {
 
     static EntradaDados comRespostas(Map<String, String> respostasPorPergunta) {

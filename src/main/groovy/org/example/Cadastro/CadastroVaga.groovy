@@ -2,30 +2,35 @@ package org.example.Cadastro
 
 import org.example.Empresa
 import org.example.Vaga
-import org.example.dao.VagaDAO
+import org.example.repositorio.VagaRepositorio
+
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
 
 class CadastroVaga implements CadastroCrud{
 
-    final VagaDAO vagaDAO = new VagaDAO()
+    final VagaRepositorio vagaRepositorio
     final EntradaDados entrada
     final CadastroEmpresa cadastroEmpresa
 
-    CadastroVaga(EntradaDados entrada, CadastroEmpresa cadastroEmpresa, VagaDAO vagaDAO = new VagaDAO()) {
+    CadastroVaga(EntradaDados entrada, CadastroEmpresa cadastroEmpresa, VagaRepositorio vagaRepositorio) {
         this.entrada = entrada
         this.cadastroEmpresa = cadastroEmpresa
-        this.vagaDAO = vagaDAO
+        this.vagaRepositorio = vagaRepositorio
     }
 
     @Override
     void listar() {
-        vagaDAO.listar().each {
+        vagaRepositorio.listar().each {
             it.exibirDados()
         }
     }
 
     @Override
     boolean cadastrar() {
-        vagaDAO.inserir(lerDadosVaga())
+        vagaRepositorio.inserir(lerDadosVaga())
         println "Vaga cadastrada com sucesso!"
         return true
     }
@@ -39,7 +44,7 @@ class CadastroVaga implements CadastroCrud{
 
         Vaga atualizada = lerDadosVaga()
         atualizada.id = vaga.id
-        vagaDAO.atualizar(atualizada)
+        vagaRepositorio.atualizar(atualizada)
         println "Vaga atualizada com sucesso!"
         return true
     }
@@ -51,7 +56,7 @@ class CadastroVaga implements CadastroCrud{
             return false
         }
 
-        vagaDAO.deletar(vaga.id)
+        vagaRepositorio.deletar(vaga.id)
         println "Vaga excluída com sucesso!"
         return true
     }
@@ -62,7 +67,7 @@ class CadastroVaga implements CadastroCrud{
             return null
         }
 
-        Vaga vaga = vagaDAO.buscarPorId(id)
+        Vaga vaga = vagaRepositorio.buscarPorId(id)
         if (vaga == null) {
             println "Vaga não encontrada"
         }
@@ -71,7 +76,7 @@ class CadastroVaga implements CadastroCrud{
     }
 
     Vaga selecionarVagaDaEmpresa(Empresa empresa) {
-        List<Vaga> vagasDaEmpresa = vagaDAO.listarPorEmpresa(empresa.id)
+        List<Vaga> vagasDaEmpresa = vagaRepositorio.listarPorEmpresa(empresa.id)
 
         if (vagasDaEmpresa.isEmpty()) {
             println "Essa empresa não possui vagas cadastradas"
