@@ -1,6 +1,6 @@
 package org.example.dao
 
-import org.example.ConexaoBanco
+import org.example.Banco.ConexaoBanco
 import org.example.repositorio.CurtidaRepositorio
 
 import java.sql.PreparedStatement

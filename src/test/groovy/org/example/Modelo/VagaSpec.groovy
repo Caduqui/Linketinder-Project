@@ -1,5 +1,7 @@
-package org.example
+package org.example.Modelo
 
+
+import org.example.SaidaConsole
 import spock.lang.Specification
 import spock.lang.Unroll
 

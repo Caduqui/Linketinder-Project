@@ -1,5 +1,6 @@
 package org.example
 
+import org.example.Banco.ConexaoBanco
 import org.example.Cadastro.CadastroCandidato
 import org.example.Cadastro.CadastroCompetencia
 import org.example.Cadastro.CadastroCrud
@@ -7,6 +8,7 @@ import org.example.Cadastro.CadastroCurtida
 import org.example.Cadastro.CadastroEmpresa
 import org.example.Cadastro.CadastroVaga
 import org.example.Cadastro.EntradaDados
+import org.example.Leitor.ScannerLeitorEntrada
 import org.example.dao.CandidatoDAO
 import org.example.dao.CompetenciaDAO
 import org.example.dao.CurtidaDAO
@@ -35,7 +37,7 @@ class Main {
     static final Scanner scanner = new Scanner(System.in)
     static final EntradaDados entrada = new EntradaDados(new ScannerLeitorEntrada(scanner))
 
-    static final ConexaoBanco conexaoBanco = new ConexaoBanco()
+    static final ConexaoBanco conexaoBanco = ConexaoBanco.obterInstancia()
     static final CompetenciaRepositorio competenciaRepositorio = new CompetenciaDAO(conexaoBanco)
     static final CandidatoRepositorio candidatoRepositorio = new CandidatoDAO(conexaoBanco, competenciaRepositorio)
     static final EmpresaRepositorio empresaRepositorio = new EmpresaDAO(conexaoBanco)
@@ -54,6 +56,7 @@ class Main {
             exibirOpcoes("Bem vindo ao linketinder", ["Candidatos", "Empresas", "Competências", "Vagas", "Venha encontrar seu match"], "Sair")
             String opcao = lerOpcao()
             if (opcao == OPCAO_VOLTAR) {
+                conexaoBanco.fechar()
                 return
             }
 

@@ -1,6 +1,6 @@
 package org.example.Cadastro
 
-import org.example.Empresa
+import org.example.Modelo.Empresa
 import org.example.repositorio.EmpresaRepositorio
 import spock.lang.Specification
 

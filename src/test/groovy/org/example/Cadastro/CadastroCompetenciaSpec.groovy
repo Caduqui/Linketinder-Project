@@ -1,6 +1,6 @@
 package org.example.Cadastro
 
-import org.example.Competencia
+import org.example.Modelo.Competencia
 import org.example.repositorio.CompetenciaRepositorio
 import spock.lang.Specification
 

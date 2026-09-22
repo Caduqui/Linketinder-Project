@@ -1,6 +1,6 @@
 package org.example.Cadastro
 
-import org.example.LeitorEntrada
+import org.example.Leitor.LeitorEntrada
 
 import java.time.LocalDate
 import java.time.format.DateTimeParseException

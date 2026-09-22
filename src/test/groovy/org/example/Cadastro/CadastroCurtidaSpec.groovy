@@ -1,9 +1,9 @@
 package org.example.Cadastro
 
-import org.example.Candidato
-import org.example.Empresa
+import org.example.Modelo.Candidato
+import org.example.Modelo.Empresa
 import org.example.SaidaConsole
-import org.example.Vaga
+import org.example.Modelo.Vaga
 import org.example.repositorio.CurtidaRepositorio
 import org.example.repositorio.MatchRepositorio
 import spock.lang.Specification

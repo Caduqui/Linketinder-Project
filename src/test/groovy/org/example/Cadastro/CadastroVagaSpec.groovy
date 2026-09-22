@@ -1,7 +1,7 @@
 package org.example.Cadastro
 
-import org.example.Empresa
-import org.example.Vaga
+import org.example.Modelo.Empresa
+import org.example.Modelo.Vaga
 import org.example.repositorio.VagaRepositorio
 import spock.lang.Specification
 

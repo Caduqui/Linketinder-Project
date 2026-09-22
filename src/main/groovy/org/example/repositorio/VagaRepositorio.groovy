@@ -1,6 +1,6 @@
 package org.example.repositorio
 
-import org.example.Vaga
+import org.example.Modelo.Vaga
 
 /**
  *
