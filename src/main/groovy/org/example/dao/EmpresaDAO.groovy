@@ -1,7 +1,7 @@
 package org.example.dao
 
 import org.example.Banco.ConexaoBanco
-import org.example.Modelo.Empresa
+import org.example.model.Empresa
 import org.example.repositorio.EmpresaRepositorio
 
 import java.sql.PreparedStatement

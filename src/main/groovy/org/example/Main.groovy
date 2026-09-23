@@ -1,14 +1,25 @@
 package org.example
 
 import org.example.Banco.ConexaoBanco
-import org.example.Cadastro.CadastroCandidato
-import org.example.Cadastro.CadastroCompetencia
-import org.example.Cadastro.CadastroCrud
-import org.example.Cadastro.CadastroCurtida
-import org.example.Cadastro.CadastroEmpresa
-import org.example.Cadastro.CadastroVaga
-import org.example.Cadastro.EntradaDados
-import org.example.Leitor.ScannerLeitorEntrada
+
+import org.example.controller.CandidatoController
+import org.example.controller.CompetenciaController
+import org.example.controller.CurtidaController
+import org.example.controller.EmpresaController
+import org.example.controller.MenuController
+import org.example.controller.VagaController
+import org.example.service.CandidatoService
+import org.example.service.CompetenciaService
+import org.example.service.CurtidaService
+import org.example.service.EmpresaService
+import org.example.service.VagaService
+import org.example.view.CandidatoView
+import org.example.view.CompetenciaView
+import org.example.view.CurtidaView
+import org.example.view.EmpresaView
+import org.example.view.EntradaDados
+import org.example.view.MenuView
+import org.example.view.ScannerLeitorEntrada
 import org.example.dao.CandidatoDAO
 import org.example.dao.CompetenciaDAO
 import org.example.dao.CurtidaDAO
@@ -21,8 +32,7 @@ import org.example.repositorio.CurtidaRepositorio
 import org.example.repositorio.EmpresaRepositorio
 import org.example.repositorio.MatchRepositorio
 import org.example.repositorio.VagaRepositorio
-
-import java.sql.SQLException
+import org.example.view.VagaView
 
 /**
  *
@@ -31,122 +41,27 @@ import java.sql.SQLException
 
 class Main {
 
-    static final String OPCAO_VOLTAR = "0"
-    static final List<String> OPCOES_CRUD = ["Listar", "Cadastrar", "Atualizar", "Excluir"]
-
-    static final Scanner scanner = new Scanner(System.in)
-    static final EntradaDados entrada = new EntradaDados(new ScannerLeitorEntrada(scanner))
-
-    static final ConexaoBanco conexaoBanco = ConexaoBanco.obterInstancia()
-    static final CompetenciaRepositorio competenciaRepositorio = new CompetenciaDAO(conexaoBanco)
-    static final CandidatoRepositorio candidatoRepositorio = new CandidatoDAO(conexaoBanco, competenciaRepositorio)
-    static final EmpresaRepositorio empresaRepositorio = new EmpresaDAO(conexaoBanco)
-    static final VagaRepositorio vagaRepositorio = new VagaDAO(conexaoBanco, competenciaRepositorio, empresaRepositorio)
-    static final CurtidaRepositorio curtidaRepositorio = new CurtidaDAO(conexaoBanco)
-    static final MatchRepositorio matchRepositorio = new MatchDAO(conexaoBanco, candidatoRepositorio, empresaRepositorio, vagaRepositorio)
-
-    static final CadastroCandidato cadastroCandidato = new CadastroCandidato(entrada, candidatoRepositorio)
-    static final CadastroEmpresa cadastroEmpresa = new CadastroEmpresa(entrada, empresaRepositorio)
-    static final CadastroCompetencia cadastroCompetencia = new CadastroCompetencia(entrada, competenciaRepositorio)
-    static final CadastroVaga cadastroVaga = new CadastroVaga(entrada, cadastroEmpresa, vagaRepositorio)
-    static final CadastroCurtida cadastroCurtida = new CadastroCurtida(cadastroCandidato, cadastroEmpresa, cadastroVaga, curtidaRepositorio, matchRepositorio)
-
     static void main(String[] args) {
-        while (true) {
-            exibirOpcoes("Bem vindo ao linketinder", ["Candidatos", "Empresas", "Competências", "Vagas", "Venha encontrar seu match"], "Sair")
-            String opcao = lerOpcao()
-            if (opcao == OPCAO_VOLTAR) {
-                conexaoBanco.fechar()
-                return
-            }
 
-            try {
-                abrirMenu(opcao)
-            } catch (SQLException e) {
-                println "Erro ao acessar o banco de dados: ${e.message}"
-            }
-        }
+        EntradaDados entrada = new EntradaDados(new ScannerLeitorEntrada(new Scanner(System.in)))
+        ConexaoBanco conexaoBanco = ConexaoBanco.obterInstancia()
+
+        CompetenciaRepositorio competenciaRepositorio = new CompetenciaDAO(conexaoBanco)
+        CandidatoRepositorio candidatoRepositorio = new CandidatoDAO(conexaoBanco, competenciaRepositorio)
+        EmpresaRepositorio empresaRepositorio = new EmpresaDAO(conexaoBanco)
+        VagaRepositorio vagaRepositorio = new VagaDAO(conexaoBanco, competenciaRepositorio, empresaRepositorio)
+        CurtidaRepositorio curtidaRepositorio = new CurtidaDAO(conexaoBanco)
+        MatchRepositorio matchRepositorio = new MatchDAO(conexaoBanco, candidatoRepositorio, empresaRepositorio, vagaRepositorio)
+
+        CandidatoController candidatoController = new CandidatoController(new CandidatoService(candidatoRepositorio), new CandidatoView(entrada))
+        EmpresaController empresaController = new EmpresaController(new EmpresaService(empresaRepositorio), new EmpresaView(entrada))
+        CompetenciaController competenciaController = new CompetenciaController(new CompetenciaService(competenciaRepositorio), new CompetenciaView(entrada))
+        VagaController vagaController = new VagaController(new VagaService(vagaRepositorio), new VagaView(entrada), empresaController)
+        CurtidaController curtidaController = new CurtidaController(new CurtidaService(curtidaRepositorio, matchRepositorio), new CurtidaView(), candidatoController, empresaController, vagaController)
+
+        new MenuController(new MenuView(entrada), candidatoController, empresaController, competenciaController, vagaController, curtidaController).executar()
+
+        conexaoBanco.fechar()
     }
 
-    static void abrirMenu(String opcao) {
-        switch (opcao) {
-            case "1":
-                menuCrud("Candidatos", cadastroCandidato)
-                break
-            case "2":
-                menuCrud("Empresas", cadastroEmpresa)
-                break
-            case "3":
-                menuCrud("Competencias", cadastroCompetencia)
-                break
-            case "4":
-                menuCrud("Vagas", cadastroVaga)
-                break
-            case "5":
-                menuCurtidas()
-                break
-            default:
-                println "Opção inválida."
-        }
-    }
-
-    static void menuCrud(String titulo, CadastroCrud cadastro) {
-        while (true) {
-            exibirOpcoes(titulo, OPCOES_CRUD, "Voltar")
-
-            switch (lerOpcao()) {
-                case "1":
-                    cadastro.listar()
-                    break
-                case "2":
-                    cadastro.cadastrar()
-                    break
-                case "3":
-                    cadastro.atualizar()
-                    break
-                case "4":
-                    cadastro.excluir()
-                    break
-                case OPCAO_VOLTAR:
-                    return
-                default:
-                    println "Opção inválida"
-            }
-        }
-    }
-
-    static void menuCurtidas() {
-        while (true) {
-            exibirOpcoes("Matches", ["Candidato curtir uma vaga", "Empresa curtir um candidato", "Listar matches"], "Voltar")
-
-            switch (lerOpcao()) {
-                case "1":
-                    cadastroCurtida.candidatoCurtirVaga()
-                    break
-                case "2":
-                    cadastroCurtida.empresaCurtirCandidato()
-                    break
-                case "3":
-                    cadastroCurtida.listarMatches()
-                    break
-                case OPCAO_VOLTAR:
-                    return
-                default:
-                    println "Opção inválida."
-            }
-        }
-    }
-
-    static void exibirOpcoes(String titulo, List<String> opcoes, String textoVoltar) {
-        println "\n${titulo}"
-        opcoes.eachWithIndex{ String opcao, int indice ->
-            println "${indice + 1}- ${opcao}"
-        }
-        println "${OPCAO_VOLTAR}- ${textoVoltar}"
-        print "Escolha sua opção: "
-    }
-
-    static String lerOpcao() {
-        return scanner.nextLine().trim()
-    }
 }

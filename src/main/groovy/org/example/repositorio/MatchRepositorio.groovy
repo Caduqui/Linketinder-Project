@@ -1,6 +1,6 @@
 package org.example.repositorio
 
-import org.example.Modelo.Match
+import org.example.model.Match
 
 /**
  *

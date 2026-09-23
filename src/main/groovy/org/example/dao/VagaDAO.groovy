@@ -1,8 +1,8 @@
 package org.example.dao
 
-import org.example.Modelo.Competencia
+import org.example.model.Competencia
 import org.example.Banco.ConexaoBanco
-import org.example.Modelo.Vaga
+import org.example.model.Vaga
 import org.example.repositorio.CompetenciaRepositorio
 import org.example.repositorio.EmpresaRepositorio
 import org.example.repositorio.VagaRepositorio

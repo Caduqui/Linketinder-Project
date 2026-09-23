@@ -1,6 +1,6 @@
 package org.example.repositorio
 
-import org.example.Modelo.Competencia
+import org.example.model.Competencia
 
 /**
  *

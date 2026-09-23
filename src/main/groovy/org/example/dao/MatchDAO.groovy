@@ -1,7 +1,7 @@
 package org.example.dao
 
 import org.example.Banco.ConexaoBanco
-import org.example.Modelo.Match
+import org.example.model.Match
 import org.example.repositorio.CandidatoRepositorio
 import org.example.repositorio.EmpresaRepositorio
 import org.example.repositorio.MatchRepositorio
