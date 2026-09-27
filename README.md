@@ -98,3 +98,76 @@ O que sobrou das classes de cadastro virou os controllers, que pedem os dados à
 O `MenuController` assumiu os menus da `Main` e `CadastroCrud` se tornou `ControllerCrud` implementada pelos quatro controllers de CRUD. 
 
 E agora a `Main` ficou só com a montagem das dependências.
+
+
+
+# API REST
+
+Devido a construção do código aplicando os princípios SOLID e MVC foi possível implementar a lógica de API sem precisar alterar os códigos já existentes, somente nas classes `Provedor` eu tive que colocar o driver como uma constante pois, o driver não se registrava sozinho, mas `DriverManager` já havia sido inicializado pelo TomCat antes da aplicação subir e a varredura pelos drivers já havia acontecido
+
+## Contrato
+
+Base: `http://localhost:8080/linketinder`
+
+Temos 10 endpoints, todos sendo POST e GET:
+POST em `/candidatos` cadastra um candidato, se houver sucesso lança 201 + `Location` e se der erro apresenta 400
+GET em `/candidatos` lista todos os candidatos, se houver sucesso lança 200 e se der erro apresenta 500
+GET em `/candidatos/{id}` busca um candidato, se houver sucesso lança 200 e se der erro apresenta 400 se o id não for número e 404 se não existir
+POST em `/empresas` cadastra uma empresa, se houver sucesso lança 201 + `Location` e se der erro apresenta 400
+GET em `/empresas` lista todas as empresas, se houver sucesso lança 200 e se der erro apresenta 500
+GET em `/empresas/{id}` busca uma empresa, se houver sucesso lança 200 e se der erro apresenta 400 se o id não for número e 404 se não existir
+POST em `/vagas` cadastra uma vaga, se houver sucesso lança 201 + `Location` e se der erro apresenta 400
+GET em `/vagas` lista todas as vagas, se houver sucesso lança 200 e se der erro apresenta 500
+GET em `/vagas?idEmpresa={id}` lista todas as vagas de uma empresa, se houver sucesso lança 200 e se der erro apresenta 400
+GET em `/vagas/{id}` busca uma vaga, se houver sucesso lança 200 e se houver erro apresenta 400 se o id não for número e 404 se não existir
+
+Qualquer outra requisição como DELETE, PUT é respondido com erro 405 e qualquer requisição pode dar erro 500 caso o banco falhe.
+
+## Recursos utilizados
+
+`javax.servlet.api` versão 4.0.1 para compilar o servlet
+Apache Tomcat versão 9.0.122 para servir como servidor que executa os servlets
+`groovy-json` versão 5.0.8 
+`JsonSlurper` e `JsonOutput`
+
+O servlet recebe um `HttpServletRequest`, escreve em uma `HttpServletResponde` e o Tomcat cuida das portase threads.
+
+No `build.gradle` tive que adicionar esses recursos então agora
+
+`plugins` passou a ter od id `groovy` `application` e `war`
+
+e nas dependências:
+
+```groovy
+dependencies {
+    compileOnly 'javax.servlet:javax.servlet-api:4.0.1'
+    testImplementation 'javax.servlet:javax.servlet-api:4.0.1'
+    implementation 'org.apache.groovy:groovy-json:5.0.8'
+}
+```
+
+É necessário `compileOnly` no servlet-api pois quem fornece essa biblioteca em tempo de execução é o Tomcat, então se ela fosse junto no WAR, haveria duas cópias da mesma classe e o Tomcat recusaria a aplicação.
+
+Já o driver do PostGreSQL e o Groovy precisam ir no WAR (`implementation), porque o Tomcat não os tem.
+
+`compileOnly` não vale para os testes. Como os specs criam mocks de `HttpServletRequest`, e o servlet-api precisa estar no classpath de teste então utilizei `testImplementation` porque o Spock precisa da classe em tempo de execução para gerar o mock. Ele também não entra no WAR, porque o `war` empacota `runtimeClasspath`
+
+## endpoints
+
+Todas as classes servlets tem o caminho declarado com @WebServlet pois o Tomcat varre as anotações do WAR ao subir a aplicação.
+
+`HttpServlet` chama `doGet` para requisição GET e `doPost` para requisição POST, as demais requisições responde com 405.
+
+## observação
+
+O `POST` aceita o campo `senha` para o cadastro mas `Json.deCandidato` e `Json.deEmpresa` não o incluem, dessa forma um cliente que lista candidatos nunca vai receber as senhas.
+
+
+## como rodar
+
+1. Baixe o **Tomcat 9** e descompacte
+2. Gere o WAR `./gradlew war` -> `build/libs/linketinder.war`
+3. Copie o WAR para `apache-tomcat-9.0.122/webapps`
+4. Suba o servidor: `bin/startup.sh`
+5. O banco de dados é necessário estar rodando, caso contrário aparecerá erro 500 ao executar o passo 6.
+6. Entre em `curl http://localhost:8080/linketinder/candidatos`
