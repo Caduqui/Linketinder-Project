@@ -17,6 +17,9 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Cadastro de candidatos e empresas gravado no PostgreSQL pelo microsserviço;
   cadastro repetido responde `409` e corpo fora de UTF-8 responde `400`
   (spec `microservico`, tarefa 4).
+- Regras e rota `POST /candidatos/{id}/competencias` do microsserviço:
+  competências somadas às do candidato, reaproveitando as existentes sem
+  diferenciar maiúsculas (spec `microservico`, tarefa 5).
 
 ### Modificado
 

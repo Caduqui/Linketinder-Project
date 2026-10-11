@@ -43,6 +43,18 @@ class CandidatoDAO implements CandidatoRepositorio {
         }
     }
 
+    @Override
+    boolean existe(Integer id) {
+        String sql = "SELECT EXISTS (SELECT 1 FROM candidatos WHERE id = ?) AS existe"
+
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setInt(1, id)
+            statement.executeQuery().withCloseable { ResultSet resultado ->
+                resultado.next() && resultado.getBoolean("existe")
+            }
+        }
+    }
+
     private static void preencherDados(PreparedStatement statement, Candidato candidato) {
         statement.setString(1, candidato.nome)
         statement.setString(2, candidato.sobrenome)

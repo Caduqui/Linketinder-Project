@@ -16,11 +16,13 @@ class Requisicao {
 
     final String metodo
     final String caminho
+    final Map<String, String> parametros
     private final byte[] corpoRecebido
 
-    Requisicao(String metodo, String caminho, byte[] corpoRecebido) {
+    Requisicao(String metodo, String caminho, Map<String, String> parametros, byte[] corpoRecebido) {
         this.metodo = metodo
         this.caminho = caminho
+        this.parametros = parametros
         this.corpoRecebido = corpoRecebido
     }
 

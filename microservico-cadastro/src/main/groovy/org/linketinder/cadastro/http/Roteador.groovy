@@ -3,6 +3,7 @@ package org.linketinder.cadastro.http
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import org.linketinder.cadastro.service.CadastroRepetidoException
+import org.linketinder.cadastro.service.CandidatoNaoEncontradoException
 import org.linketinder.cadastro.service.DadosInvalidosException
 
 import java.sql.SQLException
@@ -22,53 +23,47 @@ class Roteador implements HttpHandler {
     static final String ROTA_DESCONHECIDA = "(rota desconhecida)"
 
     private final RegistroDoServidor registro
-    private final Map<String, Map<String, Manipulador>> manipuladoresPorCaminho = [:]
+    private final List<Rota> rotas = []
 
     Roteador(RegistroDoServidor registro) {
         this.registro = registro
     }
 
-    void registrar(String metodo, String caminho, Manipulador manipulador) {
-        if (!manipuladoresPorCaminho.containsKey(caminho)) {
-            manipuladoresPorCaminho[caminho] = [:]
+    void registrar(String metodo, String modelo, Manipulador manipulador) {
+        Rota rota = rotas.find { Rota existente -> existente.modelo == modelo }
+
+        if (rota == null) {
+            rota = new Rota(modelo)
+            rotas << rota
         }
-        manipuladoresPorCaminho[caminho][metodo] = manipulador
+        rota.manipuladoresPorMetodo[metodo] = manipulador
     }
 
     @Override
     void handle(HttpExchange troca) {
         try {
-            Requisicao requisicao = lerRequisicao(troca)
-            Map<String, Manipulador> manipuladoresPorMetodo = manipuladoresPorCaminho[requisicao.caminho]
+            String metodo = troca.requestMethod
+            String caminho = troca.requestURI.path
+            byte[] corpo = troca.requestBody.bytes
 
-            RespostaJson resposta = responder(requisicao, manipuladoresPorMetodo)
+            Rota rota = rotas.find { Rota candidata -> candidata.extrairParametros(caminho) != null }
+            RespostaJson resposta = rota == null
+                    ? RespostaJson.erro(NAO_ENCONTRADO, "Rota não encontrada")
+                    : responder(rota, new Requisicao(metodo, caminho, rota.extrairParametros(caminho), corpo))
+
             resposta.enviar(troca)
-
-            String rota = manipuladoresPorMetodo == null ? ROTA_DESCONHECIDA : requisicao.caminho
-            registro.registrarRequisicao(requisicao.metodo, rota, resposta.status)
+            registro.registrarRequisicao(metodo, rota == null ? ROTA_DESCONHECIDA : rota.modelo, resposta.status)
         } finally {
             troca.close()
         }
     }
 
-    private static Requisicao lerRequisicao(HttpExchange troca) {
-        return new Requisicao(
-                troca.requestMethod,
-                troca.requestURI.path,
-                troca.requestBody.bytes
-        )
-    }
+    private RespostaJson responder(Rota rota, Requisicao requisicao) {
+        Manipulador manipulador = rota.manipuladoresPorMetodo[requisicao.metodo]
 
-    private RespostaJson responder(Requisicao requisicao, Map<String, Manipulador> manipuladoresPorMetodo) {
-        if (manipuladoresPorMetodo == null) {
-            return RespostaJson.erro(NAO_ENCONTRADO, "Rota não encontrada")
-        }
-
-        Manipulador manipulador = manipuladoresPorMetodo[requisicao.metodo]
         if (manipulador == null) {
-            return responderMetodoNaoPermitido(requisicao, manipuladoresPorMetodo.keySet())
+            return responderMetodoNaoPermitido(requisicao, rota.metodosAceitos)
         }
-
         return atender(manipulador, requisicao)
     }
 
@@ -77,6 +72,8 @@ class Roteador implements HttpHandler {
             return manipulador.atender(requisicao)
         } catch (DadosInvalidosException e) {
             return RespostaJson.erro(REQUISICAO_INVALIDA, e.message)
+        } catch (CandidatoNaoEncontradoException e) {
+            return RespostaJson.erro(NAO_ENCONTRADO, e.message)
         } catch (CadastroRepetidoException e) {
             return RespostaJson.erro(CONFLITO, e.message)
         } catch (SQLException e) {

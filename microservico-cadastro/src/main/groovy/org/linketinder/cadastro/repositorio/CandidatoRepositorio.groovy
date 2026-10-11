@@ -11,4 +11,5 @@ import java.sql.SQLException
 
 interface CandidatoRepositorio {
     void inserir(Candidato candidato) throws SQLException
+    boolean existe(Integer id) throws SQLException
 }

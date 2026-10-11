@@ -185,7 +185,11 @@ O que depende de conferência manual: os DAOs e a transação contra o PostgreSQ
 - **Validação:** `./gradlew test` na pasta (CA-08 a CA-11 pela lógica, CA-12, parte do CA-14).
 - **Anonimato:** a resposta `200` é saída nova: a spec afirma que o corpo tem só `id` e `competencias`, sem nenhum dado pessoal do candidato.
 - **CHANGELOG:** Adicionado — Regras e rota `POST /candidatos/{id}/competencias` do microsserviço: competências somadas às do candidato, reaproveitando as existentes sem diferenciar maiúsculas (spec `microservico`, tarefa 5).
-- **Situação:** pendente.
+- **Situação:** concluída em 2026-10-11. Com a aplicação no ar, a rota de competências ainda responde `404`, como previsto: o `Main` só a registra na tarefa 6.
+- **Além do texto do plano:**
+  - as consultas e vínculos de competência do candidato ficam em `CompetenciaRepositorio` (`buscarDoCandidato`, `vincularAoCandidato`), e não em novos métodos de `CandidatoRepositorio`, que ganhou só `existe`. O `CandidatoDAO.existe` já entrou nesta tarefa, porque a interface exige; ele é conferido no banco na tarefa 6;
+  - o roteador passou a aceitar rotas com trecho variável (classe `Rota`), e o log registra o modelo da rota (`/candidatos/{id}/competencias`), sem o `id`;
+  - item da lista que não é texto é recusado com `400`, como os demais campos (RN-08).
 
 ### 6. Competências: gravação no PostgreSQL e ligação no `Main`
 
