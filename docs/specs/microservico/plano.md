@@ -120,7 +120,8 @@ O que depende de conferência manual: os DAOs e a transação contra o PostgreSQ
 - **Validação:** `./gradlew test` na pasta (CA-04, CA-05, CA-06, parte do CA-07, pela lógica).
 - **Anonimato:** as mensagens de erro são saída: as specs afirmam que citam o campo e não repetem o valor, inclusive a senha.
 - **CHANGELOG:** Adicionado — Validação e regras de cadastro de candidato e empresa no microsserviço (spec `microservico`, tarefa 2).
-- **Situação:** pendente.
+- **Situação:** concluída em 2026-10-11.
+- **Além do texto do plano:** a spec foi completada antes do código em dois pontos da RN-08: CPF, CNPJ e CEP são aceitos só com os dígitos ou na pontuação padrão (pontuação fora do padrão é erro), e valor que não é texto (número, lista, objeto) é erro. Os dados dos testes ficam em `DadosFicticios`, todos inventados (RN-16).
 
 ### 3. Rotas `POST /candidatos` e `POST /empresas`
 

@@ -46,14 +46,14 @@ Não existe rota de leitura, listagem, alteração de cadastro ou exclusão, nem
 
 | Campo | Regra |
 | --- | --- |
-| Textos em geral | espaços das pontas são removidos; campo obrigatório vazio é erro |
+| Textos em geral | todo campo é texto: número, lista ou objeto no lugar é erro; espaços das pontas são removidos; campo obrigatório vazio é erro |
 | Tamanho máximo | o das colunas: `nome` 50 (candidato) ou 100 (empresa), `sobrenome` 50, `email` 200, `pais` 100, `descricao` 500, `formacao` 100 |
 | `senha` | de 6 a 50 caracteres, usada exatamente como enviada |
 | `dataNascimento` | formato `AAAA-MM-DD`, data existente e não futura |
 | `email` | um `@`, parte local não vazia, domínio com ponto, sem espaços |
-| `cpf` | 11 dígitos, com ou sem pontuação (`.` e `-`); sem conferência de dígito verificador |
-| `cnpj` | 14 dígitos, com ou sem pontuação (`.`, `/` e `-`); sem conferência de dígito verificador |
-| `cep` | 8 dígitos, com ou sem hífen, qualquer que seja o país |
+| `cpf` | 11 dígitos, só os dígitos ou na pontuação padrão `000.000.000-00`; sem conferência de dígito verificador |
+| `cnpj` | 14 dígitos, só os dígitos ou na pontuação padrão `00.000.000/0000-00`; sem conferência de dígito verificador |
+| `cep` | 8 dígitos, só os dígitos ou como `00000-000`, qualquer que seja o país |
 
 **RN-09 — Gravação como no CLI.** Os valores validados são gravados e devolvidos como foram enviados, apenas sem os espaços das pontas. O serviço não reformata CPF, CNPJ ou CEP nem muda a caixa do e-mail.
 
@@ -95,6 +95,8 @@ Nada dessa comunicação é implementado: o frontend não é alterado e o servi�
 | E-mail `Candidata@Example.com` com `candidata@example.com` já cadastrado | Aceito, pelo mesmo motivo |
 | Mesmo CPF, CNPJ ou e-mail, na mesma grafia | `409` genérico |
 | CPF ou CNPJ com letras, ou com quantidade errada de dígitos | `400` citando o campo |
+| CPF, CNPJ ou CEP com pontuação fora do padrão (ex.: `123-456-789.00`) | `400` citando o campo |
+| Campo com número, lista ou objeto no lugar do texto (ex.: `"cpf": 12345678900`) | `400` citando o campo |
 | CPF com dígitos verificadores inválidos (ex.: `111.111.111-11`) | Aceito |
 | CNPJ alfanumérico | `400`: só o formato numérico é aceito |
 | `dataNascimento` `2026-02-30` ou no futuro | `400` |

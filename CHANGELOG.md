@@ -10,6 +10,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Microsserviço de cadastro: aplicação independente em `microservico-cadastro/`,
   com servidor HTTP do JDK na porta 8081
   (spec `microservico`, tarefa 1).
+- Validação e regras de cadastro de candidato e empresa no microsserviço
+  (spec `microservico`, tarefa 2).
 
 ### Modificado
 
