@@ -1,6 +1,6 @@
 # Spec: microsserviço de cadastro
 
-Branch: `feature/microservico` · Escopo: novo backend (`microservico-cadastro/`) e documentação · Situação: aprovada pelo autor em 2026-10-11
+Branch: `feature/microservico` · Escopo: novo backend (`microservico-cadastro/`) e documentação · Situação: aprovada pelo autor em 2026-10-11, incluindo o ajuste de credenciais e dados fictícios (RN-13, RN-16, CA-16)
 
 ## 1. Contexto e objetivo
 
@@ -73,7 +73,7 @@ Não existe rota de leitura, listagem, alteração de cadastro ou exclusão, nem
 
 ### Transversais
 
-**RN-13 — Configuração.** Porta e dados de conexão do banco têm valor padrão e podem ser trocados por variável de ambiente, sem recompilar. Padrões: porta `8081` e banco `jdbc:postgresql://localhost:5432/linketinder` com usuário e senha `postgres`, os mesmos do projeto principal.
+**RN-13 — Configuração.** Porta e dados de conexão do banco vêm de variáveis de ambiente, sem recompilar. Porta, URL e usuário do banco têm valor padrão: porta `8081`, URL `jdbc:postgresql://localhost:5432/linketinder` e usuário `postgres`. A **senha do banco não tem valor padrão**: vem só da variável de ambiente e não é escrita em código, teste, script ou documentação. Sem ela, o serviço não sobe e informa qual variável está faltando, sem exibir nenhum valor.
 
 **RN-14 — Nada pessoal em log.** O serviço registra no máximo método, rota e status de cada requisição, e a mensagem técnica de falhas de banco no console do servidor. Nunca registra corpo de requisição, senha, e-mail, CPF ou CNPJ.
 
@@ -84,13 +84,15 @@ Não existe rota de leitura, listagem, alteração de cadastro ou exclusão, nem
 
 Nada dessa comunicação é implementado: o frontend não é alterado e o serviço não envia cabeçalhos de CORS. A exploração pode usar um experimento descartável (por exemplo, uma página de teste chamando o serviço), que não é commitado.
 
+**RN-16 — Dados fictícios e nenhuma credencial no repositório.** Testes, exemplos do README e cadastros feitos em conferência manual usam apenas dados fictícios: nomes inventados, e-mails no domínio reservado `example.com` e CPFs e CNPJs com dígitos verificadores inválidos, que não pertencem a ninguém. Nenhuma senha de banco, chave ou arquivo `.env` entra no repositório; o `.gitignore` do microsserviço ignora arquivos `.env`.
+
 ### Casos de borda
 
 | Caso | Comportamento esperado |
 | --- | --- |
 | Campo desconhecido no JSON, inclusive `competencias` no `POST /candidatos` | Ignorado; o cadastro segue normalmente |
 | CPF `11111111111` com `111.111.111-11` já cadastrado | Aceito: são textos diferentes para o banco, como no CLI |
-| E-mail `Ana@Gmail.com` com `ana@gmail.com` já cadastrado | Aceito, pelo mesmo motivo |
+| E-mail `Candidata@Example.com` com `candidata@example.com` já cadastrado | Aceito, pelo mesmo motivo |
 | Mesmo CPF, CNPJ ou e-mail, na mesma grafia | `409` genérico |
 | CPF ou CNPJ com letras, ou com quantidade errada de dígitos | `400` citando o campo |
 | CPF com dígitos verificadores inválidos (ex.: `111.111.111-11`) | Aceito |
@@ -112,6 +114,7 @@ Nada dessa comunicação é implementado: o frontend não é alterado e o servi�
 | Chamada vinda de uma página no navegador (outra origem) | O navegador bloqueia, pois o serviço não tem CORS. É o esperado nesta feature |
 | Banco fora do ar | `500` genérico |
 | Porta já em uso | O serviço não sobe e informa o motivo no console |
+| Senha do banco não informada | O serviço não sobe e diz qual variável de ambiente falta, sem exibir nenhum valor |
 
 ## 3. Princípio do Anonimato
 
@@ -134,11 +137,12 @@ Pontos de atenção e pendências conhecidas do `AGENTS.md`:
 - **Sem login.** A rota de competências aceita qualquer `id`: quem souber o `id` de um candidato pode acrescentar competências a ele e ver a lista dele na resposta. A lista de competências é um dado que a empresa já pode ver antes do match, então não há exposição fora da tabela; o risco é de integridade, aceito pelo autor por não existir autenticação no projeto.
 - **Senha em texto puro.** O serviço grava a senha como o CLI e a API fazem hoje. Passa a ser pendência conhecida, a registrar no `AGENTS.md` ao final da feature.
 - **Pendências do frontend, da API e do CLI** (`localStorage` com cadastro completo, `GET` sem anonimato, nome da empresa na listagem de vagas): não são tocadas.
+- **Pendências de dados e credenciais** (usuário e senha fixos em `ProvedorPostgreSQL` e `ProvedorMySQL`, e-mails em domínio real na carga inicial e nas specs existentes): não são tocadas, e o microsserviço não repete nenhuma das duas práticas (RN-13, RN-16).
 
 ## 4. Critérios de aceite
 
 **CA-01 — Serviço sobe sozinho e desacoplado**
-- Dado o PostgreSQL no ar e o projeto principal parado
+- Dado o PostgreSQL no ar, a senha do banco informada por variável de ambiente e o projeto principal parado
 - Quando o `main` do microsserviço é executado a partir da pasta dele, em outra instância do IntelliJ
 - Então ele responde em `http://localhost:8081` sem Tomcat, e nenhum arquivo dele importa `org.example`
 
@@ -163,7 +167,7 @@ Pontos de atenção e pendências conhecidas do `AGENTS.md`:
 - Então a resposta é `400` citando o campo, sem repetir o valor
 
 **CA-06 — Gravação como enviado**
-- Dado um candidato com `cpf` `12345678901`, `cep` `79000000` e `email` `Ana@Gmail.com`
+- Dado um candidato com `cpf` `12345678900`, `cep` `79000000` e `email` `Candidata@Example.com`
 - Quando o cadastro é aceito
 - Então esses três valores são gravados e devolvidos exatamente assim
 
@@ -212,7 +216,12 @@ Pontos de atenção e pendências conhecidas do `AGENTS.md`:
 - Quando alguém que não participou o lê
 - Então consegue subir o microsserviço, chamar as três rotas e entender qual solução de comunicação com o frontend foi explorada, o que foi testado e o que ficou para a próxima feature
 
-Como são verificados: CA-02 a CA-12 e CA-14 por specs Spock no próprio microsserviço, sem banco (repositórios simulados); a gravação real no PostgreSQL (CA-01 a CA-03 e CA-07 a CA-11) por conferência manual com `curl` e consulta ao banco; CA-13 por `git diff` e `./gradlew test` na raiz; CA-15 por leitura do autor.
+**CA-16 — Sem credenciais nem dados reais**
+- Dado o repositório ao final da feature
+- Quando se procura, nos arquivos criados ou alterados por ela, por senha de banco, chave, arquivo `.env`, e-mails, CPFs, CNPJs e nomes
+- Então não há nenhuma credencial; os e-mails são todos de `example.com`; os CPFs e CNPJs têm dígitos verificadores inválidos; e o serviço, sem a variável da senha do banco, não sobe
+
+Como são verificados: CA-02 a CA-12 e CA-14 por specs Spock no próprio microsserviço, sem banco (repositórios simulados); a gravação real no PostgreSQL (CA-01 a CA-03 e CA-07 a CA-11) por conferência manual com `curl` e consulta ao banco; CA-13 por `git diff` e `./gradlew test` na raiz; CA-15 por leitura do autor; CA-16 por busca nos arquivos da feature e por uma spec da configuração.
 
 ## 5. Impacto no que já existe
 
@@ -241,6 +250,7 @@ Esta feature **não** vai:
 - normalizar CPF, CNPJ, CEP ou e-mail, validar dígitos verificadores ou aceitar o CNPJ alfanumérico;
 - alterar ou remover os `POST` da API do Tomcat, mudar a busca de competências do CLI ou corrigir as pendências de anonimato existentes;
 - corrigir o `;` faltante de `database/Linketinder.sql` nem configurar o `mainClass` do projeto principal;
+- tirar o usuário e a senha fixos de `ProvedorPostgreSQL` e `ProvedorMySQL`, nem trocar os e-mails em domínio real da carga inicial e das specs existentes;
 - compartilhar código entre o microsserviço e o projeto principal.
 
 ### Pendências para features futuras
@@ -279,7 +289,11 @@ Confirmadas pelo autor:
 - Tamanhos máximos das colunas validados pelo serviço; senha de até 50 caracteres, sem remoção de espaços.
 - Resposta `201` com o registro criado, sem a senha e sem cabeçalho `Location`; devolver os próprios dados a quem se cadastrou não fere o anonimato.
 - Senha gravada como hoje; o texto puro vira pendência conhecida.
-- Porta `8081` e credenciais do banco iguais às do projeto principal, trocáveis por variável de ambiente.
+- Porta `8081`, trocável por variável de ambiente.
+- Dados fictícios em testes, exemplos e conferências manuais, e nenhuma credencial no repositório (regras do autor, registradas no `AGENTS.md`).
+- A senha do banco não tem valor padrão no código: vem só de variável de ambiente, e sem ela o serviço não sobe. URL e usuário (`postgres`) têm padrão.
+- Dados fictícios são e-mails em `example.com` e CPFs e CNPJs com dígitos verificadores inválidos.
+- O `.gitignore` da raiz não ganha a linha `.env` nesta feature; só o do microsserviço ignora `.env`.
 - Mesma stack do projeto: Groovy 5.0.8, Gradle, `groovy-json`, driver do PostgreSQL e Spock.
 
 Premissas assumidas na escrita, a confirmar:

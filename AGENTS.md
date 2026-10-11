@@ -125,7 +125,7 @@ Não amplie nenhuma delas, não as use como exemplo a seguir e pergunte antes de
 ## Banco de dados
 
 - **Scripts:** um único arquivo, `database/Linketinder.sql`, na ordem: criação das tabelas base → carga inicial (competências, candidatos, empresas, vagas, vínculos) → consultas de exemplo → tabelas de curtida e match → constraint empresa/vaga → curtidas e matches de exemplo. O DER está em `assets/der.png`.
-- **Conexão esperada pelo código** (`ProvedorPostgreSQL`, valores fixos): `jdbc:postgresql://localhost:5432/linketinder`, usuário `postgres`, senha `postgres`.
+- **Conexão esperada pelo código** (`ProvedorPostgreSQL`): `jdbc:postgresql://localhost:5432/linketinder`, com usuário e senha fixos no código-fonte (ver as pendências de dados e credenciais, em [Restrições](#restrições)).
 - **Como aplicar:** o script não cria o banco e não é idempotente (sem `DROP`/`IF NOT EXISTS`), então rode uma única vez em um banco vazio:
 
   ```bash
@@ -192,5 +192,15 @@ Todos os comandos do backend partem da raiz do repositório; no Windows use `gra
 - Não altere o schema, o contrato da API, as dependências do `build.gradle`/`package.json` nem a pasta `lib/` sem perguntar.
 - Mantenha `javax.servlet` + Tomcat 9; não migre para `jakarta` sem pedido explícito.
 - Não quebre a separação de camadas (ex.: `println` fora de `view`, SQL fora de `dao`, `new XxxDAO` fora de `Main`/`Dependencias`).
+- **Use dados fictícios.** Em scripts de carga e testes, nunca use CPFs, e-mails ou nomes reais. O mesmo vale para exemplos na documentação e para cadastros feitos em conferência manual.
+- **Nunca faça commit de credenciais.** Senhas de banco, chaves de API e arquivos `.env` devem ficar fora do repositório: leia de variável de ambiente e não escreva o valor em código, teste, script ou documentação.
 - Não faça commit nem push por conta própria.
 - Encontrou inconsistência, pendência ou algo não coberto aqui? Volte à [Regra nº 1](#regra-nº-1-na-dúvida-pergunte).
+
+### Pendências conhecidas (dados e credenciais)
+
+Código já commitado que ainda está fora das duas regras acima. Não amplie, não use como modelo e pergunte antes de corrigir:
+
+- `ProvedorPostgreSQL` e `ProvedorMySQL` trazem usuário e senha de banco fixos no código-fonte.
+- A carga inicial (`database/Linketinder.sql` e `frontend/ts/dados.ts`) e várias specs em `src/test/groovy` usam e-mails em domínio real (`@gmail.com`), que podem pertencer a alguém.
+- O `.gitignore` da raiz não ignora arquivos `.env`.
