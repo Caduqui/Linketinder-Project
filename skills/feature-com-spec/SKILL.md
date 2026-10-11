@@ -162,7 +162,7 @@ Um item do anonimato que não pôde ser verificado não é "ok": relate como pen
 
 ## CHANGELOG
 
-O arquivo é `CHANGELOG.md`, na raiz, no formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) em português. Se ele ainda não existir, crie-o na primeira tarefa com o cabeçalho e a seção `## [Não lançado]`.
+O arquivo é `CHANGELOG.md`, na raiz, no formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) em português, com a seção `## [Não lançado]` no topo e as mudanças agrupadas em `Adicionado`, `Modificado`, `Corrigido` e `Removido`.
 
 ```markdown
 # Changelog
@@ -173,12 +173,12 @@ O arquivo é `CHANGELOG.md`, na raiz, no formato [Keep a Changelog](https://keep
 - Curtida pela API: `POST /curtidas`
   (spec `curtida-pela-api`, tarefa 2).
 
-### Alterado
+### Modificado
 - `Json.deVaga` deixa de devolver a empresa
   (spec `curtida-pela-api`, tarefa 3).
 ```
 
-- **Uma entrada por tarefa**, acrescentada em `[Não lançado]` na categoria certa: `Adicionado` (comportamento novo), `Alterado` (mudança no que já existia, inclusive testes, refatoração e documentação), `Corrigido` (defeito resolvido) ou `Removido`. Crie a categoria se ela ainda não existir na seção.
+- **Uma entrada por tarefa**, acrescentada em `[Não lançado]` na categoria certa: `Adicionado` (comportamento novo), `Modificado` (mudança no que já existia, inclusive testes, refatoração e documentação), `Corrigido` (defeito resolvido) ou `Removido`. As quatro categorias já existem no arquivo; não crie outras.
 - **A entrada descreve o efeito** para quem usa ou mantém o projeto, em uma frase, e termina com a referência à spec e à tarefa, como no exemplo acima.
 - **A entrada não pode violar o anonimato nem conter dados reais** de candidatos ou empresas.
 - **Não reescreva entradas antigas** nem mova itens de `[Não lançado]` para uma versão: isso só acontece a pedido do autor.
@@ -324,7 +324,7 @@ Implementa `docs/specs/<nome-da-feature>/spec.md`. Os códigos `RN-xx` e `CA-xx`
   - funcionalidades listadas em "Impacto" conferidas;
   - nenhum arquivo fora do escopo alterado;
   - `CHANGELOG.md` com uma entrada por tarefa.
-- **CHANGELOG:** Alterado — <documentação da feature atualizada> (spec `<nome-da-feature>`, tarefa N).
+- **CHANGELOG:** Modificado — <documentação da feature atualizada> (spec `<nome-da-feature>`, tarefa N).
 - **Situação:** <pendente | concluída>.
 
 ## Pendências
