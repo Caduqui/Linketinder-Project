@@ -1,8 +1,17 @@
 package org.linketinder.cadastro
 
+import org.linketinder.cadastro.banco.ConexaoBanco
+import org.linketinder.cadastro.dao.CandidatoDAO
+import org.linketinder.cadastro.dao.EmpresaDAO
 import org.linketinder.cadastro.http.RegistroDoServidor
+import org.linketinder.cadastro.http.RotasDeCadastro
 import org.linketinder.cadastro.http.Roteador
 import org.linketinder.cadastro.http.ServidorCadastro
+import org.linketinder.cadastro.service.CadastroCandidatoService
+import org.linketinder.cadastro.service.CadastroEmpresaService
+import org.linketinder.cadastro.service.ValidadorDeCadastro
+
+import java.time.Clock
 
 /**
  *
@@ -25,11 +34,24 @@ class Main {
     static ServidorCadastro subir(Map<String, String> ambiente, RegistroDoServidor registro) {
         Configuracao configuracao = Configuracao.aPartirDe(ambiente)
 
-        ServidorCadastro servidor = abrirServidor(configuracao.porta, new Roteador(registro))
+        ServidorCadastro servidor = abrirServidor(configuracao.porta, montarRoteador(configuracao, registro))
         servidor.iniciar()
         registro.informar("Microsserviço de cadastro disponível na porta ${servidor.porta}")
 
         return servidor
+    }
+
+    private static Roteador montarRoteador(Configuracao configuracao, RegistroDoServidor registro) {
+        ConexaoBanco conexaoBanco = new ConexaoBanco(configuracao)
+        ValidadorDeCadastro validador = new ValidadorDeCadastro(Clock.systemDefaultZone())
+
+        Roteador roteador = new Roteador(registro)
+        RotasDeCadastro.registrar(
+                roteador,
+                new CadastroCandidatoService(validador, new CandidatoDAO(conexaoBanco)),
+                new CadastroEmpresaService(validador, new EmpresaDAO(conexaoBanco))
+        )
+        return roteador
     }
 
     private static ServidorCadastro abrirServidor(int porta, Roteador roteador) {

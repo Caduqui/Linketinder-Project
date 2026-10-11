@@ -91,6 +91,8 @@ Nada dessa comunicação é implementado: o frontend não é alterado e o servi�
 | Caso | Comportamento esperado |
 | --- | --- |
 | Campo desconhecido no JSON, inclusive `competencias` no `POST /candidatos` | Ignorado; o cadastro segue normalmente |
+| Corpo que não está em UTF-8 (ex.: acentos enviados em outra codificação) | `400` dizendo que o corpo deve estar em UTF-8; nada é gravado, para não guardar texto corrompido |
+| Corpo em UTF-8 com acentos (ex.: `"formacao": "Ciência da Computação"`) | Gravado e devolvido com os acentos intactos |
 | CPF `11111111111` com `111.111.111-11` já cadastrado | Aceito: são textos diferentes para o banco, como no CLI |
 | E-mail `Candidata@Example.com` com `candidata@example.com` já cadastrado | Aceito, pelo mesmo motivo |
 | Mesmo CPF, CNPJ ou e-mail, na mesma grafia | `409` genérico |

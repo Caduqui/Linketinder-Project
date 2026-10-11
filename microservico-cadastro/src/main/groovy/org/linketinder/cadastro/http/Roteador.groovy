@@ -55,7 +55,7 @@ class Roteador implements HttpHandler {
         return new Requisicao(
                 troca.requestMethod,
                 troca.requestURI.path,
-                troca.requestBody.getText(RespostaJson.CODIFICACAO)
+                troca.requestBody.bytes
         )
     }
 

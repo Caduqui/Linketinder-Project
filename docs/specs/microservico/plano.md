@@ -162,7 +162,11 @@ O que depende de conferência manual: os DAOs e a transação contra o PostgreSQ
   - o candidato cadastrado aparece na listagem do CLI.
 - **Anonimato:** nenhuma saída nova para quem chama. Conferir que a mensagem técnica de erro de banco vai só para o console do servidor e não traz dados do cadastro.
 - **CHANGELOG:** Adicionado — Cadastro de candidatos e empresas gravado no PostgreSQL pelo microsserviço; cadastro repetido responde `409` (spec `microservico`, tarefa 4).
-- **Situação:** pendente.
+- **Situação:** concluída em 2026-10-11. Conferida com a aplicação no ar contra o PostgreSQL real: `201` com a linha gravada como enviada (candidato e empresa), `409` no repetido sem duplicar a linha, `400` nas validações, `405`/`404` nas rotas e `500` genérico com o banco inacessível. Fica para o autor conferir o candidato na listagem do CLI.
+- **Cadastros fictícios deixados no banco:** candidatos de `id` 6 e 8 e empresa de `id` 6. O candidato 6 ficou com a descrição corrompida, porque foi gravado antes da correção do UTF-8 abaixo.
+- **Além do texto do plano:**
+  - a conferência manual mostrou que um corpo fora de UTF-8 (acento digitado na linha de comando do Windows) era gravado corrompido em silêncio. A spec ganhou dois casos de borda e o serviço passou a responder `400` para corpo que não está em UTF-8, com teste;
+  - o `Main` ganhou um teste que sobe o serviço e confirma que as duas rotas estão ligadas, sem precisar de banco.
 
 ### 5. Competências do candidato: regras e rota
 

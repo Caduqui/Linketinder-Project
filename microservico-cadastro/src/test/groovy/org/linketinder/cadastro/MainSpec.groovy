@@ -4,6 +4,10 @@ import org.linketinder.cadastro.http.RegistroDoServidor
 import org.linketinder.cadastro.http.ServidorCadastro
 import spock.lang.Specification
 
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+
 /**
  *
  * @author Guilherme Lima Conte
@@ -31,6 +35,28 @@ class MainSpec extends Specification {
 
         cleanup:
         servidor?.parar()
+    }
+
+    def "o serviço sobe com as rotas de cadastro ligadas"() {
+        given:
+        ServidorCadastro servidor = Main.subir([
+                (Configuracao.VARIAVEL_PORTA)      : PORTA_LIVRE,
+                (Configuracao.VARIAVEL_BANCO_SENHA): SENHA_FICTICIA
+        ], registro)
+
+        expect: "dados inválidos são recusados pela rota antes de qualquer acesso ao banco"
+        enviarCorpoVazio(servidor, "/candidatos") == 400
+        enviarCorpoVazio(servidor, "/empresas") == 400
+
+        cleanup:
+        servidor?.parar()
+    }
+
+    private static int enviarCorpoVazio(ServidorCadastro servidor, String caminho) {
+        HttpRequest requisicao = HttpRequest.newBuilder(URI.create("http://localhost:${servidor.porta}${caminho}"))
+                .POST(HttpRequest.BodyPublishers.ofString(""))
+                .build()
+        return HttpClient.newHttpClient().send(requisicao, HttpResponse.BodyHandlers.discarding()).statusCode()
     }
 
     def "com a porta já em uso o serviço não sobe e diz qual porta e qual variável trocar"() {

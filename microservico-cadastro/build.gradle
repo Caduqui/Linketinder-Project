@@ -13,6 +13,7 @@ repositories {
 dependencies {
     implementation 'org.apache.groovy:groovy:5.0.8'
     implementation 'org.apache.groovy:groovy-json:5.0.8'
+    implementation 'org.postgresql:postgresql:42.7.7'
 
     testImplementation 'org.spockframework:spock-core:2.4-groovy-5.0'
     testImplementation 'net.bytebuddy:byte-buddy:1.14.13'

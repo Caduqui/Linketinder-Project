@@ -157,6 +157,37 @@ class RotasDeCadastroSpec extends Specification {
         "que é texto simples" | '"Candidata"'
     }
 
+    def "corpo em UTF-8 com acentos é gravado e devolvido com os acentos intactos"() {
+        given:
+        Candidato gravado = null
+        String corpo = '{"nome":"Candidata","sobrenome":"Exemplo","dataNascimento":"2000-01-15","email":"candidata@example.com",' +
+                '"cpf":"12345678900","pais":"Brasil","cep":"79000000","senha":"senha-ficticia","formacao":"Ciência da Computação"}'
+
+        when:
+        HttpResponse<String> resposta = chamar("POST", "/candidatos", corpo)
+
+        then:
+        1 * candidatoRepositorio.inserir(_) >> { Candidato candidato -> gravado = candidato; candidato.id = 10 }
+        gravado.formacao == "Ciência da Computação"
+        json(resposta).formacao == "Ciência da Computação"
+    }
+
+    def "corpo que não está em UTF-8 responde 400 e nada é gravado"() {
+        given:
+        byte[] corpoEmLatin1 = '{"nome":"Candidata","formacao":"Ciência"}'.getBytes("ISO-8859-1")
+        HttpRequest requisicao = HttpRequest.newBuilder(URI.create("http://localhost:${servidor.porta}/candidatos"))
+                .POST(HttpRequest.BodyPublishers.ofByteArray(corpoEmLatin1))
+                .build()
+
+        when:
+        HttpResponse<String> resposta = cliente.send(requisicao, HttpResponse.BodyHandlers.ofString())
+
+        then:
+        0 * candidatoRepositorio.inserir(_)
+        resposta.statusCode() == 400
+        json(resposta).erro.contains("UTF-8")
+    }
+
     def "JSON inválido não tem o conteúdo repetido na resposta"() {
         when:
         HttpResponse<String> resposta = chamar("POST", "/candidatos", '{"email": "candidata@example.com"')
