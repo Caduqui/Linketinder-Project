@@ -27,7 +27,8 @@ Situação do plano: aprovado pelo autor em 2026-10-11.
 | Log | Uma única classe escreve no console, e só método, rota e status |
 | Testes | Specs Spock em `microservico-cadastro/src/test/groovy`, espelhando os pacotes, com nomes em português. Regras e serviços com `Mock` dos repositórios. A camada HTTP é testada de verdade: a spec sobe o servidor em uma porta livre, com serviços simulados, e chama com o `HttpClient` do JDK |
 | Ordem | Teste antes do código, em toda tarefa que tem teste |
-| Commits | O agente commita, um commit por tarefa, só depois que o autor validar a tarefa. Mensagem no estilo do histórico recente (`tipo: descrição`, em português). Cada commit inclui apenas os arquivos da tarefa, adicionados pelo caminho; `.idea/` e `frontend/` nunca entram |
+| Ciclo de cada tarefa | Definido pelo autor: implementar uma tarefa por vez e, a cada uma, rodar a aplicação e os testes, conferir se o anonimato continua preservado, atualizar o `CHANGELOG.md`, marcar a tarefa como concluída no plano e fazer um commit. Se a spec se mostrar incompleta, atualizar a spec primeiro e só depois o código |
+| Commits | O agente commita, um commit por tarefa, com mensagem clara no estilo do histórico recente (`tipo: descrição`, em português). Cada commit inclui apenas os arquivos da tarefa, adicionados pelo caminho; `.idea/` e `frontend/` nunca entram |
 
 ## Estrutura ao final
 
@@ -94,7 +95,13 @@ O que depende de conferência manual: os DAOs e a transação contra o PostgreSQ
 - **Validação:** `./gradlew test` na pasta do microsserviço e na raiz (90). Manual: com a variável da senha definida no terminal, `./gradlew run` na pasta e `curl -i http://localhost:8081/x` responde `404`; sem a variável, o serviço não sobe e diz qual falta; abrir a pasta em outra instância do IntelliJ e rodar o `Main` (CA-01, parte do CA-12 e do CA-16). `git status` não mostra nenhum `.env`.
 - **Anonimato:** só o log é saída nova; a spec captura o console e afirma que o corpo enviado e a senha do banco não aparecem.
 - **CHANGELOG:** Adicionado — Microsserviço de cadastro: aplicação independente em `microservico-cadastro/`, com servidor HTTP do JDK na porta 8081 (spec `microservico`, tarefa 1).
-- **Situação:** pendente.
+- **Situação:** concluída em 2026-10-11. Fica para o autor conferir a execução em outra instância do IntelliJ.
+- **Além do texto do plano:**
+  - a classe de log se chama `RegistroDoServidor` (e não `RegistroDeRequisicoes`), porque também escreve a mensagem de início do serviço; foram criadas ainda `Requisicao`, `Manipulador` e `ConfiguracaoInvalidaException`;
+  - para rota desconhecida, o log registra `(rota desconhecida)` em vez do caminho digitado, para que um e-mail ou CPF colocado na URL nunca vá para o log (RN-14);
+  - porta já em uso vira uma mensagem que diz a porta e a variável a trocar, com teste;
+  - o `build.gradle` fixa a saída do console em UTF-8, porque pelo `./gradlew run` no Windows as mensagens com acento saíam ilegíveis;
+  - o JSON de resposta é escrito em UTF-8 sem escapar acentos, para ficar legível no `curl`.
 
 ### 2. Regras de cadastro: validação e serviços
 

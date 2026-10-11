@@ -75,7 +75,7 @@ Não existe rota de leitura, listagem, alteração de cadastro ou exclusão, nem
 
 **RN-13 — Configuração.** Porta e dados de conexão do banco vêm de variáveis de ambiente, sem recompilar. Porta, URL e usuário do banco têm valor padrão: porta `8081`, URL `jdbc:postgresql://localhost:5432/linketinder` e usuário `postgres`. A **senha do banco não tem valor padrão**: vem só da variável de ambiente e não é escrita em código, teste, script ou documentação. Sem ela, o serviço não sobe e informa qual variável está faltando, sem exibir nenhum valor.
 
-**RN-14 — Nada pessoal em log.** O serviço registra no máximo método, rota e status de cada requisição, e a mensagem técnica de falhas de banco no console do servidor. Nunca registra corpo de requisição, senha, e-mail, CPF ou CNPJ.
+**RN-14 — Nada pessoal em log.** O serviço registra no máximo método, rota e status de cada requisição, e a mensagem técnica de falhas de banco no console do servidor. Nunca registra corpo de requisição, senha, e-mail, CPF ou CNPJ. Como alguém pode digitar um desses dados na própria URL, a rota registrada é a rota conhecida do serviço; para rota desconhecida, o registro traz o marcador fixo `(rota desconhecida)` em vez do caminho digitado, e parâmetros de consulta nunca são registrados.
 
 **RN-15 — README e exploração da integração.** O `README.md` ganha:
 
