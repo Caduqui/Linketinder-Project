@@ -140,7 +140,12 @@ O que depende de conferência manual: os DAOs e a transação contra o PostgreSQ
 - **Validação:** `./gradlew test` na pasta (CA-02 a CA-05 e CA-07 pela camada HTTP, CA-12, parte do CA-14).
 - **Anonimato:** as respostas `201`, `400`, `409` e `500` são conferidas contra a tabela da seção 3 da spec: nenhuma contém `senha`, nenhum erro repete valor enviado, e a resposta `409` não diz qual campo coincidiu.
 - **CHANGELOG:** Adicionado — Rotas `POST /candidatos` e `POST /empresas` do microsserviço, com respostas em JSON sem a senha (spec `microservico`, tarefa 3).
-- **Situação:** pendente.
+- **Situação:** concluída em 2026-10-11. Com a aplicação no ar, `POST /candidatos` ainda responde `404`, como previsto: o `Main` só registra as rotas na tarefa 4.
+- **Além do texto do plano:**
+  - a spec das rotas usa os serviços reais com os repositórios simulados (e não serviços simulados), o que testa junto a validação e o tratamento de campos desconhecidos;
+  - as rotas são registradas pela classe `RotasDeCadastro`, em vez de um ajuste em `ServidorCadastro`;
+  - a RN-14 foi completada antes do código: na falha de banco, o console recebe só o código do erro e a primeira linha da mensagem, porque a linha de detalhe do PostgreSQL pode trazer valores gravados;
+  - as interfaces de repositório declaram `throws SQLException`, para a falha de banco chegar inteira ao roteador.
 
 ### 4. Gravação no PostgreSQL e ligação no `Main`
 

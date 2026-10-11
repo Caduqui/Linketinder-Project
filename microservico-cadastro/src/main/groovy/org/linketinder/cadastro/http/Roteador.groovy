@@ -2,6 +2,10 @@ package org.linketinder.cadastro.http
 
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
+import org.linketinder.cadastro.service.CadastroRepetidoException
+import org.linketinder.cadastro.service.DadosInvalidosException
+
+import java.sql.SQLException
 
 /**
  *
@@ -10,8 +14,10 @@ import com.sun.net.httpserver.HttpHandler
 
 class Roteador implements HttpHandler {
 
+    static final int REQUISICAO_INVALIDA = 400
     static final int NAO_ENCONTRADO = 404
     static final int METODO_NAO_PERMITIDO = 405
+    static final int CONFLITO = 409
     static final int ERRO_INTERNO = 500
     static final String ROTA_DESCONHECIDA = "(rota desconhecida)"
 
@@ -53,7 +59,7 @@ class Roteador implements HttpHandler {
         )
     }
 
-    private static RespostaJson responder(Requisicao requisicao, Map<String, Manipulador> manipuladoresPorMetodo) {
+    private RespostaJson responder(Requisicao requisicao, Map<String, Manipulador> manipuladoresPorMetodo) {
         if (manipuladoresPorMetodo == null) {
             return RespostaJson.erro(NAO_ENCONTRADO, "Rota não encontrada")
         }
@@ -63,9 +69,21 @@ class Roteador implements HttpHandler {
             return responderMetodoNaoPermitido(requisicao, manipuladoresPorMetodo.keySet())
         }
 
+        return atender(manipulador, requisicao)
+    }
+
+    private RespostaJson atender(Manipulador manipulador, Requisicao requisicao) {
         try {
             return manipulador.atender(requisicao)
+        } catch (DadosInvalidosException e) {
+            return RespostaJson.erro(REQUISICAO_INVALIDA, e.message)
+        } catch (CadastroRepetidoException e) {
+            return RespostaJson.erro(CONFLITO, e.message)
+        } catch (SQLException e) {
+            registro.registrarFalhaDeBanco(e)
+            return RespostaJson.erro(ERRO_INTERNO, "Erro ao acessar o banco de dados")
         } catch (Exception e) {
+            registro.registrarFalhaInesperada(e)
             return RespostaJson.erro(ERRO_INTERNO, "Erro interno do servidor")
         }
     }
