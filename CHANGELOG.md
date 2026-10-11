@@ -26,6 +26,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   com o frontend (spec `microservico`, tarefa 7).
 
 ### Modificado
+- `AGENTS.md` passa a descrever o microsserviço de cadastro e suas pendências
+  (spec `microservico`, tarefa 8).
 
 ### Corrigido
 

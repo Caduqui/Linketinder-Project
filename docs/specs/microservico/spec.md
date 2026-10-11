@@ -1,6 +1,6 @@
 # Spec: microsserviço de cadastro
 
-Branch: `feature/microservico` · Escopo: novo backend (`microservico-cadastro/`) e documentação · Situação: aprovada pelo autor em 2026-10-11, incluindo o ajuste de credenciais e dados fictícios (RN-13, RN-16, CA-16)
+Branch: `feature/microservico` · Escopo: novo backend (`microservico-cadastro/`) e documentação · Situação: implementada em 2026-10-11 (aprovada pelo autor na mesma data; o checklist de validação está em `plano.md`)
 
 ## 1. Contexto e objetivo
 

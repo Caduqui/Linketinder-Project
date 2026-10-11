@@ -2,7 +2,7 @@
 
 Implementa `docs/specs/microservico/spec.md`. Os códigos `RN-xx` e `CA-xx` são as regras e os critérios de aceite da spec.
 
-Situação do plano: aprovado pelo autor em 2026-10-11.
+Situação do plano: aprovado pelo autor em 2026-10-11; as 8 tarefas foram concluídas em 2026-10-11.
 
 ## Ponto de partida
 
@@ -245,7 +245,61 @@ O que depende de conferência manual: os DAOs e a transação contra o PostgreSQ
   - `CHANGELOG.md` com uma entrada por tarefa.
 - **Anonimato:** conferir que o texto novo do `AGENTS.md` não contradiz a tabela do Princípio do Anonimato e registra a pendência da senha.
 - **CHANGELOG:** Modificado — `AGENTS.md` passa a descrever o microsserviço de cadastro e suas pendências (spec `microservico`, tarefa 8).
-- **Situação:** pendente.
+- **Situação:** concluída em 2026-10-11.
+
+#### Checklist de validação preenchido (2026-10-11)
+
+**Testes e critérios de aceite**
+
+- [x] `./gradlew test` no microsserviço: 144 testes, nenhuma falha. Na raiz: 90 testes, nenhuma falha.
+- [x] Frontend não foi tocado, então `npx tsc --noEmit` não se aplica.
+- [x] Critérios de aceite repassados:
+
+| Critério | Como foi verificado | Situação |
+| --- | --- | --- |
+| CA-01 serviço sobe sozinho e desacoplado | `./gradlew run` na pasta dele, com o projeto principal parado; busca por `org.example` no microsserviço sem resultado | Atende. A execução em outra instância do IntelliJ fica para o autor |
+| CA-02 cadastro de candidato | Specs + `curl` e consulta ao PostgreSQL | Atende |
+| CA-03 cadastro de empresa | Specs + `curl` e consulta ao PostgreSQL | Atende |
+| CA-04 campo obrigatório | Specs + `curl` | Atende |
+| CA-05 formatos | Specs (tabela de casos) + `curl` | Atende |
+| CA-06 gravação como enviado | Specs + consulta ao PostgreSQL | Atende |
+| CA-07 cadastro repetido | Specs + `curl` e contagem de linhas no PostgreSQL | Atende |
+| CA-08 competências salvas | Specs + `curl` e consulta ao PostgreSQL | Atende |
+| CA-09 competência em outra caixa | Specs + `curl` e consulta ao PostgreSQL | Atende |
+| CA-10 competências somadas | Specs + `curl` e consulta ao PostgreSQL | Atende |
+| CA-11 competências inválidas | Specs + `curl` e consulta ao PostgreSQL | Atende |
+| CA-12 rotas e métodos | Specs + `curl` | Atende |
+| CA-13 nada fora do microsserviço | `git diff bee78b8` e suíte da raiz | Atende |
+| CA-14 anonimato preservado | Specs das respostas e do registro + leitura das saídas | Atende |
+| CA-15 README | Comandos rodados antes de escritos; experimento no navegador | Escrito. A leitura final é do autor |
+| CA-16 sem credenciais nem dados reais | Busca nos arquivos da feature + specs da configuração | Atende |
+
+- [x] Mudanças em DAO conferidas com o PostgreSQL real (tarefas 4 e 6). O schema não mudou.
+
+**Princípio do Anonimato**
+
+- [x] Empresa antes do match: a feature não cria saída para empresa sobre candidato. A única saída com dado de candidato para terceiros é a resposta de competências, que traz só `id` e `competencias`, ambos permitidos (spec).
+- [x] Candidato antes do match: a feature não cria saída sobre vaga ou empresa para candidato.
+- [x] Depois do match: a feature não toca em match.
+- [x] Senha: ausente das respostas `201` (specs afirmam que a palavra `senha` não aparece), das mensagens de erro e do registro. A senha do banco não aparece em texto da configuração nem em log.
+- [x] Curtida: a feature não toca em curtida.
+- [x] Camadas olhadas: respostas montadas em `CandidatoHandler`, `EmpresaHandler` e `CompetenciaHandler`; mensagens de `ValidadorDeCadastro`, `CompetenciaDoCandidatoService` e `CorpoJson`; `RegistroDoServidor`, único ponto que escreve no console além da mensagem de falha de início no `Main`; consultas dos DAOs (a de competências devolve só `id` e `nome` da competência); exemplos do README.
+- [x] Pendências conhecidas: nenhuma ampliada nem usada como modelo. Duas novas foram registradas no `AGENTS.md`: senha em texto puro e rota de competências sem login.
+- [x] Seção 3 da spec conferida linha a linha: respostas `201`, `200`, `400`, `409`, `404`, `405` e `500` por spec; registro do serviço por spec e na execução real; exemplos do README por busca de e-mails fora de `example.com`.
+
+**Regressão e escopo**
+
+- [x] Impacto (seção 5 da spec): CLI, API REST, build da raiz, schema e frontend sem alteração de arquivo; suíte da raiz passando. A listagem do CLI com os cadastros do microsserviço não foi executada pelo agente (as linhas foram conferidas por consulta ao banco).
+- [x] Escopo: desde `bee78b8`, só mudaram `microservico-cadastro/`, `docs/specs/microservico/`, `README.md`, `AGENTS.md` e `CHANGELOG.md`. As alterações antigas em `.idea/` e `frontend/` continuam fora dos commits.
+
+**Documentação**
+
+- [x] `CHANGELOG.md` com uma entrada por tarefa (1 a 8).
+- [x] `AGENTS.md` descreve o microsserviço como existente.
+- [x] `README.md` com a descrição de uso e a exploração da integração.
+- [x] Spec marcada como implementada; todas as tarefas do plano com situação.
+
+**Não verificado pelo agente, fica para o autor:** rodar o `Main` em outra instância do IntelliJ; ver os cadastros na listagem do CLI; parar de fato o PostgreSQL (a falha de banco foi simulada apontando a URL para uma porta sem banco); ler o README.
 
 ## Pendências
 
