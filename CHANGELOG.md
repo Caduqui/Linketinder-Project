@@ -20,6 +20,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Regras e rota `POST /candidatos/{id}/competencias` do microsserviço:
   competências somadas às do candidato, reaproveitando as existentes sem
   diferenciar maiúsculas (spec `microservico`, tarefa 5).
+- Competências do candidato gravadas no PostgreSQL pelo microsserviço, em
+  transação (spec `microservico`, tarefa 6).
 
 ### Modificado
 

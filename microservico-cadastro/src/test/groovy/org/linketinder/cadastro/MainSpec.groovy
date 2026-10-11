@@ -47,6 +47,7 @@ class MainSpec extends Specification {
         expect: "dados inválidos são recusados pela rota antes de qualquer acesso ao banco"
         enviarCorpoVazio(servidor, "/candidatos") == 400
         enviarCorpoVazio(servidor, "/empresas") == 400
+        enviarCorpoVazio(servidor, "/candidatos/7/competencias") == 400
 
         cleanup:
         servidor?.parar()

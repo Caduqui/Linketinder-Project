@@ -201,7 +201,9 @@ O que depende de conferência manual: os DAOs e a transação contra o PostgreSQ
 - **Validação:** `./gradlew test` na pasta. Manual, com o PostgreSQL no ar: repetir por `curl` os casos de CA-08 a CA-11 e conferir por `SELECT` as tabelas `competencias` e `candidato_competencia`; conferir no CLI que o candidato lista as competências gravadas.
 - **Anonimato:** nenhuma saída nova. Conferir que a consulta de competências do candidato devolve só nomes de competência.
 - **CHANGELOG:** Adicionado — Competências do candidato gravadas no PostgreSQL pelo microsserviço, em transação (spec `microservico`, tarefa 6).
-- **Situação:** pendente.
+- **Situação:** concluída em 2026-10-11. Conferida com a aplicação no ar contra o PostgreSQL real, repetindo CA-08 a CA-11: `Kotlin` e `Rust` criadas uma vez, `java` reaproveitou a `Java` da carga inicial, a soma não repetiu vínculo, e lista vazia (`400`), candidato inexistente (`404`) e `id` inválido (`400`) não criaram nada. Fica para o autor conferir as competências do candidato na listagem do CLI.
+- **Cadastros fictícios deixados no banco:** candidato de `id` 9, com quatro competências, e as competências `Kotlin` e `Rust`.
+- **Além do texto do plano:** a conexão da transação fica guardada em `ConexaoBanco` enquanto o bloco roda, para que os DAOs chamados dentro dele usem a mesma conexão; a spec da transação cobre também esse uso e a volta ao modo de uma conexão por consulta.
 
 ### 7. Exploração da integração e README
 
