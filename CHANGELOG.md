@@ -22,6 +22,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   diferenciar maiúsculas (spec `microservico`, tarefa 5).
 - Competências do candidato gravadas no PostgreSQL pelo microsserviço, em
   transação (spec `microservico`, tarefa 6).
+- README descreve o microsserviço de cadastro e a exploração da comunicação
+  com o frontend (spec `microservico`, tarefa 7).
 
 ### Modificado
 

@@ -219,7 +219,17 @@ O que depende de conferência manual: os DAOs e a transação contra o PostgreSQ
 - **Validação:** `git status` mostra só `README.md` e `CHANGELOG.md` alterados e nenhum resto do experimento; os comandos do README são rodados antes de escritos. O que o agente não conseguir observar no navegador fica descrito como passo para o autor conferir. Leitura do autor (CA-15).
 - **Anonimato:** os exemplos do README são saída: usar apenas dados fictícios, sem senha real e sem reaproveitar pessoas da carga inicial do banco.
 - **CHANGELOG:** Adicionado — README descreve o microsserviço de cadastro e a exploração da comunicação com o frontend (spec `microservico`, tarefa 7).
-- **Situação:** pendente.
+- **Situação:** concluída em 2026-10-11. Fica para o autor ler o README (CA-15).
+- **O que o experimento mostrou**, com a página de teste em `http://localhost:5173` aberta no Microsoft Edge sem interface:
+  - `fetch` com JSON para o serviço atual: o navegador enviou o preflight `OPTIONS`, recebeu `405` sem cabeçalhos de CORS e bloqueou (`TypeError: Failed to fetch`); o `POST` não saiu;
+  - `fetch` sem `Content-Type` para o serviço atual: sem preflight, o `POST` chegou ao serviço e foi processado (apareceu no registro), mas a página não recebeu a resposta;
+  - `fetch` com JSON para a cópia com CORS: preflight `204` com os cabeçalhos, `POST` enviado e resposta lida pela página, inclusive na rota de competências;
+  - preflight de outra origem na cópia, simulado por `curl`: sem cabeçalhos de autorização.
+  O proxy do Vite foi só pesquisado. A página, a cópia do serviço e o perfil temporário do navegador foram apagados; nada do experimento está no repositório.
+- **Além do texto do plano:**
+  - o navegador pôde ser observado pelo agente, com o Edge em modo sem interface, então não sobrou passo de navegador para o autor;
+  - as chamadas da página usaram um corpo incompleto de propósito (resposta `400`), para o experimento não gravar nada no banco;
+  - os exemplos de `curl` do README foram rodados com outros e-mails e documentos fictícios, e não com os valores exatos do texto, para que o primeiro uso do exemplo pelo autor não esbarre em um `409`.
 
 ### 8. Regressão e documentação
 
