@@ -23,7 +23,9 @@ class CandidatoSpec extends Specification{
                 "23134-201",
                 "Dev back-end",
                 "123456",
-                "Computação", competencias)
+                "Computação",
+                competencias
+        )
         candidato.id = 7
         return candidato
     }

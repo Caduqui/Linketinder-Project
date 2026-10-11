@@ -46,7 +46,7 @@ class CurtidaView {
 
         println "\nCandidatos e vagas que deram match:"
         matches.each {
-            Match partida -> println "\n${partida.descrever()}"
+            Match match -> println "\n${match.descrever()}"
         }
     }
 
