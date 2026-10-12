@@ -10,21 +10,25 @@ Sempre que houver dúvida, ambiguidade ou uma decisão que não esteja escrita a
 
 Linketinder é um projeto de LinkedIn com Tinder em que **candidatos curtem vagas**, **empresas curtem candidatos** e, quando a curtida é recíproca, acontece um **match**. Até o match, as partes não sabem quem está do outro lado (ver [Princípio do Anonimato](#princípio-do-anonimato-restrição-obrigatória)).
 
-O repositório tem três partes que hoje **não estão integradas entre si**:
+O repositório tem quatro partes. O CLI, a API REST e o microsserviço gravam no mesmo banco, mas não se chamam entre si, e o frontend não fala com nenhum deles:
 
 | Parte | O que é | Persistência |
 |---|---|---|
 | Backend CLI (`src/main/groovy`, `Main.groovy`) | Menus no terminal com CRUD, curtidas e matches | PostgreSQL |
 | API REST (`org.example.api`) | Servlets para candidatos, empresas e vagas (só `GET` e `POST`) | PostgreSQL |
-| Frontend (`frontend/`) | Páginas estáticas em TypeScript | `localStorage` do navegador (não chama a API) |
+| Microsserviço de cadastro (`microservico-cadastro/`) | Aplicação independente e sem framework, que só cadastra: candidato, empresa e competências do candidato | PostgreSQL |
+| Frontend (`frontend/`) | Páginas estáticas em TypeScript | `localStorage` do navegador (não chama a API nem o microsserviço) |
 
-Curtida e match existem apenas no CLI e no banco; a API e o frontend ainda não têm esses fluxos.
+Curtida e match existem apenas no CLI e no banco; a API, o microsserviço e o frontend não têm esses fluxos.
+
+O microsserviço é um programa à parte: tem build Gradle e código próprios (pacote `org.linketinder.cadastro`) e **não importa nada de `org.example`**. Código não é compartilhado entre ele e o projeto principal.
 
 ## Stack
 
 - **Backend:** Groovy 5.0.8 sobre JDK 25, Gradle 9.6 (wrapper), plugins `groovy`, `application`, `war`.
 - **Banco:** PostgreSQL via JDBC puro (`org.postgresql:postgresql:42.7.7`), sem ORM e sem ferramenta de migração.
 - **API:** `javax.servlet-api` 4.0.1 (`compileOnly`), implantada como WAR no **Tomcat 9** (não usar `jakarta.*` / Tomcat 10+); JSON com `groovy-json`.
+- **Microsserviço de cadastro:** mesmas versões de Groovy, driver e Spock, em build Gradle separado; HTTP pelo `com.sun.net.httpserver.HttpServer` do JDK, sem framework, Tomcat ou servlet.
 - **Testes:** Spock 2.4 (`groovy-5.0`) em JUnit Platform.
 - **Frontend:** TypeScript ~6.0 + Vite 8, Chart.js (carregado por CDN em `empresa.html`), HTML/CSS sem framework.
 
@@ -46,6 +50,19 @@ src/main/groovy/org/example/
   view/              única camada que lê teclado e imprime (EntradaDados, *View)
   api/               ApiServlet (base), *Servlet, Json (conversão), Dependencias, EncerradorDeConexao
 src/test/groovy/org/example/              specs Spock espelhando os pacotes de main
+microservico-cadastro/                    aplicação independente (build, wrapper e .gitignore próprios)
+  src/main/groovy/org/linketinder/cadastro/
+    Main.groovy      monta as dependências e sobe o servidor
+    Configuracao     porta e banco por variável de ambiente
+    http/            ServidorCadastro, Roteador, Rota, handlers, JSON, RegistroDoServidor (único que escreve no console)
+    model/           Candidato, Empresa, Competencia
+    service/         ValidadorDeCadastro, serviços de cadastro e de competências, exceções de regra
+    repositorio/     interfaces de persistência e Transacao
+    dao/, banco/     implementações JDBC, conexão por requisição e transação
+  src/test/groovy/org/linketinder/cadastro/   specs Spock; DadosFicticios concentra os dados de teste
+docs/specs/<feature>/                     spec.md, plano.md e revisao.md de cada feature
+skills/                                   skills do fluxo: feature-com-spec e revisao-com-spec
+CHANGELOG.md                              mudanças por tarefa, no formato Keep a Changelog
 frontend/
   index.html, candidato.html, empresa.html, vaga.html, style.css
   ts/  main.ts, modelos.ts, dados.ts, formularios.ts, telaCandidato.ts, telaEmpresa.ts, telaVaga.ts
@@ -94,6 +111,17 @@ Detalhes que costumam confundir:
 - Índice de afinidade (só no frontend, `calcularAfinidade`): competências em comum ÷ total de competências da vaga, em porcentagem arredondada, ignorando maiúsculas/minúsculas.
 - Regra violada → o service lança `RegraDeNegocioException`; o `MenuController` exibe a mensagem no CLI e o `ApiServlet` responde `400`.
 
+### Cadastro pelo microsserviço
+
+O microsserviço tem regras próprias, mais rígidas que as do CLI e da API REST. Os três caminhos gravam nas mesmas tabelas, então o comportamento depende de por onde o cadastro entra:
+
+- **Dois passos para o candidato:** `POST /candidatos` grava os dados pessoais; depois `POST /candidatos/{id}/competencias` grava as competências. Empresa (`POST /empresas`) não tem competências.
+- **Ao menos uma competência:** a rota de competências recusa lista vazia. O serviço não consegue obrigar a segunda chamada; quem a torna obrigatória é o fluxo do site, quando for integrado. O CLI continua aceitando candidato sem competência.
+- **Competências somadas e sem diferenciar maiúsculas:** a rota soma as competências novas às que o candidato já tem e reaproveita a que já existe no banco em qualquer caixa (`java` usa `Java`). No CLI e na API REST a busca é exata, e `java` criaria outra competência.
+- **Validação:** campos obrigatórios, tamanhos das colunas, senha de 6 a 50 caracteres, data existente e não futura, formato de e-mail, CPF (11 dígitos), CNPJ (14) e CEP (8), só os dígitos ou na pontuação padrão, sem conferir dígito verificador. Os valores são gravados como enviados.
+- **Cadastro repetido:** responde `409` com mensagem genérica, sem dizer qual campo coincidiu. Na API REST o mesmo caso vira `500`.
+- **Erros:** `400` cita o campo e nunca repete o valor; `404` para rota ou candidato inexistente; `405` com `Allow`; `500` genérico para falha de banco.
+
 ## Princípio do Anonimato (restrição obrigatória)
 
 **Esta regra vale para qualquer feature, em qualquer camada (CLI, API, frontend, banco, logs, testes, mensagens de erro). Nenhuma mudança pode expor dados fora do que está na tabela abaixo.**
@@ -121,11 +149,15 @@ Não amplie nenhuma delas, não as use como exemplo a seguir e pergunte antes de
 - **Pós-match:** `Match.descrever()` mostra só nome e e-mail das partes; a regra permite o perfil completo sem a senha.
 - **Frontend:** `dados.ts` mantém todos os dados, inclusive senhas, no `localStorage`; as telas só renderizam os campos anônimos, mas os dados estão no navegador.
 - **Sem login:** "quem está vendo" é simulado escolhendo um candidato/empresa (`listarNomes` no CLI, `<select>` no frontend). Essa seleção mostra nomes por ser a própria parte se identificando, não a parte contrária.
+- **Microsserviço sem login:** `POST /candidatos/{id}/competencias` aceita qualquer `id`. Quem souber o `id` de um candidato pode acrescentar competências a ele e ver a lista dele na resposta. A lista é um dado permitido antes do match, então o risco é de integridade, não de exposição.
+- **Senha em texto puro:** os três caminhos de cadastro (CLI, API REST e microsserviço) gravam a senha sem hash na coluna `senha`. Ela nunca é devolvida nem registrada em log, mas está legível no banco. Corrigir exige alterar a coluna e os três caminhos.
+
+O microsserviço **não tem rota de leitura** e deve continuar assim: as respostas de cadastro devolvem a quem se cadastrou os próprios dados, sem a senha, e a rota de competências devolve só `id` e `competencias`. O log dele registra apenas método, modelo da rota e status; nunca corpo, e-mail, CPF, CNPJ, senha ou o caminho digitado em rota desconhecida.
 
 ## Banco de dados
 
 - **Scripts:** um único arquivo, `database/Linketinder.sql`, na ordem: criação das tabelas base → carga inicial (competências, candidatos, empresas, vagas, vínculos) → consultas de exemplo → tabelas de curtida e match → constraint empresa/vaga → curtidas e matches de exemplo. O DER está em `assets/der.png`.
-- **Conexão esperada pelo código** (`ProvedorPostgreSQL`, valores fixos): `jdbc:postgresql://localhost:5432/linketinder`, usuário `postgres`, senha `postgres`.
+- **Conexão esperada pelo código** (`ProvedorPostgreSQL`): `jdbc:postgresql://localhost:5432/linketinder`, com usuário e senha fixos no código-fonte (ver as pendências de dados e credenciais, em [Restrições](#restrições)).
 - **Como aplicar:** o script não cria o banco e não é idempotente (sem `DROP`/`IF NOT EXISTS`), então rode uma única vez em um banco vazio:
 
   ```bash
@@ -147,6 +179,13 @@ Todos os comandos do backend partem da raiz do repositório; no Windows use `gra
   1. `./gradlew war` gera `build/libs/linketinder.war`;
   2. copie para `webapps/` de um Tomcat 9 e suba o servidor (`bin/startup.sh` ou `bin\startup.bat`);
   3. base: `http://localhost:8080/linketinder` — `GET`/`POST` em `/candidatos`, `/empresas`, `/vagas`, `GET` em `/{recurso}/{id}` e `GET /vagas?idEmpresa={id}`. Demais métodos respondem `405`. O contrato completo está no `README.md`.
+- **Microsserviço de cadastro:** exige o PostgreSQL no ar e a variável de ambiente `LINKETINDER_CADASTRO_BANCO_SENHA` com a senha do banco (sem ela o serviço não sobe e diz qual variável falta). Abra a pasta `microservico-cadastro/` em outra janela do IntelliJ e rode `org.linketinder.cadastro.Main`, ou, pelo terminal, a partir dessa pasta:
+
+  ```bash
+  LINKETINDER_CADASTRO_BANCO_SENHA=<sua-senha> ./gradlew run
+  ```
+
+  Sobe em `http://localhost:8081`, com `POST /candidatos`, `POST /empresas` e `POST /candidatos/{id}/competencias`. Porta, URL e usuário do banco têm padrão e podem ser trocados por `LINKETINDER_CADASTRO_PORTA`, `LINKETINDER_CADASTRO_BANCO_URL` e `LINKETINDER_CADASTRO_BANCO_USUARIO`. Rotas, exemplos e a exploração da integração com o frontend estão no `README.md`.
 - **Frontend:**
 
   ```bash
@@ -163,6 +202,15 @@ Todos os comandos do backend partem da raiz do repositório; no Windows use `gra
 ./gradlew test --tests "org.example.service.CurtidaServiceSpec"  # uma spec
 ```
 
+O microsserviço tem a própria suíte, que a raiz não executa. Mudou algo nele, rode as duas:
+
+```bash
+cd microservico-cadastro
+./gradlew test                                                                            # suíte do microsserviço
+./gradlew test --tests "org.linketinder.cadastro.service.ValidadorDeCadastroSpec"        # uma spec
+```
+
+- No microsserviço, regras e serviços usam `Mock` dos repositórios; as rotas são testadas subindo o servidor de verdade em uma porta livre e chamando com o `HttpClient` do JDK. Os dados de teste vêm de `DadosFicticios`. Os DAOs e a transação contra o PostgreSQL real dependem de conferência manual (`curl` e consulta ao banco).
 - Os testes **não precisam de banco**: services e controllers recebem `Mock` das interfaces de `repositorio`; servlets recebem `Dependencias` montadas com mocks.
 - Utilitários de teste: `EntradaFalsa.comRespostas([...])` simula o teclado e `SaidaConsole.capturar { ... }` captura o que a view imprimiu.
 - Os DAOs e `ConexaoBanco` não têm testes automatizados (dependem de banco real); mudanças neles precisam de verificação manual com o PostgreSQL.
@@ -183,6 +231,7 @@ Todos os comandos do backend partem da raiz do repositório; no Windows use `gra
 - **SQL:** sempre por `conexaoBanco.executar(sql) { PreparedStatement statement -> ... }` com parâmetros `?`; nunca concatene valor de usuário na query.
 - **Estilo Groovy:** tipos explícitos em vez de `def`; sem modificador de visibilidade em classes e métodos públicos; dependências como `private final`; constantes `static final` em `MAIUSCULAS`; indentação de 4 espaços; cabeçalho `@author Guilherme Lima Conte` nas classes.
 - **API:** servlets estendem `ApiServlet` e usam `responder*`/`lerCorpo`; a conversão de e para JSON fica em `Json` (`paraX` lê, `deX` escreve — e nunca inclui `senha`).
+- **Microsserviço:** as mesmas camadas, sem `view`: `http` → `service` → `repositorio` ← `dao` → `banco`. Só o `Main` conhece classes concretas; só `RegistroDoServidor` escreve no console; exceções de regra viram código de status no `Roteador`; rota nova é registrada em `RotasDeCadastro`.
 - **Frontend:** um módulo por tela em `ts/`, funções exportadas com nomes em português, tipos em `modelos.ts`, dados em `dados.ts`.
 
 ## Restrições
@@ -192,5 +241,17 @@ Todos os comandos do backend partem da raiz do repositório; no Windows use `gra
 - Não altere o schema, o contrato da API, as dependências do `build.gradle`/`package.json` nem a pasta `lib/` sem perguntar.
 - Mantenha `javax.servlet` + Tomcat 9; não migre para `jakarta` sem pedido explícito.
 - Não quebre a separação de camadas (ex.: `println` fora de `view`, SQL fora de `dao`, `new XxxDAO` fora de `Main`/`Dependencias`).
+- **Use dados fictícios.** Em scripts de carga e testes, nunca use CPFs, e-mails ou nomes reais. O mesmo vale para exemplos na documentação e para cadastros feitos em conferência manual.
+- **Nunca faça commit de credenciais.** Senhas de banco, chaves de API e arquivos `.env` devem ficar fora do repositório: leia de variável de ambiente e não escreva o valor em código, teste, script ou documentação.
 - Não faça commit nem push por conta própria.
 - Encontrou inconsistência, pendência ou algo não coberto aqui? Volte à [Regra nº 1](#regra-nº-1-na-dúvida-pergunte).
+
+### Pendências conhecidas (dados e credenciais)
+
+Código já commitado que ainda está fora das duas regras acima. Não amplie, não use como modelo e pergunte antes de corrigir:
+
+- `ProvedorPostgreSQL` e `ProvedorMySQL` trazem usuário e senha de banco fixos no código-fonte.
+- A carga inicial (`database/Linketinder.sql` e `frontend/ts/dados.ts`) e várias specs em `src/test/groovy` usam e-mails em domínio real (`@gmail.com`), que podem pertencer a alguém.
+- O `.gitignore` da raiz não ignora arquivos `.env`.
+
+O microsserviço já segue as duas regras e serve de referência: a senha do banco vem só de variável de ambiente, o `.gitignore` dele ignora `.env`, e os testes usam e-mails em `example.com` e documentos com dígitos verificadores inválidos.

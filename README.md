@@ -171,3 +171,175 @@ O `POST` aceita o campo `senha` para o cadastro mas `Json.deCandidato` e `Json.d
 4. Suba o servidor: `bin/startup.sh`
 5. O banco de dados é necessário estar rodando, caso contrário aparecerá erro 500 ao executar o passo 6.
 6. Entre em `curl http://localhost:8080/linketinder/candidatos`
+
+# Microsserviço de cadastro
+
+O cadastro de candidatos e de empresas também existe como um **microsserviço**: uma aplicação à parte, só de backend, que fica na pasta `microservico-cadastro/` e grava no mesmo banco do Linketinder.
+
+Ele foi feito **sem framework**: o HTTP é atendido pelo `com.sun.net.httpserver.HttpServer`, que já vem no JDK, sem Tomcat e sem servlet. A pasta tem o próprio build Gradle e o próprio código (pacote `org.linketinder.cadastro`), e não importa nenhuma classe do projeto principal. O propósito dele é único: cadastrar. Não há rota de leitura, listagem, alteração ou exclusão.
+
+## Como executar
+
+1. Deixe o PostgreSQL no ar, com o banco `linketinder` criado pelo script `database/Linketinder.sql`.
+2. Abra a pasta `microservico-cadastro/` em **outra janela do IntelliJ** (`File > Open`). Ela é um projeto Gradle independente.
+3. Na configuração de execução da classe `org.linketinder.cadastro.Main`, em *Environment variables*, defina `LINKETINDER_CADASTRO_BANCO_SENHA=<sua-senha>`.
+4. Rode o `Main`. O console mostra `Microsserviço de cadastro disponível na porta 8081`.
+
+Pelo terminal, a partir da pasta `microservico-cadastro/`:
+
+```bash
+# Git Bash / Linux / macOS
+LINKETINDER_CADASTRO_BANCO_SENHA=<sua-senha> ./gradlew run
+```
+
+```powershell
+# PowerShell
+$env:LINKETINDER_CADASTRO_BANCO_SENHA = "<sua-senha>"; .\gradlew.bat run
+```
+
+A configuração vem de variáveis de ambiente:
+
+| Variável | Padrão | Para que serve |
+| --- | --- | --- |
+| `LINKETINDER_CADASTRO_BANCO_SENHA` | não tem | Senha do banco. É obrigatória: sem ela o serviço não sobe e avisa qual variável falta |
+| `LINKETINDER_CADASTRO_PORTA` | `8081` | Porta em que o serviço fica disponível |
+| `LINKETINDER_CADASTRO_BANCO_URL` | `jdbc:postgresql://localhost:5432/linketinder` | Endereço do banco |
+| `LINKETINDER_CADASTRO_BANCO_USUARIO` | `postgres` | Usuário do banco |
+
+A senha do banco não tem valor padrão de propósito: ela não fica escrita no código nem em nenhum arquivo do repositório.
+
+## Rotas
+
+Base: `http://localhost:8081`. Requisições e respostas são JSON em UTF-8.
+
+| Método e rota | O que faz | Sucesso |
+| --- | --- | --- |
+| `POST /candidatos` | Cadastra um candidato | `201` com o registro criado, sem a senha |
+| `POST /empresas` | Cadastra uma empresa | `201` com o registro criado, sem a senha |
+| `POST /candidatos/{id}/competencias` | Salva as competências de um candidato já cadastrado | `200` com `id` e a lista completa de competências |
+
+O cadastro do candidato acontece em dois passos: primeiro os dados pessoais, depois as competências.
+
+Os dados dos exemplos abaixo são fictícios.
+
+**Cadastrar candidato.** Obrigatórios: `nome`, `sobrenome`, `dataNascimento` (`AAAA-MM-DD`), `email`, `cpf`, `pais`, `cep` e `senha` (de 6 a 50 caracteres). Opcionais: `descricao` e `formacao`.
+
+```bash
+curl -i -X POST http://localhost:8081/candidatos \
+  -H "Content-Type: application/json" \
+  -d '{"nome":"Candidata","sobrenome":"Exemplo","dataNascimento":"2000-01-15","email":"candidata@example.com","cpf":"123.456.789-00","pais":"Brasil","cep":"79000-000","senha":"<uma-senha>","formacao":"Curso de exemplo"}'
+```
+
+```json
+{"id":9,"nome":"Candidata","sobrenome":"Exemplo","dataNascimento":"2000-01-15","email":"candidata@example.com","cpf":"123.456.789-00","pais":"Brasil","cep":"79000-000","descricao":"","formacao":"Curso de exemplo"}
+```
+
+**Cadastrar empresa.** Obrigatórios: `nome`, `email`, `cnpj`, `pais`, `cep` e `senha`. Opcional: `descricao`.
+
+```bash
+curl -i -X POST http://localhost:8081/empresas \
+  -H "Content-Type: application/json" \
+  -d '{"nome":"Empresa Exemplo","email":"contato@example.com","cnpj":"12.345.678/0001-00","pais":"Brasil","cep":"79000-000","senha":"<uma-senha>"}'
+```
+
+```json
+{"id":6,"nome":"Empresa Exemplo","email":"contato@example.com","cnpj":"12.345.678/0001-00","pais":"Brasil","cep":"79000-000","descricao":""}
+```
+
+**Salvar as competências do candidato.** Usa o `id` devolvido no cadastro. A lista precisa ter ao menos uma competência.
+
+```bash
+curl -i -X POST http://localhost:8081/candidatos/9/competencias \
+  -H "Content-Type: application/json" \
+  -d '{"competencias":["java","SQL"]}'
+```
+
+```json
+{"id":9,"competencias":["Java","SQL"]}
+```
+
+Regras das competências: nomes vazios e repetidos são descartados; uma competência que já existe no banco é reaproveitada mesmo que a caixa seja diferente (`java` usa a `Java` já cadastrada); a que não existe é criada; chamar a rota de novo **soma** as novas às que o candidato já tem.
+
+Respostas de erro, sempre no formato `{"erro": "mensagem"}`:
+
+| Status | Quando |
+| --- | --- |
+| `400` | Campo obrigatório ausente, formato inválido, JSON inválido, corpo vazio ou corpo fora de UTF-8. A mensagem diz qual campo, sem repetir o valor enviado |
+| `404` | Rota desconhecida, ou candidato inexistente na rota de competências |
+| `405` | Método não aceito na rota (a resposta traz o cabeçalho `Allow`) |
+| `409` | Já existe cadastro com o mesmo e-mail, CPF ou CNPJ. A mensagem é genérica e não diz qual campo coincidiu |
+| `500` | Falha de banco, com mensagem genérica |
+
+Validações: CPF com 11 dígitos, CNPJ com 14 e CEP com 8, só os dígitos ou na pontuação padrão; e-mail com `@` e domínio; data de nascimento existente e não futura. Os valores são gravados como foram enviados, só sem os espaços das pontas.
+
+Atenção no Windows: um acento digitado direto na linha de comando do `curl` pode sair em outra codificação, e o serviço responde `400` pedindo UTF-8. Nesse caso, salve o JSON em um arquivo UTF-8 e envie com `--data-binary @arquivo.json`.
+
+## Testes
+
+```bash
+cd microservico-cadastro
+./gradlew test
+```
+
+São 147 testes em Spock, que não precisam de banco: as regras são testadas com repositórios simulados, e as rotas são testadas subindo o servidor de verdade em uma porta livre e chamando por HTTP. A gravação no PostgreSQL foi conferida manualmente.
+
+## Exploração: comunicação entre o frontend e o microsserviço
+
+Esta parte foi **explorada, não implementada**. O frontend continua gravando no `localStorage` e o microsserviço não tem CORS. O que segue é o que foi testado e pesquisado para decidir como fazer a integração na próxima feature.
+
+### Como o formulário enviaria os dados
+
+O formulário de cadastro coletaria os campos em um objeto, converteria em JSON e enviaria por HTTP com `fetch`, lendo de volta o `id` do registro criado:
+
+```ts
+const resposta = await fetch("http://localhost:8081/candidatos", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(dadosDoFormulario)
+});
+const candidato = await resposta.json();
+```
+
+Com o `id` em mãos, a tela seguinte enviaria as competências para `POST /candidatos/{id}/competencias`.
+
+### O obstáculo: origens diferentes
+
+O navegador só deixa uma página chamar livremente a própria **origem** (protocolo, endereço e porta). O site roda em `http://localhost:5173` (Vite) e o microsserviço em `http://localhost:8081`: a porta muda, então são origens diferentes, e a chamada só é liberada se o serviço autorizar por cabeçalhos de CORS.
+
+### O que foi testado
+
+Em um experimento descartável, que não está no repositório, uma página de teste servida em `http://localhost:5173` fez as chamadas abaixo, abertas em um navegador de verdade (Microsoft Edge). Do outro lado ficaram o microsserviço como ele é e uma cópia temporária dele com CORS acrescentado.
+
+| Tentativa | O que aconteceu |
+| --- | --- |
+| `fetch` com JSON para o serviço atual, sem CORS | Antes do `POST`, o navegador enviou sozinho um `OPTIONS` (o *preflight*). O serviço respondeu `405`, sem cabeçalhos de CORS, e o navegador bloqueou: o `POST` nem chegou a sair, e a página recebeu `TypeError: Failed to fetch` |
+| `fetch` sem `Content-Type` para o serviço atual | Não houve *preflight*, e o `POST` **chegou ao serviço e foi processado**. Mesmo assim, o navegador não entregou a resposta à página |
+| `fetch` com JSON para a cópia com CORS | O `OPTIONS` voltou `204` com os cabeçalhos de autorização, o `POST` saiu em seguida e a página leu a resposta normalmente |
+| Mesma chamada vinda de outra origem (simulada com `curl`) | A cópia não enviou os cabeçalhos de autorização, então o navegador manteria o bloqueio |
+
+Duas conclusões desses testes:
+
+- O *preflight* só acontece porque o corpo vai como `application/json`. Ele precisa ser respondido: o serviço tem de aceitar `OPTIONS` nas rotas de cadastro.
+- CORS não protege o serviço, só a página. A segunda tentativa mostra que uma página qualquer consegue fazer o serviço processar um `POST`, apenas não consegue ler a resposta. E o `curl` nem passa por essa regra. Proteção de verdade é autenticação, que o projeto ainda não tem.
+
+### Soluções consideradas
+
+**1. CORS no microsserviço (testada).** O serviço passa a:
+
+- responder ao `OPTIONS` das rotas de cadastro com `204` e os cabeçalhos `Access-Control-Allow-Origin`, `Access-Control-Allow-Methods` e `Access-Control-Allow-Headers: Content-Type`;
+- incluir `Access-Control-Allow-Origin` (e `Vary: Origin`) nas demais respostas, inclusive nas de erro, para a página conseguir ler a mensagem;
+- fazer isso só para a origem do frontend, configurada por variável de ambiente.
+
+Funciona em qualquer ambiente e mantém o frontend chamando o serviço direto pela porta dele. O custo é o serviço conhecer a origem do site.
+
+**2. Proxy do servidor de desenvolvimento (pesquisada, não testada).** O Vite pode ser configurado (`server.proxy`) para repassar, por exemplo, `/api` para `http://localhost:8081`. A página chama a própria origem e o navegador não vê cruzamento nenhum, então o serviço não precisa de CORS. A limitação é valer só no servidor de desenvolvimento: fora dele seria preciso outro proxy na frente das duas aplicações.
+
+### Indicação para a próxima feature
+
+A indicada é o **CORS no microsserviço**, com a origem permitida em variável de ambiente: foi a que funcionou no teste, não depende da ferramenta do frontend e deixa explícito, no próprio serviço, quem pode chamá-lo pelo navegador. O proxy do Vite fica como alternativa para o ambiente de desenvolvimento.
+
+Fica para a próxima feature: implementar o CORS, trocar a gravação no `localStorage` dos formulários pelo `fetch` e criar a tela em que o candidato escreve as competências logo depois do cadastro.
+
+### Sobre fazer sem framework
+
+O `HttpServer` do JDK cuida do protocolo HTTP e entrega cada requisição a um manipulador. O que um framework faria a mais foi escrito à mão no serviço: o roteamento (o `HttpServer` casa caminhos por prefixo de texto, então `/candidatosX` cairia em `/candidatos`; por isso há um roteador próprio que compara o caminho inteiro), a leitura e a escrita de JSON, a tradução de erros em códigos de status e a montagem das dependências no `Main`.

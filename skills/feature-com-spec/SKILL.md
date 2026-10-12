@@ -32,6 +32,7 @@ Cada feature tem a própria pasta:
 docs/specs/<nome-da-feature>/
   spec.md     especificação (etapa 3)
   plano.md    plano de implementação (etapa 4)
+  revisao.md  apontamentos e correções da revisão (skill `revisao-com-spec`)
 ```
 
 `<nome-da-feature>` é em português, minúsculo, sem acento e separado por hífen (por exemplo, `curtida-pela-api`). Proponha o nome ao usuário e confirme antes de criar a pasta. Nunca reaproveite a pasta de outra feature; se já existir uma com o mesmo nome, pergunte.
