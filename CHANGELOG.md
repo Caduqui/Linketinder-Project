@@ -30,5 +30,16 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   (spec `microservico`, tarefa 8).
 
 ### Corrigido
+- Transação do microsserviço: falha no rollback não esconde mais o erro
+  original da gravação (spec `microservico`, revisão AP-01).
+- Senha do banco só com espaços é recusada na subida do microsserviço, como a
+  senha ausente (spec `microservico`, revisão AP-02).
+- DAOs do microsserviço acusam falha de banco quando o `INSERT ... RETURNING`
+  não devolve linha (spec `microservico`, revisão AP-03).
+- Falha de leitura ou de envio de uma requisição no microsserviço passa a ser
+  registrada, só com o tipo da falha (spec `microservico`, revisão AP-04 e
+  AP-05).
+- Mensagem de e-mail inválido do microsserviço dá o exemplo no domínio
+  reservado `example.com` (spec `microservico`, revisão AP-08).
 
 ### Removido

@@ -281,7 +281,7 @@ cd microservico-cadastro
 ./gradlew test
 ```
 
-São 144 testes em Spock, que não precisam de banco: as regras são testadas com repositórios simulados, e as rotas são testadas subindo o servidor de verdade em uma porta livre e chamando por HTTP. A gravação no PostgreSQL foi conferida manualmente.
+São 147 testes em Spock, que não precisam de banco: as regras são testadas com repositórios simulados, e as rotas são testadas subindo o servidor de verdade em uma porta livre e chamando por HTTP. A gravação no PostgreSQL foi conferida manualmente.
 
 ## Exploração: comunicação entre o frontend e o microsserviço
 

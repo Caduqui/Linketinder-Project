@@ -67,7 +67,7 @@ class ValidadorDeCadastro {
         String email = exigirTexto(dados, "email", TAMANHO_MAXIMO_EMAIL)
 
         if (!(email ==~ FORMATO_EMAIL)) {
-            throw new DadosInvalidosException("O campo 'email' deve ser um e-mail válido, como nome@dominio.com")
+            throw new DadosInvalidosException("O campo 'email' deve ser um e-mail válido, como nome@example.com")
         }
         return email
     }

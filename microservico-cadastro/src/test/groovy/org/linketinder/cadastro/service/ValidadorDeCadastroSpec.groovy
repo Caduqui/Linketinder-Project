@@ -162,6 +162,15 @@ class ValidadorDeCadastroSpec extends Specification {
         "cep"   | "7900000"             | "7 dígitos"
     }
 
+    def "mensagem de e-mail inválido só dá exemplo no domínio reservado example.com"() {
+        when:
+        validador.validarCandidato(DadosFicticios.candidato(email: "candidata.example.com"))
+
+        then:
+        DadosInvalidosException erro = thrown()
+        erro.message.findAll(/@[\w.-]+/) == ["@example.com"]
+    }
+
     def "documentos e CEP são aceitos só com dígitos ou na pontuação padrão"() {
         expect:
         validador.validarCandidato(DadosFicticios.candidato(cpf: cpf, cep: cep)).cpf == cpf
