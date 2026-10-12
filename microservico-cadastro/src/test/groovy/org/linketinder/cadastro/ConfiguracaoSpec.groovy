@@ -59,9 +59,10 @@ class ConfiguracaoSpec extends Specification {
         erro.message.contains(Configuracao.VARIAVEL_BANCO_SENHA)
 
         where:
-        situacao  | ambiente
-        "ausente" | [:]
-        "vazia"   | [(Configuracao.VARIAVEL_BANCO_SENHA): ""]
+        situacao           | ambiente
+        "ausente"          | [:]
+        "vazia"            | [(Configuracao.VARIAVEL_BANCO_SENHA): ""]
+        "só com espaços"   | [(Configuracao.VARIAVEL_BANCO_SENHA): "   "]
     }
 
     def "a configuração convertida em texto não mostra a senha do banco"() {

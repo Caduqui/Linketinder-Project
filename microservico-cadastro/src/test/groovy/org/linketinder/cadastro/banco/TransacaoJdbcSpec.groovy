@@ -4,6 +4,7 @@ import spock.lang.Specification
 
 import java.sql.Connection
 import java.sql.PreparedStatement
+import java.sql.SQLException
 
 /**
  *
@@ -63,6 +64,20 @@ class TransacaoJdbcSpec extends Specification {
 
         then:
         1 * conexao.close()
+    }
+
+    def "rollback que falha não perde a exceção original — a falha do rollback fica suprimida"() {
+        given:
+        SQLException falhaDeRollback = new SQLException("conexão encerrada")
+        conexao.rollback() >> { throw falhaDeRollback }
+
+        when:
+        transacao.executar { throw new IllegalStateException("falha no meio da gravação") }
+
+        then:
+        IllegalStateException falha = thrown()
+        falha.message == "falha no meio da gravação"
+        falha.suppressed.contains(falhaDeRollback)
     }
 
     def "depois da transação, uma consulta volta a abrir e fechar a própria conexão"() {

@@ -6,6 +6,7 @@ import org.linketinder.cadastro.repositorio.CompetenciaRepositorio
 
 import java.sql.PreparedStatement
 import java.sql.ResultSet
+import java.sql.SQLException
 
 /**
  *
@@ -44,7 +45,9 @@ class CompetenciaDAO implements CompetenciaRepositorio {
         conexaoBanco.executar(sql) { PreparedStatement statement ->
             statement.setString(1, nome)
             statement.executeQuery().withCloseable { ResultSet resultado ->
-                resultado.next()
+                if (!resultado.next()) {
+                    throw new SQLException("INSERT em competencias não retornou id")
+                }
                 mapearCompetencia(resultado)
             }
         }

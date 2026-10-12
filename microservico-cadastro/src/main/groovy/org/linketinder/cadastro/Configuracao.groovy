@@ -57,7 +57,7 @@ class Configuracao {
     private static String exigirSenhaDoBanco(Map<String, String> ambiente) {
         String senha = ambiente[VARIAVEL_BANCO_SENHA]
 
-        if (senha == null || senha.isEmpty()) {
+        if (senha == null || senha.trim().isEmpty()) {
             throw new ConfiguracaoInvalidaException("Defina a variável de ambiente ${VARIAVEL_BANCO_SENHA} com a senha do banco de dados")
         }
         return senha

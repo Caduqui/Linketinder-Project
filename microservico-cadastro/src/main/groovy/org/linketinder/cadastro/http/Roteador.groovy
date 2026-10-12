@@ -6,6 +6,7 @@ import org.linketinder.cadastro.service.CadastroRepetidoException
 import org.linketinder.cadastro.service.CandidatoNaoEncontradoException
 import org.linketinder.cadastro.service.DadosInvalidosException
 
+import java.io.IOException
 import java.sql.SQLException
 
 /**
@@ -47,12 +48,15 @@ class Roteador implements HttpHandler {
             byte[] corpo = troca.requestBody.bytes
 
             Rota rota = rotas.find { Rota candidata -> candidata.extrairParametros(caminho) != null }
+            Map<String, String> parametros = rota?.extrairParametros(caminho)
             RespostaJson resposta = rota == null
                     ? RespostaJson.erro(NAO_ENCONTRADO, "Rota não encontrada")
-                    : responder(rota, new Requisicao(metodo, caminho, rota.extrairParametros(caminho), corpo))
+                    : responder(rota, new Requisicao(metodo, caminho, parametros, corpo))
 
             resposta.enviar(troca)
             registro.registrarRequisicao(metodo, rota == null ? ROTA_DESCONHECIDA : rota.modelo, resposta.status)
+        } catch (IOException e) {
+            registro.registrarFalhaInesperada(e)
         } finally {
             troca.close()
         }

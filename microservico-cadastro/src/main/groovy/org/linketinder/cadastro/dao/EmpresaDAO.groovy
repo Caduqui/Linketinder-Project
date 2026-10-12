@@ -33,7 +33,9 @@ class EmpresaDAO implements EmpresaRepositorio {
             conexaoBanco.executar(sql) { PreparedStatement statement ->
                 preencherDados(statement, empresa)
                 statement.executeQuery().withCloseable { ResultSet resultado ->
-                    resultado.next()
+                    if (!resultado.next()) {
+                        throw new SQLException("INSERT em empresas não retornou id")
+                    }
                     empresa.id = resultado.getInt("id")
                 }
             }

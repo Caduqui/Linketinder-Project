@@ -29,7 +29,11 @@ class TransacaoJdbc implements Transacao {
             conexao.commit()
             return resultado
         } catch (Exception e) {
-            conexao.rollback()
+            try {
+                conexao.rollback()
+            } catch (Exception rollbackEx) {
+                e.addSuppressed(rollbackEx)
+            }
             throw e
         } finally {
             conexaoBanco.desvincularDaTransacao()

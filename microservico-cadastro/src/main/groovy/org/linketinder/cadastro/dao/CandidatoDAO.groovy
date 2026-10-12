@@ -34,7 +34,9 @@ class CandidatoDAO implements CandidatoRepositorio {
             conexaoBanco.executar(sql) { PreparedStatement statement ->
                 preencherDados(statement, candidato)
                 statement.executeQuery().withCloseable { ResultSet resultado ->
-                    resultado.next()
+                    if (!resultado.next()) {
+                        throw new SQLException("INSERT em candidatos não retornou id")
+                    }
                     candidato.id = resultado.getInt("id")
                 }
             }
