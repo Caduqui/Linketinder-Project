@@ -12,6 +12,7 @@ interface EmpresaRepositorio {
     void atualizar(Empresa empresa)
     void deletar(Integer id)
     Empresa buscarPorId(Integer id)
+    Empresa buscarPorEmail(String email)
     List<Empresa> listar()
     boolean possuiVagas(Integer idEmpresa)
 }

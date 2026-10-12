@@ -12,7 +12,7 @@ import java.sql.ResultSet
  * @author Guilherme Lima Conte
  */
 
-class EmpresaDAO implements EmpresaRepositorio{
+class EmpresaDAO implements EmpresaRepositorio {
 
     final ConexaoBanco conexaoBanco
 
@@ -86,6 +86,20 @@ class EmpresaDAO implements EmpresaRepositorio{
 
         conexaoBanco.executar(sql) { PreparedStatement statement ->
             statement.setInt(1, id)
+            statement.executeQuery().withCloseable { ResultSet resultado ->
+                resultado.next() ? mapearEmpresa(resultado) : null
+            }
+        }
+    }
+
+    @Override
+    Empresa buscarPorEmail(String email) {
+        String sql = """
+            SELECT * FROM empresas WHERE email = ?
+        """
+
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setString(1, email)
             statement.executeQuery().withCloseable { ResultSet resultado ->
                 resultado.next() ? mapearEmpresa(resultado) : null
             }

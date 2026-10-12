@@ -1,6 +1,7 @@
 package org.example.api
 
 import org.example.model.Candidato
+import org.example.model.Competencia
 import org.example.model.Empresa
 import org.example.model.Vaga
 import org.example.service.RegraDeNegocioException
@@ -94,6 +95,13 @@ class Json {
         ]
     }
 
+    static Map deCompetencia(Competencia competencia) {
+        return [
+                id: competencia.id,
+                nome : competencia.nome
+        ]
+    }
+
     static Integer exigirInteiro(Map dados, String campo) {
         Object valor = dados[campo]
 
@@ -104,7 +112,7 @@ class Json {
         throw new RegraDeNegocioException("O campo '${campo}' é obrigatório e deve ser um número")
     }
 
-    private static String exigirTexto(Map dados, String campo) {
+    static String exigirTexto(Map dados, String campo) {
         String valor = texto(dados, campo)
 
         if (valor.isEmpty()) {

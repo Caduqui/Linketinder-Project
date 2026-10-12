@@ -28,6 +28,16 @@ class EmpresaService {
         empresaRepositorio.inserir(empresa)
     }
 
+    Empresa autenticar(String email, String senha) {
+        Empresa empresa = empresaRepositorio.buscarPorEmail(email)
+
+        if (empresa == null || empresa.senha != senha) {
+            return null
+        }
+
+        return empresa
+    }
+
     void atualizar(Integer id, Empresa dados) {
         dados.id = id
         empresaRepositorio.atualizar(dados)

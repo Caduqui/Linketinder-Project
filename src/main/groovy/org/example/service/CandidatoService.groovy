@@ -28,6 +28,35 @@ class CandidatoService {
         candidatoRepositorio.inserir(candidato)
     }
 
+    Candidato autenticar(String email, String senha) {
+        Candidato candidato = candidatoRepositorio.buscarPorEmail(email)
+
+        if (candidato == null || candidato.senha != senha) {
+            return null
+        }
+
+        return candidato
+    }
+
+    Candidato adicionarCompetencias(Integer idCandidato, List<String> novasCompetencias) {
+        if (!novasCompetencias) {
+            throw new RegraDeNegocioException("Informe ao menos uma competência")
+        }
+
+        Candidato candidato = candidatoRepositorio.buscarPorId(idCandidato)
+
+        if (candidato == null) {
+            return null
+        }
+
+        candidato.competencias = (candidato.competencias + novasCompetencias).unique { String competencia ->
+            competencia.toLowerCase()
+        }
+        candidatoRepositorio.atualizar(candidato)
+
+        return candidato
+    }
+
     void atualizar(Integer id, Candidato dados) {
         dados.id = id
         candidatoRepositorio.atualizar(dados)

@@ -343,3 +343,9 @@ Fica para a próxima feature: implementar o CORS, trocar a gravação no `localS
 ### Sobre fazer sem framework
 
 O `HttpServer` do JDK cuida do protocolo HTTP e entrega cada requisição a um manipulador. O que um framework faria a mais foi escrito à mão no serviço: o roteamento (o `HttpServer` casa caminhos por prefixo de texto, então `/candidatosX` cairia em `/candidatos`; por isso há um roteador próprio que compara o caminho inteiro), a leitura e a escrita de JSON, a tradução de erros em códigos de status e a montagem das dependências no `Main`.
+
+
+### Integração Frontend com Backend
+
+Como sugerido pela IA na feature anterior eu adotei o uso do CORS filter devido as portas diferentes sendo utilizadas no frontend e backend. Agora as duas models responsáveis pelo cadastro: Candidato e Empresa possuem nos seus repositórios um novo método que busca pelo email. Como as DAOs implementa os repositórios, logo, adicionei eles na DAO também.
+Adicionei a classe CompetenciaServlet para poder associar as competências à um candidato.

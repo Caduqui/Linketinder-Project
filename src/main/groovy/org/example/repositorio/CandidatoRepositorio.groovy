@@ -12,5 +12,6 @@ interface CandidatoRepositorio {
     void atualizar(Candidato candidato)
     void deletar(Integer id)
     Candidato buscarPorId(Integer id)
+    Candidato buscarPorEmail(String email)
     List<Candidato> listar()
 }

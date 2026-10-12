@@ -60,6 +60,20 @@ class CandidatoDAO implements CandidatoRepositorio {
     }
 
     @Override
+    Candidato buscarPorEmail(String email) {
+        String sql = """
+            SELECT * FROM candidatos WHERE email = ?
+        """
+
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setString(1, email)
+            statement.executeQuery().withCloseable { ResultSet resultado ->
+                resultado.next() ? mapearCandidato(resultado) : null
+            }
+        }
+    }
+
+    @Override
     List<Candidato> listar() {
         String sql = """
             SELECT * FROM candidatos ORDER BY id
