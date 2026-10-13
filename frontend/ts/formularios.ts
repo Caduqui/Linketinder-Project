@@ -1,94 +1,144 @@
-import type {Candidato, Empresa, Vaga} from "./modelos";
-import {candidatos, empresas, salvarCandidatos, salvarEmpresas, salvarVagas, vagas} from "./dados";
+import type {Credenciais, NovaEmpresa, NovaVaga, NovoCandidato} from "./modelos";
+import {cadastrarCandidato, cadastrarEmpresa, cadastrarVaga, fazerLogin} from "./api/api.ts";
+import {enviarFormulario, lerCampo, mostrarMensagem, separarPorVirgula} from "./dom.ts";
+import {iniciarSessao, obterUsuarioDoTipo} from "./sessao.ts";
+import {lerTipoDaUrl, PAGINA_INICIAL_POR_TIPO} from "./navegacao.ts";
+
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
+
+function obterFormulario(id: string): HTMLFormElement | null {
+    return document.getElementById(id) as HTMLFormElement | null;
+}
 
 export function configurarFormularioCandidato(): void {
-    const formCandidato = document.getElementById("form-candidato") as HTMLFormElement | null;
+    const formCandidato = obterFormulario("form-candidato");
 
     if (!formCandidato) {
         return;
     }
 
-    formCandidato.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const novoCandidato: Candidato = {
-            id: candidatos.length + 1,
-            nome: (document.getElementById("candidato_nome") as HTMLInputElement).value,
-            sobrenome: (document.getElementById("candidato_sobrenome") as HTMLInputElement).value,
-            dataNascimento: ((document.getElementById("candidato_dataNascimento") as HTMLInputElement).value),
-            email: (document.getElementById("candidato_email") as HTMLInputElement).value,
-            cpf: (document.getElementById("candidato_cpf") as HTMLInputElement).value,
-            pais: (document.getElementById("candidato_pais") as HTMLInputElement).value,
-            cep: (document.getElementById("candidato_cep") as HTMLInputElement).value,
-            descricao: (document.getElementById("candidato_descricao") as HTMLInputElement).value,
-            senha: (document.getElementById("candidato_senha") as HTMLInputElement).value,
-            formacao: (document.getElementById("candidato_formacao") as HTMLInputElement).value,
-            competencias: (document.getElementById("candidato_competencias") as HTMLInputElement).value.split(",").map(s => s.trim())
+    formCandidato.addEventListener("submit", async (evento) => {
+        evento.preventDefault();
+
+        const novoCandidato: NovoCandidato = {
+            nome: lerCampo("candidato_nome"),
+            sobrenome: lerCampo("candidato_sobrenome"),
+            dataNascimento: lerCampo("candidato_dataNascimento"),
+            email: lerCampo("candidato_email"),
+            cpf: lerCampo("candidato_cpf"),
+            pais: lerCampo("candidato_pais"),
+            cep: lerCampo("candidato_cep"),
+            descricao: lerCampo("candidato_descricao"),
+            senha: lerCampo("candidato_senha"),
+            formacao: lerCampo("candidato_formacao")
         };
-        candidatos.push(novoCandidato);
-        salvarCandidatos();
 
-        localStorage.setItem("candidatoAtualId", novoCandidato.id.toString());
+        await enviarFormulario(formCandidato, async () => {
+            const candidato = await cadastrarCandidato(novoCandidato);
 
-        formCandidato.reset();
-
-        window.location.href = "candidato.html";
+            iniciarSessao({tipo: "candidato", id: candidato.id, nome: candidato.nome});
+            formCandidato.reset();
+            window.location.href = "competencias.html";
+        });
     });
 }
 
 export function configurarFormularioEmpresa(): void {
-    const formEmpresa = document.getElementById("form-empresa") as HTMLFormElement | null;
+    const formEmpresa = obterFormulario("form-empresa");
+
     if (!formEmpresa) {
         return;
     }
-    formEmpresa.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const novaEmpresa: Empresa = {
-            id: empresas.length + 1,
-            nome: (document.getElementById("empresa_nome") as HTMLInputElement).value,
-            email: (document.getElementById("empresa_email") as HTMLInputElement).value,
-            cnpj: (document.getElementById("empresa_cnpj") as HTMLInputElement).value,
-            pais: (document.getElementById("empresa_pais") as HTMLInputElement).value,
-            cep: (document.getElementById("empresa_cep") as HTMLInputElement).value,
-            descricao: (document.getElementById("empresa_descricao") as HTMLInputElement).value,
-            senha: (document.getElementById("empresa_senha") as HTMLInputElement).value,
+
+    formEmpresa.addEventListener("submit", async (evento) => {
+        evento.preventDefault();
+
+        const novaEmpresa: NovaEmpresa = {
+            nome: lerCampo("empresa_nome"),
+            email: lerCampo("empresa_email"),
+            cnpj: lerCampo("empresa_cnpj"),
+            pais: lerCampo("empresa_pais"),
+            cep: lerCampo("empresa_cep"),
+            descricao: lerCampo("empresa_descricao"),
+            senha: lerCampo("empresa_senha")
         };
 
-        empresas.push(novaEmpresa);
-        salvarEmpresas();
-        localStorage.setItem("empresaAtualId", novaEmpresa.id.toString());
-        formEmpresa.reset();
-        window.location.href = "vaga.html";
+        await enviarFormulario(formEmpresa, async () => {
+            const empresa = await cadastrarEmpresa(novaEmpresa);
+
+            iniciarSessao({tipo: "empresa", id: empresa.id, nome: empresa.nome});
+            formEmpresa.reset();
+            window.location.href = "vaga.html";
+        });
     });
 }
 
 export function configurarFormularioVaga(): void {
-    const formVaga = document.getElementById("form-vaga") as HTMLFormElement | null;
+    const formVaga = obterFormulario("form-vaga");
+
     if (!formVaga) {
         return;
     }
-    formVaga.addEventListener("submit", (e) => {
-        e.preventDefault();
 
-        const idEmpresa = Number((document.getElementById("vaga-empresa") as HTMLSelectElement).value);
+    formVaga.addEventListener("submit", async (evento) => {
+        evento.preventDefault();
 
-        if (!idEmpresa) {
-            alert("Selecione uma empresa!")
+        const empresa = obterUsuarioDoTipo("empresa");
+
+        if (!empresa) {
+            mostrarMensagem("Faça login como empresa para cadastrar vagas.");
             return;
         }
 
-        const novaVaga: Vaga = {
-            id: vagas.length + 1,
-            nome: (document.getElementById("vaga_nome") as HTMLInputElement).value,
-            descricao: (document.getElementById("vaga_descricao") as HTMLInputElement).value,
-            estado: (document.getElementById("vaga_estado") as HTMLInputElement).value,
-            cidade: (document.getElementById("vaga_cidade") as HTMLInputElement).value,
-            idEmpresa: idEmpresa,
-            competencias: (document.getElementById("vaga_competencias") as HTMLInputElement).value.split(",").map(s => s.trim())
+        const novaVaga: NovaVaga = {
+            nome: lerCampo("vaga_nome"),
+            descricao: lerCampo("vaga_descricao"),
+            estado: lerCampo("vaga_estado").toUpperCase(),
+            cidade: lerCampo("vaga_cidade"),
+            idEmpresa: empresa.id,
+            competencias: separarPorVirgula(lerCampo("vaga_competencias"))
         };
 
-        vagas.push(novaVaga);
-        salvarVagas();
-        formVaga.reset();
-        window.location.href = "empresa.html";
+        await enviarFormulario(formVaga, async () => {
+            await cadastrarVaga(novaVaga);
+
+            formVaga.reset();
+            window.location.href = "minhasVagas.html";
+        });
+    });
+}
+
+export function configurarFormularioLogin(): void {
+    const formLogin = obterFormulario("form-login");
+
+    if (!formLogin) {
+        return;
+    }
+
+    formLogin.addEventListener("submit", async (evento) => {
+        evento.preventDefault();
+
+        const tipo = lerTipoDaUrl();
+
+        if (!tipo) {
+            mostrarMensagem("Escolha se você é candidato ou empresa antes de entrar.");
+            return;
+        }
+
+        const credenciais: Credenciais = {
+            tipo: tipo,
+            email: lerCampo("login_email"),
+            senha: lerCampo("login_senha")
+        };
+
+        await enviarFormulario(formLogin, async () => {
+            const usuario = await fazerLogin(credenciais);
+
+            iniciarSessao(usuario);
+            window.location.href = PAGINA_INICIAL_POR_TIPO[usuario.tipo];
+        });
     });
 }

@@ -135,7 +135,7 @@ class Json {
         }
     }
 
-    private static List<String> competencias(Map dados) {
+    static List<String> competencias(Map dados) {
         List lista = dados["competencias"] instanceof List ? (List) dados["competencias"] : []
 
         return lista*.toString()*.trim().findAll { String competencia ->

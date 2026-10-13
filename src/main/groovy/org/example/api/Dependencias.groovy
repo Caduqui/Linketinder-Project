@@ -3,12 +3,17 @@ package org.example.api
 import org.example.Banco.ConexaoBanco
 import org.example.dao.CandidatoDAO
 import org.example.dao.CompetenciaDAO
+import org.example.dao.CurtidaDAO
 import org.example.dao.EmpresaDAO
+import org.example.dao.MatchDAO
 import org.example.dao.VagaDAO
+import org.example.repositorio.CandidatoRepositorio
 import org.example.repositorio.CompetenciaRepositorio
 import org.example.repositorio.EmpresaRepositorio
+import org.example.repositorio.VagaRepositorio
 import org.example.service.CandidatoService
 import org.example.service.CompetenciaService
+import org.example.service.CurtidaService
 import org.example.service.EmpresaService
 import org.example.service.VagaService
 
@@ -25,23 +30,28 @@ class Dependencias {
     final EmpresaService empresaService
     final VagaService vagaService
     final CompetenciaService competenciaService
+    final CurtidaService curtidaService
 
-    Dependencias (CandidatoService candidatoService, EmpresaService empresaService, VagaService vagaService, CompetenciaService competenciaService) {
+    Dependencias (CandidatoService candidatoService, EmpresaService empresaService, VagaService vagaService, CompetenciaService competenciaService, CurtidaService curtidaService) {
         this.candidatoService = candidatoService
         this.empresaService = empresaService
         this.vagaService = vagaService
         this.competenciaService = competenciaService
+        this.curtidaService = curtidaService
     }
 
     private Dependencias() {
         ConexaoBanco conexaoBanco = ConexaoBanco.obterInstancia()
         CompetenciaRepositorio competenciaRepositorio = new CompetenciaDAO(conexaoBanco)
         EmpresaRepositorio empresaRepositorio = new EmpresaDAO(conexaoBanco)
+        CandidatoRepositorio candidatoRepositorio = new CandidatoDAO(conexaoBanco, competenciaRepositorio)
+        VagaRepositorio vagaRepositorio = new VagaDAO(conexaoBanco, competenciaRepositorio, empresaRepositorio)
 
-        this.candidatoService = new CandidatoService(new CandidatoDAO(conexaoBanco, competenciaRepositorio))
+        this.candidatoService = new CandidatoService(candidatoRepositorio)
         this.empresaService = new EmpresaService(empresaRepositorio)
-        this.vagaService = new VagaService(new VagaDAO(conexaoBanco, competenciaRepositorio, empresaRepositorio))
+        this.vagaService = new VagaService(vagaRepositorio)
         this.competenciaService = new CompetenciaService(competenciaRepositorio)
+        this.curtidaService = new CurtidaService(new CurtidaDAO(conexaoBanco), new MatchDAO(conexaoBanco, candidatoRepositorio, empresaRepositorio, vagaRepositorio))
     }
 
     static synchronized Dependencias obterInstancia() {

@@ -32,8 +32,8 @@ class CorsFilter implements Filter {
 
     @Override
     void doFilter(ServletRequest request, ServletResponse response, FilterChain cadeia) {
-        HttpServletRequest requisicao = HttpServletRequest request
-        HttpServletResponse resposta = HttpServletResponse response
+        HttpServletRequest requisicao = (HttpServletRequest) request
+        HttpServletResponse resposta = (HttpServletResponse) response
 
         if (requisicao.getHeader("Origin") == origemPermitida) {
             resposta.setHeader("Access-Control-Allow-Origin", origemPermitida)
@@ -42,7 +42,7 @@ class CorsFilter implements Filter {
         }
         resposta.addHeader("Vary", "Origin")
 
-        if (Requisicao.method == "OPTION") {
+        if (requisicao.method == "OPTIONS") {
             resposta.status = HttpServletResponse.SC_NO_CONTENT
             return
         }

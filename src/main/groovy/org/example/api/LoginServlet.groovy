@@ -23,7 +23,8 @@ class LoginServlet extends ApiServlet {
     protected void doPost(HttpServletRequest requisicao, HttpServletResponse resposta) {
         Map dados = lerCorpo(requisicao)
         String tipo = Json.exigirTexto(dados, "tipo")
-        String email = Json.exigirTexto(dados, "senha")
+        String email = Json.exigirTexto(dados, "email")
+        String senha = Json.exigirTexto(dados, "senha")
 
         Map usuario = autenticar(tipo, email, senha)
 

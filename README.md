@@ -347,5 +347,22 @@ O `HttpServer` do JDK cuida do protocolo HTTP e entrega cada requisição a um m
 
 ### Integração Frontend com Backend
 
-Como sugerido pela IA na feature anterior eu adotei o uso do CORS filter devido as portas diferentes sendo utilizadas no frontend e backend. Agora as duas models responsáveis pelo cadastro: Candidato e Empresa possuem nos seus repositórios um novo método que busca pelo email. Como as DAOs implementa os repositórios, logo, adicionei eles na DAO também.
-Adicionei a classe CompetenciaServlet para poder associar as competências à um candidato.
+Como sugerido pela IA na feature anterior eu adotei o uso do CORS filter devido as portas diferentes sendo utilizadas no frontend e backend. Para o login, as interfaces `CandidatoRepositorio` e `EmpresaRepositorio` ganharam o método `buscarPorEmail` e como os DAOs implementam essas interfaces, implementei o método neles também.
+O `LoginServlet` recebe o `POST` e usa o método `autenticar` dos services de candidato e empresa que buscam o usuário pelo email e confere a senha.
+Adicionei a classe CompetenciaServlet que lista as competências cadastradas e associa as competências escolhidas a um candidato já cadastrado.
+
+No frontend não temos mais o uso do localStorage como banco de dados e agora passou a consumir a API REST do Tomcat. A comunicação foi dividida em `http.ts` que monta a URL e envia o corpo em JSON e `api.ts` que possui uma função para cada endpoint como `cadastrarCandidato`, `fazerLogin` e `listarVagas`.
+
+O login envia `POST` com o tipo do usuário, email e senha. Se os dados estiverem corretos o backend devolve o `tipo`, `id` e `nome` e o frontend guarda essas informações para saber quem está usando a aplicação.
+
+Por segurança, as informações digitadas pelos usuários passam a ser inseridos com `textContent` e não mais com `ìnnerHTML`.
+
+### Melhoria no front-end
+
+Com a integração feita, separei um tempo para melhorar o front-end que necessitava de muitos ajustes.
+
+Agora que está tudo conectado, a página inicial apresenta somente a tela de login. Podendo ser um candidato ou uma empresa. 
+
+Quando o usuário loga como um candidato aparece somente a página de vagas para ele visualizar. Agora as vagas aparecem uma por uma por ordem decrescente de afinidade. Adicionei também dois botões de Curtir e passar para a próxima vaga.
+
+Quando o usuário loga como uma empresa aparece a opção de criar vagas e dela ver as vagas que possui juntamente do gráfico de competências. Ao selecionar a vaga aparece os candidatos em ordem decrescente de afinidade em relação à vaga. E vagas que possuem 0% de afinidade não aparecem pois fogem do escopo da vaga que a empresa procura.

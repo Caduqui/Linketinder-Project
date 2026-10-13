@@ -5,55 +5,37 @@
     <title>LinkeTinder</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+
+<body data-somente-deslogado>
+
 <header class="cabecalho">
-    <h1>Seja bem-vindo ao LinkerTinder</h1>
+    <h1>Seja bem-vindo ao LinkeTinder</h1>
     <nav>
-        <button id="buttonTelaCadastro">Cadastro</button>
-        <button id="buttonTelaCandidato">Candidato</button>
-        <button id="buttonTelaEmpresa">Empresa</button>
-        <button id="buttonTelaVaga">Vagas</button>
+        <button id="buttonTelaCandidato" data-visivel-para="candidato" hidden>Vagas</button>
+        <button id="buttonTelaMinhasVagas" data-visivel-para="empresa" hidden>Minhas vagas</button>
+        <button id="buttonTelaVaga" data-visivel-para="empresa" hidden>Cadastrar vagas</button>
+        <button id="buttonSair" data-visivel-para="logado" hidden>Sair</button>
     </nav>
+    <p id="usuario-logado" class="usuario-logado"></p>
 </header>
 
 <main>
-    <section class="container">
+    <section class="escolha-perfil">
+        <h3>Como você quer usar o Linketinder?</h3>
 
-        <div class="cadastro_container">
-            <h3>Cadastrar Novo Candidato</h3>
-            <form id="form-candidato">
-                <input type="text" id="candidato_nome" placeholder="Nome" required>
-                <input type="text" id="candidato_sobrenome" placeholder="Sobrenome" required>
-                <input type="date" id="candidato_dataNascimento" placeholder="Data de Nascimento" required>
-                <input type="email" id="candidato_email" placeholder="Email" required>
-                <input type="text" id="candidato_cpf" placeholder="CPF" required>
-                <input type="text" id="candidato_pais" placeholder="Pais" required>
-                <input type="text" id="candidato_cep" placeholder="CEP" required>
-                <input type="text" id="candidato_descricao" placeholder="Descrição" required>
-                <input type="password" id="candidato_senha" placeholder="Senha" minlength="6" required>
-                <input type="text" id="candidato_formacao" placeholder="Formação" required>
-                <input type="text" id="candidato_competencias" placeholder="Competências (separadas por vírgula)" required>
-                <button type="submit">Cadastrar Candidato</button>
-            </form>
-        </div>
-
-        <div class="cadastro_container">
-            <h3>Cadastrar Nova Empresa</h3>
-            <form id="form-empresa">
-                <input type="text" id="empresa_nome" placeholder="Nome da Empresa" required>
-                <input type="email" id="empresa_email" placeholder="Email" required>
-                <input type="text" id="empresa_cnpj" placeholder="CNPJ" required>
-                <input type="text" id="empresa_pais" placeholder="País" required>
-                <input type="text" id="empresa_cep" placeholder="CEP" required>
-                <input type="text" id="empresa_descricao" placeholder="Descrição da empresa" required>
-                <input type="password" id="empresa_senha" placeholder="Senha" minlength="6" required>
-                <button type="submit">Cadastrar Empresa</button>
-            </form>
+        <div class="opcoes-perfil">
+            <a class="opcao-perfil" href="paginas/login.html?tipo=candidato">
+                <strong>Sou candidato</strong>
+                <span>Quero encontrar vagas que combinam comigo</span>
+            </a>
+            <a class="opcao-perfil" href="paginas/login.html?tipo=empresa">
+                <strong>Sou empresa</strong>
+                <span>Quero publicar vagas e encontrar talentos</span>
+            </a>
         </div>
     </section>
 </main>
 
-<footer></footer>
 <script type="module" src="ts/main.ts"></script>
 </body>
 </html>

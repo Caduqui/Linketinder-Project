@@ -1,54 +1,51 @@
-import {configurarFormularioCandidato, configurarFormularioEmpresa, configurarFormularioVaga} from "./formularios";
-import {carregarSeletorCandidatos, renderizarVagasAnonimas} from "./telaCandidato";
-import {carregarSeletorEmpresas} from "./telaVaga";
-import {atualizarGrafico, renderizarCandidatosAnonimos} from "./telaEmpresa";
+import {
+    configurarFormularioCandidato,
+    configurarFormularioEmpresa,
+    configurarFormularioLogin,
+    configurarFormularioVaga
+} from "./formularios";
+import {descreverErro, mostrarMensagem} from "./dom.ts";
+import {configurarFormularioCompetencias, mostrarCompetencias} from "./telas/telaCompetencia.ts";
+import {configurarCabecalho, protegerPagina} from "./navegacao.ts";
+import {configurarTelaDeAcesso} from "./telas/telaAcesso.ts";
+import {mostrarEmpresaDaVaga} from "./telas/telaVaga.ts";
+import {carregarCandidatosDaVaga} from "./telas/telaCandidatosDaVaga.ts";
+import {carregarVagasParaCandidato} from "./telas/telaCandidato.ts";
+import {carregarMinhasVagas} from "./telas/telaMinhasVagas.ts";
 
-const PAGINA_POR_BOTAO: { [idBotao: string]: string} = {
-    buttonTelaCadastro: "index.html",
-    buttonTelaCandidato: "candidato.html",
-    buttonTelaEmpresa: "empresa.html",
-    buttonTelaVaga: "vaga.html"
-};
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
 
-function configurarNavegacao(): void {
-    Object.keys(PAGINA_POR_BOTAO).forEach(idBotao => {
-        const botao = document.getElementById(idBotao) as HTMLButtonElement | null;
+function carregarSePresente(idElemento: string, carregar: () => Promise<void>): void {
+    if (!document.getElementById(idElemento)) {
+        return;
+    }
 
-        botao?.addEventListener("click", () => {
-            window.location.href = PAGINA_POR_BOTAO[idBotao];
-        });
-    });
+    carregar().catch(erro => mostrarMensagem(descreverErro(erro)));
 }
 
 export function inicializarApp(): void {
 
-    configurarNavegacao();
+    if (!protegerPagina()) {
+        return;
+    }
+
+    configurarCabecalho();
+    configurarTelaDeAcesso();
+
     configurarFormularioCandidato();
     configurarFormularioEmpresa();
     configurarFormularioVaga();
+    configurarFormularioLogin();
+    configurarFormularioCompetencias();
+    mostrarEmpresaDaVaga();
+
+    carregarSePresente("lista-competencias", mostrarCompetencias);
+    carregarSePresente("painel-candidato", carregarVagasParaCandidato);
+    carregarSePresente("lista-minhas-vagas", carregarMinhasVagas);
+    carregarSePresente("painel-candidatos-da-vaga", carregarCandidatosDaVaga);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    inicializarApp()
-
-    if (document.getElementById("selecionar-candidato")) {
-        carregarSeletorCandidatos();
-    }
-
-    if (document.getElementById("vaga-empresa")) {
-        carregarSeletorEmpresas();
-    }
-
-    if (document.getElementById("lista-candidatos")) {
-        renderizarCandidatosAnonimos();
-    }
-
-    if (document.getElementById("lista-vagas")) {
-        renderizarVagasAnonimas();
-    }
-
-    if (document.getElementById("chartCompetencias")) {
-        atualizarGrafico();
-    }
-
-});
+document.addEventListener("DOMContentLoaded", inicializarApp);

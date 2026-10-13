@@ -3,6 +3,8 @@ package org.example.api
 import groovy.json.JsonOutput
 import org.example.model.Candidato
 import org.example.service.CandidatoService
+import org.example.service.CompetenciaService
+import org.example.service.CurtidaService
 import org.example.service.EmpresaService
 import org.example.service.VagaService
 import spock.lang.Specification
@@ -24,7 +26,6 @@ class CandidatoServletSpec extends Specification {
             descricao: "Dev", senha: "senha123", formacao: "Computação", competencias: ["Java"]
     ])
 
-
     CandidatoService candidatoService = Mock(CandidatoService)
     HttpServletRequest requisicao = Mock(HttpServletRequest)
     HttpServletResponse resposta = Mock(HttpServletResponse)
@@ -33,7 +34,7 @@ class CandidatoServletSpec extends Specification {
     CandidatoServlet servlet = new CandidatoServlet()
 
     def setup() {
-        servlet.dependencias = new Dependencias(candidatoService, Mock(EmpresaService), Mock(VagaService))
+        servlet.dependencias = new Dependencias(candidatoService, Mock(EmpresaService), Mock(VagaService), Mock(CompetenciaService), Mock(CurtidaService))
         resposta.writer >> new PrintWriter(saida)
         requisicao.requestURI >> "/linketinder/candidatos"
     }
