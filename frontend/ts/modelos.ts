@@ -1,3 +1,10 @@
+/**
+ *
+ * @author Guilherme Lima Conte
+ */
+
+export type TipoUsuario = "candidato" | "empresa";
+
 export interface Candidato {
     id: number;
     nome: string;
@@ -8,10 +15,11 @@ export interface Candidato {
     pais: string;
     cep: string;
     descricao: string;
-    senha: string;
     formacao: string;
     competencias: string[];
 }
+
+export type NovoCandidato = Omit<Candidato, "id" | "competencias"> & {senha:string};
 
 export interface Empresa {
     id: number;
@@ -21,8 +29,9 @@ export interface Empresa {
     pais: string;
     cep: string;
     descricao: string;
-    senha: string;
 }
+
+export type NovaEmpresa = Omit<Empresa, "id"> & {senha:string};
 
 export interface Vaga {
     id: number;
@@ -30,6 +39,36 @@ export interface Vaga {
     descricao: string;
     estado: string;
     cidade: string;
+    empresa: {id: number; nome: string};
+    competencias: string[];
+}
+
+export interface NovaVaga {
+    nome: string;
+    descricao: string;
+    estado: string;
+    cidade: string;
     idEmpresa: number;
     competencias: string[];
+}
+
+export interface Competencia {
+    id: number;
+    nome: string;
+}
+
+export interface Credenciais {
+    tipo: TipoUsuario;
+    email: string;
+    senha: string;
+}
+
+export interface UsuarioLogado {
+    tipo: TipoUsuario;
+    id: number;
+    nome: string;
+}
+
+export interface ResultadoCurtida {
+    match: boolean;
 }
