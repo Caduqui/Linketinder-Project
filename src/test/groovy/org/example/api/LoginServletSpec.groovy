@@ -4,6 +4,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.example.model.Candidato
 import org.example.model.Empresa
+import org.example.model.Recrutador
 import org.example.service.CandidatoService
 import org.example.service.EmpresaService
 import org.example.service.VagaService
@@ -24,6 +25,7 @@ import java.time.LocalDate
 class LoginServletSpec extends Specification {
     CandidatoService candidatoService = Mock(CandidatoService)
     EmpresaService empresaService = Mock(EmpresaService)
+    RecrutadorService recrutadorService = Mock(RecrutadorService)
     HttpServletRequest requisicao = Mock(HttpServletRequest)
     HttpServletResponse resposta = Mock(HttpServletResponse)
     StringWriter saida = new StringWriter()
@@ -31,7 +33,7 @@ class LoginServletSpec extends Specification {
     LoginServlet servlet = new LoginServlet()
 
     def setup() {
-        servlet.dependencias = new Dependencias(candidatoService, empresaService, Mock(VagaService), Mock(CompetenciaService), Mock(CurtidaService), Mock(RecrutadorService))
+        servlet.dependencias = new Dependencias(candidatoService, empresaService, Mock(VagaService), Mock(CompetenciaService), Mock(CurtidaService), recrutadorService)
         resposta.writer >> new PrintWriter(saida)
         requisicao.method >> "POST"
     }
@@ -44,6 +46,21 @@ class LoginServletSpec extends Specification {
         Candidato candidato = new Candidato("Fernando", "Silva", LocalDate.of(2000, 1, 15), "fernando@example.com", "12345678900", "Brasil", "79000000", "", "senha123", "", [])
         candidato.id = 9
         return candidato
+    }
+
+    Recrutador recrutador() {
+        Recrutador recrutador = new Recrutador(
+                "Ana Paula",
+                "TI",
+                "",
+                "ana@example.com",
+                "12012012012",
+                LocalDate.of(1990, 7, 12),
+                "senha-secreta",
+                4
+        )
+        recrutador.id = 8
+        return recrutador
     }
 
     def "login de candidato com credenciais corretas responde 200 com tipo, id e nome"() {
@@ -74,6 +91,35 @@ class LoginServletSpec extends Specification {
         saida.toString().contains('"tipo":"empresa"')
     }
 
+    def "login de recrutador retorna apenas tipo id nome e idEmpresa"() {
+        given:
+        enviar([tipo: "recrutador", email: "ana@example.com", senha: "senha-secreta"])
+        recrutadorService.autenticar("ana@example.com", "senha-secreta") >> recrutador()
+
+        when:
+        servlet.service(requisicao, resposta)
+
+        then:
+        1 * resposta.setStatus(HttpServletResponse.SC_OK)
+        saida.toString() == '{"tipo":"recrutador","id":8,"nome":"Ana Paula","idEmpresa":4}'
+        !saida.toString().contains("senha")
+        !saida.toString().contains("12012012012")
+        !saida.toString().contains("1990-07-12")
+    }
+
+    def "login de recrutador com credenciais erradas responde 401"() {
+        given:
+        enviar([tipo: "recrutador", email: "ana@example.com", senha: "incorreta"])
+        recrutadorService.autenticar("ana@example.com", "incorreta") >> null
+
+        when:
+        servlet.service(requisicao, resposta)
+
+        then:
+        1 * resposta.setStatus(HttpServletResponse.SC_UNAUTHORIZED)
+        new JsonSlurper().parseText(saida.toString()).erro == LoginServlet.CREDENCIAIS_INVALIDAS
+    }
+
     def "login com senha errada responde 401 sem dizer qual campo errou"() {
         given:
         enviar([tipo: "candidato", email: "fernando@example.com", senha: "errada"])
@@ -97,6 +143,7 @@ class LoginServletSpec extends Specification {
         then:
         1 * resposta.setStatus(HttpServletResponse.SC_BAD_REQUEST)
         saida.toString().contains("'tipo'")
+        0 * recrutadorService.autenticar(_, _)
     }
 
     def "login sem senha responde 400 e não consulta o service"() {

@@ -4,6 +4,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.example.model.Candidato
 import org.example.model.Empresa
+import org.example.model.Recrutador
 import org.example.model.Vaga
 import org.example.service.CandidatoService
 import org.example.service.EmpresaService
@@ -27,6 +28,7 @@ class CurtidaServletSpec extends Specification {
     CandidatoService candidatoService = Mock(CandidatoService)
     VagaService vagaService = Mock(VagaService)
     CurtidaService curtidaService = Mock(CurtidaService)
+    RecrutadorService recrutadorService = Mock(RecrutadorService)
     HttpServletRequest requisicao = Mock(HttpServletRequest)
     HttpServletResponse resposta = Mock(HttpServletResponse)
     StringWriter saida = new StringWriter()
@@ -34,7 +36,7 @@ class CurtidaServletSpec extends Specification {
     CurtidaServlet servlet = new CurtidaServlet()
 
     def setup() {
-        servlet.dependencias = new Dependencias(candidatoService, Mock(EmpresaService), vagaService, Mock(CompetenciaService), curtidaService, Mock(RecrutadorService))
+        servlet.dependencias = new Dependencias(candidatoService, Mock(EmpresaService), vagaService, Mock(CompetenciaService), curtidaService, recrutadorService)
         resposta.writer >> new PrintWriter(saida)
         requisicao.method >> "POST"
 
@@ -63,6 +65,21 @@ class CurtidaServletSpec extends Specification {
         Vaga vaga = new Vaga("Dev Java", "APIs", "MS", "Campo Grande", empresa, ["Java"])
         vaga.id = 3
         return vaga
+    }
+
+    Recrutador recrutador() {
+        Recrutador recrutador = new Recrutador(
+                "Ana Paula",
+                "TI",
+                "",
+                "ana@example.com",
+                "12012012012",
+                LocalDate.of(1990, 7, 12),
+                "senha-secreta",
+                5
+        )
+        recrutador.id = 8
+        return recrutador
     }
 
     def "candidato curte a vaga e responde 201 informando que ainda não houve match"() {
@@ -106,6 +123,56 @@ class CurtidaServletSpec extends Specification {
         respostaJson().erro.contains("não pertence")
     }
 
+    def "recrutador curte candidato e resposta contém somente resultado do match"() {
+        given:
+        enviar([tipo: "recrutador", idRecrutador: 8, idCandidato: 9, idVaga: 3])
+        recrutadorService.buscarPorId(8) >> recrutador()
+
+        when:
+        servlet.service(requisicao, resposta)
+
+        then:
+        1 * curtidaService.recrutadorCurtirCandidato(8, 9, 3) >> true
+        1 * curtidaService.houveMatch(9, 5, 3) >> true
+        1 * resposta.setStatus(HttpServletResponse.SC_CREATED)
+        respostaJson() == [match: true]
+        !saida.toString().contains("Fernando")
+        !saida.toString().contains("fernando@example.com")
+        !saida.toString().contains("12345678900")
+    }
+
+    def "recrutador não curte vaga não atribuída"() {
+        given:
+        enviar([tipo: "recrutador", idRecrutador: 8, idCandidato: 9, idVaga: 3])
+        recrutadorService.buscarPorId(8) >> recrutador()
+
+        when:
+        servlet.service(requisicao, resposta)
+
+        then:
+        1 * curtidaService.recrutadorCurtirCandidato(8, 9, 3) >> {
+            throw new org.example.service.RegraDeNegocioException("A vaga não está atribuída ao recrutador")
+        }
+        0 * curtidaService.houveMatch(_, _, _)
+        1 * resposta.setStatus(HttpServletResponse.SC_BAD_REQUEST)
+        respostaJson().erro.contains("não está atribuída")
+    }
+
+    def "curtida de recrutador inexistente responde 404"() {
+        given:
+        enviar([tipo: "recrutador", idRecrutador: 404, idCandidato: 9, idVaga: 3])
+        recrutadorService.buscarPorId(404) >> null
+
+        when:
+        servlet.service(requisicao, resposta)
+
+        then:
+        0 * curtidaService.recrutadorCurtirCandidato(_, _, _)
+        0 * curtidaService.houveMatch(_, _, _)
+        1 * resposta.setStatus(HttpServletResponse.SC_NOT_FOUND)
+        respostaJson().erro.contains("Recrutador 404")
+    }
+
     def "curtida de vaga inexistente responde 404 e não grava"() {
         given:
         enviar([tipo: "candidato", idCandidato: 9, idVaga: 77])
@@ -128,6 +195,7 @@ class CurtidaServletSpec extends Specification {
         then:
         0 * curtidaService.candidatoCurtirVaga(_, _)
         0 * curtidaService.empresaCurtirCandidato(_, _, _)
+        0 * curtidaService.recrutadorCurtirCandidato(_, _, _)
         1 * resposta.setStatus(HttpServletResponse.SC_BAD_REQUEST)
     }
 }

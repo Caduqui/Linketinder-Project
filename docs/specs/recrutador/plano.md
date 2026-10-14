@@ -235,7 +235,7 @@ cd frontend && npx tsc --noEmit
 - **CHANGELOG:** Adicionado — Rotas de recrutador na API REST, incluindo as primeiras rotas `DELETE` do projeto (spec `recrutador`, tarefa 10).
 - **Situação:** implementação e testes automatizados concluídos; conferência manual do CA-18 pendente em Tomcat 9 com banco PostgreSQL descartável.
 
-### 11. API: login e curtida do recrutador
+### 11. API: login e curtida do recrutador [Concluída]
 
 - **O que:** `LoginServlet` aceitando `tipo: "recrutador"` e devolvendo `{tipo, id, nome, idEmpresa}`; `CurtidaServlet` aceitando `tipo: "recrutador"` com `idRecrutador`, `idCandidato` e `idVaga` e respondendo `201` com `{"match": ...}` (RN-10, RN-17, RN-20, RN-23, RN-26).
 - **Arquivos:** `api/LoginServlet.groovy`, `api/CurtidaServlet.groovy`; `src/test/groovy/org/example/api/LoginServletSpec.groovy`, `api/CurtidaServletSpec.groovy`.
@@ -247,10 +247,10 @@ cd frontend && npx tsc --noEmit
   - given vaga não atribuída ao recrutador, when `POST /curtidas`, then `400` e nenhuma curtida registrada;
   - given recrutador, candidato ou vaga inexistente, when `POST /curtidas`, then `404`;
   - given a resposta da curtida, when o corpo é lido, then ele só tem `match` — nenhum dado do candidato.
-- **Validação:** `./gradlew test --tests "org.example.api.LoginServletSpec"`, idem para `CurtidaServletSpec`, e a suíte inteira; `CA-06`, `CA-10` a `CA-14` na parte de API, `CA-16` e `CA-18`.
+- **Validação:** as specs direcionadas de `LoginServletSpec` e `CurtidaServletSpec` e a suíte inteira passaram; `.\gradlew.bat test war` gerou o WAR; `CA-06`, `CA-10` a `CA-14` na parte de API e `CA-16` passaram nos testes; a conferência manual do `CA-18` continua pendente em Tomcat 9 com banco descartável.
 - **Anonimato:** o corpo do login não traz CPF, data de nascimento nem senha; o da curtida não traz nada do candidato (RN-23).
 - **CHANGELOG:** Adicionado — Login do recrutador e curtida do recrutador pela API REST (spec `recrutador`, tarefa 11).
-- **Situação:** pendente.
+- **Situação:** implementação e testes automatizados concluídos; a conferência manual do CA-18 permanece pendente.
 
 ### 12. Frontend: terceiro perfil, tipos e acesso à API
 

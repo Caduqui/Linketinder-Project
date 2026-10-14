@@ -18,6 +18,7 @@ class CurtidaServlet extends ApiServlet {
 
     static final String TIPO_CANDIDATO = "candidato"
     static final String TIPO_EMPRESA = "empresa"
+    static final String TIPO_RECRUTADOR = "recrutador"
 
     @Override
     protected void doPost(HttpServletRequest requisicao, HttpServletResponse resposta) {
@@ -38,7 +39,9 @@ class CurtidaServlet extends ApiServlet {
             return
         }
 
-        registrarCurtida(tipo, dados, candidato, vaga)
+        if (!registrarCurtida(tipo, dados, candidato, vaga, resposta)) {
+            return
+        }
 
         boolean houveMatch = dependencias.curtidaService.houveMatch(candidato.id, vaga.empresa.id, vaga.id)
         responder(resposta, HttpServletResponse.SC_CREATED, [match: houveMatch])
@@ -52,10 +55,10 @@ class CurtidaServlet extends ApiServlet {
         responderErro(resposta, HttpServletResponse.SC_METHOD_NOT_ALLOWED, "As curtidas só aceitam o método POST")
     }
 
-    private void registrarCurtida(String tipo, Map dados, Candidato candidato, Vaga vaga) {
+    private boolean registrarCurtida(String tipo, Map dados, Candidato candidato, Vaga vaga, HttpServletResponse resposta) {
         if (tipo == TIPO_CANDIDATO) {
             dependencias.curtidaService.candidatoCurtirVaga(candidato.id, vaga.id)
-            return
+            return true
         }
 
         if (tipo == TIPO_EMPRESA) {
@@ -66,9 +69,20 @@ class CurtidaServlet extends ApiServlet {
             }
 
             dependencias.curtidaService.empresaCurtirCandidato(idEmpresa, candidato.id, vaga.id)
-            return
+            return true
         }
 
-        throw new RegraDeNegocioException("O campo 'tipo' deve ser '${TIPO_CANDIDATO}' ou '${TIPO_EMPRESA}'")
+        if (tipo == TIPO_RECRUTADOR) {
+            Integer idRecrutador = Json.exigirInteiro(dados, "idRecrutador")
+            if (dependencias.recrutadorService.buscarPorId(idRecrutador) == null) {
+                responderNaoEncontrado(resposta, "Recrutador ${idRecrutador} não encontrado")
+                return false
+            }
+
+            dependencias.curtidaService.recrutadorCurtirCandidato(idRecrutador, candidato.id, vaga.id)
+            return true
+        }
+
+        throw new RegraDeNegocioException("O campo 'tipo' deve ser '${TIPO_CANDIDATO}', '${TIPO_EMPRESA}' ou '${TIPO_RECRUTADOR}'")
     }
 }

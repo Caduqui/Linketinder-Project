@@ -39,6 +39,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Rotas REST de recrutadores para cadastro, listagem, consulta das vagas
   atribuídas, atribuição e remoção de vagas e exclusão; respostas não expõem
   senha, CPF ou data de nascimento, e o CORS anuncia o método `DELETE`.
+- Login de recrutador pela API REST com resposta restrita a tipo, id, nome e
+  id da empresa, e curtida de candidato pelo recrutador para vaga atribuída.
 - Login na API REST: `POST /login` autentica candidato ou empresa e responde
   `tipo`, `id` e `nome`, sem a senha; credenciais erradas respondem `401` com
   mensagem genérica. Os repositórios e DAOs de candidato e empresa ganharam
