@@ -29,6 +29,7 @@ class CorsFilterSpec extends Specification {
 
         then:
         1 * resposta.setHeader("Access-Control-Allow-Origin", ORIGEM_FRONTEND)
+        1 * resposta.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
         1 * resposta.setHeader("Access-Control-Allow-Headers", "Content-Type")
         1 * resposta.setStatus(HttpServletResponse.SC_NO_CONTENT)
         0 * cadeia.doFilter(_, _)

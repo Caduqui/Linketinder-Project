@@ -2,6 +2,7 @@ package org.example.api
 
 import org.example.model.Candidato
 import org.example.model.Empresa
+import org.example.model.Recrutador
 import org.example.model.Vaga
 import org.example.service.RegraDeNegocioException
 import spock.lang.Specification
@@ -69,6 +70,58 @@ class JsonSpec extends Specification{
 
         expect:
         !Json.deEmpresa(empresa).containsKey("senha")
+    }
+
+    def "paraRecrutador lê os dados do cadastro"() {
+        when:
+        Recrutador recrutador = Json.paraRecrutador([
+                nome: "Ana Paula",
+                area: "TI",
+                descricao: "Recrutadora",
+                email: "ana@example.com",
+                cpf: "12012012012",
+                dataNascimento: "1990-07-12",
+                senha: "senha123",
+                idEmpresa: 4
+        ])
+
+        then:
+        recrutador.nome == "Ana Paula"
+        recrutador.area == "TI"
+        recrutador.descricao == "Recrutadora"
+        recrutador.dataNascimento == LocalDate.of(1990, 7, 12)
+        recrutador.idEmpresa == 4
+    }
+
+    def "deRecrutador devolve somente os campos permitidos"() {
+        given:
+        Recrutador recrutador = new Recrutador(
+                "Ana Paula",
+                "TI",
+                "Recrutadora",
+                "ana@example.com",
+                "120.120.120-12",
+                LocalDate.of(1990, 7, 12),
+                "senha-secreta",
+                4
+        )
+        recrutador.id = 8
+
+        when:
+        Map json = Json.deRecrutador(recrutador)
+
+        then:
+        json == [
+                id: 8,
+                nome: "Ana Paula",
+                area: "TI",
+                descricao: "Recrutadora",
+                email: "ana@example.com",
+                idEmpresa: 4
+        ]
+        !json.containsKey("senha")
+        !json.containsKey("cpf")
+        !json.containsKey("dataNascimento")
     }
 
     def "deVaga identifica a empresa dona da vaga"() {

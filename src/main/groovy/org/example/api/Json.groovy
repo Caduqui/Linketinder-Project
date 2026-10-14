@@ -3,6 +3,7 @@ package org.example.api
 import org.example.model.Candidato
 import org.example.model.Competencia
 import org.example.model.Empresa
+import org.example.model.Recrutador
 import org.example.model.Vaga
 import org.example.service.RegraDeNegocioException
 
@@ -69,6 +70,30 @@ class Json {
                 pais : empresa.pais,
                 cep : empresa.cep,
                 descricao: empresa.descricao
+        ]
+    }
+
+    static Recrutador paraRecrutador(Map dados) {
+        return new Recrutador(
+                exigirTexto(dados, "nome"),
+                exigirTexto(dados, "area"),
+                texto(dados, "descricao"),
+                exigirTexto(dados, "email"),
+                exigirTexto(dados, "cpf"),
+                exigirData(dados, "dataNascimento"),
+                exigirTexto(dados, "senha"),
+                exigirInteiro(dados, "idEmpresa")
+        )
+    }
+
+    static Map deRecrutador(Recrutador recrutador) {
+        return [
+                id: recrutador.id,
+                nome: recrutador.nome,
+                area: recrutador.area,
+                descricao: recrutador.descricao,
+                email: recrutador.email,
+                idEmpresa: recrutador.idEmpresa
         ]
     }
 

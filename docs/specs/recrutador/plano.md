@@ -217,7 +217,7 @@ cd frontend && npx tsc --noEmit
 - **CHANGELOG:** Adicionado — Menu de recrutadores no CLI, com CRUD, atribuição de vagas e a curtida do recrutador (spec `recrutador`, tarefa 9).
 - **Situação:** implementação e testes automatizados concluídos; conferência manual do CA-19 pendente em PostgreSQL descartável.
 
-### 10. API: `Json`, `RecrutadorServlet` e as rotas de recrutador
+### 10. API: `Json`, `RecrutadorServlet` e as rotas de recrutador [Concluída]
 
 - **O que:** `Json.paraRecrutador`/`deRecrutador` (sem senha, CPF e data de nascimento), `ApiServlet` com `responderSemConteudo` e `Allow` por servlet, `RecrutadorServlet` com `POST /recrutadores`, `GET /recrutadores?idEmpresa={id}`, `GET /recrutadores/{id}/vagas`, `POST /recrutadores/{id}/vagas`, `DELETE /recrutadores/{id}` e `DELETE /recrutadores/{id}/vagas/{idVaga}`, montagem em `Dependencias` e `DELETE` anunciado no `CorsFilter` (RN-05, RN-09, RN-26, P-01, P-02).
 - **Arquivos:** `api/Json.groovy`, `api/ApiServlet.groovy`, `api/RecrutadorServlet.groovy` (novo), `api/Dependencias.groovy`, `api/CorsFilter.groovy`; `src/test/groovy/org/example/api/RecrutadorServletSpec.groovy` (nova), `api/JsonSpec.groovy` (ampliada), `api/CorsFilterSpec.groovy` (ampliada).
@@ -230,10 +230,10 @@ cd frontend && npx tsc --noEmit
   - given um recrutador, when `DELETE /recrutadores/{id}` e `DELETE /recrutadores/{id}/vagas/{idVaga}`, then responde `204` sem corpo;
   - given `PUT`, when chamado, then `405` com `Allow: GET, POST, DELETE`, e os outros servlets continuam com `Allow: GET, POST`;
   - given a origem permitida, when a resposta é montada, then `Access-Control-Allow-Methods` inclui `DELETE`.
-- **Validação:** `./gradlew test --tests "org.example.api.RecrutadorServletSpec"`, idem para as ampliadas, e a suíte inteira; `CA-01` a `CA-05`, `CA-07` a `CA-09` e `CA-18` (manual, com `curl` no Tomcat).
+- **Validação:** as specs direcionadas e a suíte inteira passaram; `.\gradlew.bat test war` gerou o WAR; `CA-01` a `CA-05` e `CA-07` a `CA-09` passaram nos testes; `CA-18` (manual, com `curl` no Tomcat 9) permanece pendente. Não foi feito deploy contra o banco local, pois não há um banco descartável definido para a conferência.
 - **Anonimato:** o teste de `Json.deRecrutador` é a garantia da RN-09 na API; nenhuma resposta nova devolve dado de candidato.
 - **CHANGELOG:** Adicionado — Rotas de recrutador na API REST, incluindo as primeiras rotas `DELETE` do projeto (spec `recrutador`, tarefa 10).
-- **Situação:** pendente.
+- **Situação:** implementação e testes automatizados concluídos; conferência manual do CA-18 pendente em Tomcat 9 com banco PostgreSQL descartável.
 
 ### 11. API: login e curtida do recrutador
 

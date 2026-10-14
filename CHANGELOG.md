@@ -36,6 +36,9 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   atribuições de recrutador ao excluir candidato ou vaga.
 - Menu de recrutadores no CLI, com cadastro, atualização, exclusão, atribuição
   e remoção de vagas, listagem das vagas atribuídas e curtida de candidatos.
+- Rotas REST de recrutadores para cadastro, listagem, consulta das vagas
+  atribuídas, atribuição e remoção de vagas e exclusão; respostas não expõem
+  senha, CPF ou data de nascimento, e o CORS anuncia o método `DELETE`.
 - Login na API REST: `POST /login` autentica candidato ou empresa e responde
   `tipo`, `id` e `nome`, sem a senha; credenciais erradas respondem `401` com
   mensagem genérica. Os repositórios e DAOs de candidato e empresa ganharam

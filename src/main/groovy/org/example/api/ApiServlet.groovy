@@ -22,6 +22,10 @@ abstract class ApiServlet extends HttpServlet {
 
     protected Dependencias dependencias
 
+    protected String metodosAceitos() {
+        return METODOS_ACEITOS
+    }
+
     @Override
     void init() {
         dependencias = Dependencias.obterInstancia()
@@ -86,6 +90,10 @@ abstract class ApiServlet extends HttpServlet {
         responder(resposta, status, [erro: mensagem])
     }
 
+    protected void responderSemConteudo(HttpServletResponse resposta) {
+        resposta.status = HttpServletResponse.SC_NO_CONTENT
+    }
+
     protected void responderNaoEncontrado(HttpServletResponse resposta, String mensagem) {
         responderErro(resposta, HttpServletResponse.SC_NOT_FOUND, mensagem)
     }
@@ -95,13 +103,14 @@ abstract class ApiServlet extends HttpServlet {
         responderMetodoNaoSuportado(requisicao, resposta)
     }
 
+    private void responderMetodoNaoSuportado(HttpServletRequest requisicao, HttpServletResponse resposta) {
+        String metodos = metodosAceitos()
+        resposta.setHeader("Allow", metodos)
+        responderErro(resposta, HttpServletResponse.SC_METHOD_NOT_ALLOWED, "O método ${requisicao.method} não é suportado. Use ${metodos}")
+    }
+
     @Override
     protected void doDelete(HttpServletRequest requisicao, HttpServletResponse resposta) {
         responderMetodoNaoSuportado(requisicao, resposta)
-    }
-
-    private void responderMetodoNaoSuportado(HttpServletRequest requisicao, HttpServletResponse resposta) {
-        resposta.setHeader("Allow", METODOS_ACEITOS)
-        responderErro(resposta, HttpServletResponse.SC_METHOD_NOT_ALLOWED, "O método ${requisicao.method} não é suportado. Use ${METODOS_ACEITOS}")
     }
 }

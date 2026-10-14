@@ -10,6 +10,7 @@ import org.example.service.EmpresaService
 import org.example.service.CurtidaService
 import org.example.service.VagaService
 import org.example.service.CompetenciaService
+import org.example.service.RecrutadorService
 import spock.lang.Specification
 
 import javax.servlet.http.HttpServletRequest
@@ -33,7 +34,7 @@ class CurtidaServletSpec extends Specification {
     CurtidaServlet servlet = new CurtidaServlet()
 
     def setup() {
-        servlet.dependencias = new Dependencias(candidatoService, Mock(EmpresaService), vagaService, Mock(CompetenciaService), curtidaService)
+        servlet.dependencias = new Dependencias(candidatoService, Mock(EmpresaService), vagaService, Mock(CompetenciaService), curtidaService, Mock(RecrutadorService))
         resposta.writer >> new PrintWriter(saida)
         requisicao.method >> "POST"
 

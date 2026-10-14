@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletResponse
 class CorsFilter implements Filter {
     static final String VARIAVEL_ORIGEM = "LINKETINDER_FRONTEND_ORIGEM"
     static final String ORIGEM_PADRAO = "http://localhost:5173"
-    static final String METODOS_PERMITIDOS = "GET, POST, OPTIONS"
+    static final String METODOS_PERMITIDOS = "GET, POST, DELETE, OPTIONS"
     static final String CABECALHOS_PERMITIDOS = "Content-Type"
 
     private final String origemPermitida

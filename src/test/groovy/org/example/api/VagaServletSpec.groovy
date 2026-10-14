@@ -8,6 +8,7 @@ import org.example.service.EmpresaService
 import org.example.service.VagaService
 import org.example.service.CompetenciaService
 import org.example.service.CurtidaService
+import org.example.service.RecrutadorService
 import spock.lang.Specification
 
 import javax.servlet.http.HttpServletRequest
@@ -37,7 +38,7 @@ class VagaServletSpec extends Specification {
     VagaServlet servlet = new VagaServlet()
 
     def setup() {
-        servlet.dependencias = new Dependencias(Mock(CandidatoService), empresaService, vagaService, Mock(CompetenciaService), Mock(CurtidaService))
+        servlet.dependencias = new Dependencias(Mock(CandidatoService), empresaService, vagaService, Mock(CompetenciaService), Mock(CurtidaService), Mock(RecrutadorService))
         resposta.writer >> new PrintWriter(saida)
         requisicao.requestURI >> "/linketinder/vagas"
     }

@@ -5,6 +5,7 @@ import org.example.model.Candidato
 import org.example.service.CandidatoService
 import org.example.service.CompetenciaService
 import org.example.service.CurtidaService
+import org.example.service.RecrutadorService
 import org.example.service.EmpresaService
 import org.example.service.VagaService
 import spock.lang.Specification
@@ -34,7 +35,7 @@ class CandidatoServletSpec extends Specification {
     CandidatoServlet servlet = new CandidatoServlet()
 
     def setup() {
-        servlet.dependencias = new Dependencias(candidatoService, Mock(EmpresaService), Mock(VagaService), Mock(CompetenciaService), Mock(CurtidaService))
+        servlet.dependencias = new Dependencias(candidatoService, Mock(EmpresaService), Mock(VagaService), Mock(CompetenciaService), Mock(CurtidaService), Mock(RecrutadorService))
         resposta.writer >> new PrintWriter(saida)
         requisicao.requestURI >> "/linketinder/candidatos"
     }
