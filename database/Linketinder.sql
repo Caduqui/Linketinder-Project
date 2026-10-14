@@ -396,6 +396,11 @@ WHERE c.id = m.id_candidato
 
 -- Recrutadores
 
+-- A coluna já consta do CREATE TABLE "matches" acima, para bancos criados do zero.
+-- Este ALTER existe para quem aplicou o script antes do recrutador: sem ele a FK e os
+-- UPDATE do fim deste bloco falhariam, porque matches ainda não teria id_recrutador.
+ALTER TABLE "matches" ADD COLUMN IF NOT EXISTS "id_recrutador" int NULL;
+
 CREATE TABLE "recrutadores" (
                                "id" serial PRIMARY KEY,
                                "nome" varchar(50) NOT NULL,

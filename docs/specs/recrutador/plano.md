@@ -2,7 +2,7 @@
 
 Implementa `docs/specs/recrutador/spec.md`, aprovada pelo autor em 2026-10-13. Os códigos `RN-xx` e `CA-xx` são as regras e os critérios de aceite da spec.
 
-Situação do plano: aprovado pelo autor em 2026-10-13. Nenhuma tarefa de implementação foi iniciada nesta sequência.
+Situação do plano: aprovado pelo autor em 2026-10-13 e **implementado por inteiro** — as 15 tarefas estão concluídas. A revisão final está em `revisao.md`, que inclui a conferência em execução de 2026-10-14: `CA-17` a `CA-19` verificados contra PostgreSQL, Tomcat e CLI reais, e `CA-20` verificado menos a passada visual no navegador, que segue com o autor.
 
 ## Ponto de partida
 
@@ -102,7 +102,7 @@ cd frontend && npx tsc --noEmit
 - **Validação:** `CA-17`, manual: aplicar o bloco em um banco com o script antigo já carregado e conferir que a curtida duplicada é recusada pelo `UNIQUE`, que a curtida em vaga não atribuída é recusada pela FK composta e que `matches.id_recrutador` aceita nulo. Conferir também que nenhuma tabela existente foi alterada além da coluna em `matches`.
 - **Anonimato:** a carga usa **dados fictícios** (nomes inventados, e-mails em `example.com`, CPFs com dígito verificador inválido), como manda o `AGENTS.md`. Nenhuma senha real. O script não exibe nada: é carga.
 - **CHANGELOG:** Adicionado — Tabelas `recrutadores`, `recrutador_vaga` e `curtida_recrutador_candidato`, e o recrutador que fechou o match em `matches` (spec `recrutador`, tarefa 1).
-- **Situação:** implementação concluída; conferência manual do CA-17 pendente em banco PostgreSQL descartável.
+- **Situação:** implementação concluída; `CA-17` verificado em execução na revisão de 2026-10-14 (ver `revisao.md`, seção 7.1): o script inteiro aplicou em banco vazio e as asserções de `UNIQUE`, FK composta e coluna anulável passaram. A coluna `matches.id_recrutador` ficou no `CREATE TABLE "matches"`, no meio do arquivo, em vez de só no bloco do fim; a revisão de 2026-10-14 acrescentou `ALTER TABLE matches ADD COLUMN IF NOT EXISTS id_recrutador` no início do bloco do recrutador, para ele também poder ser aplicado em banco já carregado (ver `revisao.md`, AP-01).
 - **Para o autor:** o DER (`assets/der.png`) precisa ganhar a entidade Recrutador (1:N com Empresa), a N:N Recrutador–Vaga, a N:N Recrutador–Candidato por vaga e a ligação opcional Match–Recrutador.
 
 ### 2. Model: `Recrutador` e `AreaDeRecrutamento` [Concluída]
@@ -150,7 +150,7 @@ cd frontend && npx tsc --noEmit
 - **CHANGELOG:** Adicionado — Cadastro, consulta e autenticação de recrutador nas regras de negócio, e empresa com recrutadores não pode mais ser excluída (spec `recrutador`, tarefa 4).
 - **Situação:** concluída.
 
-### 5. Service: atribuição de vagas e escopo de atuação
+### 5. Service: atribuição de vagas e escopo de atuação [Concluída]
 
 - **O que:** no `RecrutadorService`, atribuir vaga (só vaga da própria empresa e só a recrutador da própria empresa; repetida não é erro e o retorno distingue se foi atribuída agora), desatribuir (apagando as curtidas daquele recrutador naquela vaga), listar as vagas atribuídas e a verificação de escopo usada pela curtida (RN-11, RN-12, RN-13, RN-14, RN-15, RN-16).
 - **Arquivos:** `service/RecrutadorService.groovy`, `repositorio/RecrutadorRepositorio.groovy`; `src/test/groovy/org/example/service/RecrutadorServiceSpec.groovy`.
@@ -166,7 +166,7 @@ cd frontend && npx tsc --noEmit
 - **CHANGELOG:** Adicionado — A empresa atribui e remove vagas dos recrutadores dela, e o recrutador só atua nas vagas atribuídas (spec `recrutador`, tarefa 5).
 - **Situação:** concluída.
 
-### 6. Curtida do recrutador e match
+### 6. Curtida do recrutador e match [Concluída]
 
 - **O que:** `CurtidaRepositorio`/`CurtidaDAO`/`CurtidaService` ganham a gravação da curtida do recrutador; `CurtidaService` valida o escopo pela regra da tarefa 5; `Match` passa a carregar quem fechou; `CurtidaService.houveMatch` mantém a assinatura para os três fluxos (RN-17 a RN-22). A consulta que forma match considerando curtidas de recrutadores fica na tarefa 8.
 - **Arquivos:** `repositorio/CurtidaRepositorio.groovy`, `dao/CurtidaDAO.groovy`, `service/CurtidaService.groovy`, `model/Match.groovy`; `src/test/groovy/org/example/service/CurtidaServiceSpec.groovy`, `src/test/groovy/org/example/model/MatchSpec.groovy`.
@@ -189,7 +189,7 @@ cd frontend && npx tsc --noEmit
 - **Validação:** a suíte inteira continua passando (nada deve quebrar). A conferência manual CA-17 requer aplicar o script atualizado em um banco PostgreSQL descartável: cadastrar recrutador, atribuir vaga, curtir, desatribuir (conferindo no banco que as curtidas daquela vaga saíram e o match ficou com `id_recrutador` nulo), excluir recrutador e tentar excluir a empresa com recrutadores. Todo SQL usa `conexaoBanco.executar(sql) { PreparedStatement -> }` e parâmetros `?`.
 - **Anonimato:** o DAO não imprime nem formata nada; a lista da empresa seleciona somente `id`, nome, área, descrição, e-mail e `id_empresa`, e não carrega CPF, data de nascimento ou senha.
 - **CHANGELOG:** Adicionado — Persistência do recrutador, das atribuições de vaga e das curtidas dele no PostgreSQL (spec `recrutador`, tarefa 7).
-- **Situação:** implementação concluída; conferência manual do CA-17 pendente em banco PostgreSQL descartável.
+- **Situação:** implementação concluída; `CA-17` verificado em execução na revisão de 2026-10-14 (ver `revisao.md`, seção 7.1): o script inteiro aplicou em banco vazio e as asserções de `UNIQUE`, FK composta e coluna anulável passaram.
 
 ### 8. Persistência: curtida do recrutador e criação do match [Concluída]
 
@@ -199,7 +199,7 @@ cd frontend && npx tsc --noEmit
 - **Validação:** a suíte inteira continua passando. A conferência manual de `CA-17` requer o PostgreSQL com o script atualizado e repassar os cenários de `CA-11` a `CA-14`: recrutador curte depois do candidato (match com ele); segundo recrutador curte depois (curtida gravada, nenhum match novo); dois recrutadores curtem antes e o candidato curte depois (match com o que curtiu primeiro); empresa curte e o candidato curte (match com `id_recrutador` nulo); match em duas vagas da mesma empresa com recrutadores diferentes; excluir candidato e vaga com curtidas de recrutador.
 - **Anonimato:** nenhuma saída. A consulta do match seleciona ids; `Match.descrever()` não muda nesta feature.
 - **CHANGELOG:** Adicionado — Match passa a ser criado também pela curtida do recrutador e registra quem o fechou (spec `recrutador`, tarefa 8).
-- **Situação:** implementação concluída; conferência manual do CA-17 pendente em banco PostgreSQL descartável.
+- **Situação:** implementação concluída; `CA-17` verificado em execução na revisão de 2026-10-14 (ver `revisao.md`, seção 7.1): o script inteiro aplicou em banco vazio e as asserções de `UNIQUE`, FK composta e coluna anulável passaram.
 
 ### 9. CLI: menu de recrutadores e curtida pelo terminal [Concluída]
 
@@ -215,7 +215,7 @@ cd frontend && npx tsc --noEmit
 - **Validação:** as specs direcionadas de view, controllers e menu e a suíte inteira passaram; `CA-19` (manual, com o banco) permanece pendente; `CA-16` passou nas garantias de anonimato.
 - **Anonimato:** duas garantias testadas — a listagem de recrutadores sem senha, CPF e data de nascimento (RN-09) e a curtida usando `Candidato.descreverAnonimo()` (regra 5 do `AGENTS.md`).
 - **CHANGELOG:** Adicionado — Menu de recrutadores no CLI, com CRUD, atribuição de vagas e a curtida do recrutador (spec `recrutador`, tarefa 9).
-- **Situação:** implementação e testes automatizados concluídos; conferência manual do CA-19 pendente em PostgreSQL descartável.
+- **Situação:** implementação e testes automatizados concluídos; `CA-19` verificado em execução na revisão de 2026-10-14 (ver `revisao.md`, seção 7.3): CRUD, atribuição e curtida com match rodaram contra o banco real pelo CLI.
 
 ### 10. API: `Json`, `RecrutadorServlet` e as rotas de recrutador [Concluída]
 
@@ -233,7 +233,7 @@ cd frontend && npx tsc --noEmit
 - **Validação:** as specs direcionadas e a suíte inteira passaram; `.\gradlew.bat test war` gerou o WAR; `CA-01` a `CA-05` e `CA-07` a `CA-09` passaram nos testes; `CA-18` (manual, com `curl` no Tomcat 9) permanece pendente. Não foi feito deploy contra o banco local, pois não há um banco descartável definido para a conferência.
 - **Anonimato:** o teste de `Json.deRecrutador` é a garantia da RN-09 na API; nenhuma resposta nova devolve dado de candidato.
 - **CHANGELOG:** Adicionado — Rotas de recrutador na API REST, incluindo as primeiras rotas `DELETE` do projeto (spec `recrutador`, tarefa 10).
-- **Situação:** implementação e testes automatizados concluídos; conferência manual do CA-18 pendente em Tomcat 9 com banco PostgreSQL descartável.
+- **Situação:** implementação e testes automatizados concluídos; `CA-18` verificado em execução na revisão de 2026-10-14 (ver `revisao.md`, seção 7.2): WAR no Tomcat 9.0.122 e 56 asserções com `curl`.
 
 ### 11. API: login e curtida do recrutador [Concluída]
 
@@ -250,9 +250,9 @@ cd frontend && npx tsc --noEmit
 - **Validação:** as specs direcionadas de `LoginServletSpec` e `CurtidaServletSpec` e a suíte inteira passaram; `.\gradlew.bat test war` gerou o WAR; `CA-06`, `CA-10` a `CA-14` na parte de API e `CA-16` passaram nos testes; a conferência manual do `CA-18` continua pendente em Tomcat 9 com banco descartável.
 - **Anonimato:** o corpo do login não traz CPF, data de nascimento nem senha; o da curtida não traz nada do candidato (RN-23).
 - **CHANGELOG:** Adicionado — Login do recrutador e curtida do recrutador pela API REST (spec `recrutador`, tarefa 11).
-- **Situação:** implementação e testes automatizados concluídos; a conferência manual do CA-18 permanece pendente.
+- **Situação:** implementação e testes automatizados concluídos; `CA-18` verificado em execução na revisão de 2026-10-14, incluindo login e curtida do recrutador pela API (ver `revisao.md`, seção 7.2).
 
-### 12. Frontend: terceiro perfil, tipos e acesso à API
+### 12. Frontend: terceiro perfil, tipos e acesso à API [Concluída]
 
 - **O que:** `TipoUsuario` ganha `recrutador`; tipos `Recrutador` (sem CPF e sem data de nascimento) e `NovoRecrutador`; funções novas em `api.ts`; `http.ts` ganha `del`; `sessao.ts` e `navegacao.ts` passam a conhecer o perfil e a página inicial do recrutador; `index.html` ganha a terceira opção de entrada e `login.html` passa a aceitar `?tipo=recrutador` (RN-10, RN-26, RN-28).
 - **Arquivos:** `frontend/ts/modelos.ts`, `frontend/ts/api/http.ts`, `frontend/ts/api/api.ts`, `frontend/ts/sessao.ts`, `frontend/ts/navegacao.ts`, `frontend/ts/formularios.ts`, `frontend/ts/telas/telaAcesso.ts`, `frontend/tsconfig.json`, `frontend/index.html`, `frontend/paginas/login.html`, `frontend/paginas/recrutador.html` (destino provisório até a tela de vagas atribuídas da tarefa 14).
@@ -260,9 +260,9 @@ cd frontend && npx tsc --noEmit
 - **Validação:** `npx tsc --noEmit` e `npm run build` em `frontend/` passaram. O `tsconfig.json` passa a incluir o diretório `ts/`, que contém os fontes reais do frontend, para que a checagem solicitada compile o projeto. O login ponta a ponta não foi exercitado, pois depende da API e de credenciais/banco disponíveis; `CA-20` permanece parcial.
 - **Anonimato:** o tipo `Recrutador` do frontend **não tem** `cpf` nem `dataNascimento`, então esses campos não podem ser renderizados por descuido. A sessão continua guardando só `tipo`, `id`, `nome` e agora `idEmpresa` do próprio usuário.
 - **CHANGELOG:** Adicionado — Recrutador como terceiro perfil de acesso do site, com os tipos e as chamadas de API correspondentes (spec `recrutador`, tarefa 12).
-- **Situação:** concluída; validação manual do login ponta a ponta permanece pendente, e o fluxo completo de tela segue nas tarefas 13 e 14.
+- **Situação:** concluída; validação manual do login ponta a ponta permanece pendente. A `frontend/paginas/recrutador.html` criada aqui era provisória e foi removida na revisão de 2026-10-14: o recrutador passou a entrar direto na `minhasVagas.html`, a tela compartilhada da tarefa 14 (ver `revisao.md`, AP-02).
 
-### 13. Frontend: tela "Recrutadores" da empresa
+### 13. Frontend: tela "Recrutadores" da empresa [Concluída]
 
 - **O que:** página e tela em que a empresa cadastra recrutador, vê a lista com a área e a contagem por área, atribui e remove vagas e exclui recrutador; link no cabeçalho, visível só para a empresa (RN-06, RN-11, RN-13, RN-15, RN-28, P-04).
 - **Arquivos:** `frontend/paginas/recrutadores.html` (nova), `frontend/ts/telas/telaRecrutadores.ts` (novo), `frontend/ts/main.ts`, `frontend/ts/navegacao.ts`, `frontend/ts/dom.ts` (leitura de `textarea`), `frontend/style.css` e cabeçalhos das páginas existentes.
@@ -270,9 +270,9 @@ cd frontend && npx tsc --noEmit
 - **Validação:** `npx tsc --noEmit` e `npm run build` em `frontend/` passaram. A conferência manual do `CA-20` (cadastro, atribuição, remoção, exclusão e erros da API) permanece pendente, pois exige a API e o banco disponíveis.
 - **Anonimato:** a tela mostra nome, área, descrição, e-mail e vagas atribuídas — nunca CPF, data de nascimento ou senha (seção 4.2). Todo texto dinâmico entra no DOM por `textContent` ou `createTextNode`, como manda o `AGENTS.md`.
 - **CHANGELOG:** Adicionado — Tela de recrutadores da empresa, com cadastro, contagem por área, atribuição de vagas e exclusão (spec `recrutador`, tarefa 13).
-- **Situação:** implementação concluída; conferência manual do `CA-20` pendente.
+- **Situação:** implementação concluída; `CA-20` verificado em execução na revisão de 2026-10-14 até a camada de API e de HTML servido (ver `revisao.md`, seção 7.4); a passada visual no navegador segue com o autor.
 
-### 14. Frontend: telas do recrutador
+### 14. Frontend: telas do recrutador [Concluída]
 
 - **O que:** as páginas de lista de vagas e de fila de candidatos passam a aceitar os perfis empresa e recrutador, trocando a origem dos dados (`GET /vagas?idEmpresa=` ou `GET /recrutadores/{id}/vagas`) e o corpo da curtida; o gráfico continua só para a empresa; a fila mantém afinidade decrescente e o corte dos 0% (RN-14, RN-16, RN-17, RN-23, RN-28).
 - **Arquivos:** `frontend/paginas/minhasVagas.html`, `frontend/paginas/vagaCandidatos.html`, `frontend/ts/telas/telaMinhasVagas.ts`, `frontend/ts/telas/telaCandidatosDaVaga.ts`, `frontend/ts/navegacao.ts`.
@@ -282,7 +282,7 @@ cd frontend && npx tsc --noEmit
 - **CHANGELOG:** Adicionado — Telas do recrutador: vagas atribuídas e fila de candidatos com curtir e passar (spec `recrutador`, tarefa 14).
 - **Situação:** concluída.
 
-### 15. Regressão e documentação
+### 15. Regressão e documentação [Concluída]
 
 - **O que:** atualizar `AGENTS.md` (recrutador no domínio, nas regras, na estrutura, nas rotas, no `DELETE` como exceção da convenção, na pendência nova de integridade das rotas de recrutador e na pendência de senha em texto puro, que passa a citar quatro cadastros), a **tabela do Princípio do Anonimato** com as linhas do recrutador (texto submetido ao autor antes de alterar o arquivo), o `README.md` (contrato com as rotas novas e o `DELETE`, e descrição do uso) e a situação da spec e das tarefas deste plano; repassar o checklist da etapa 6 da skill.
 - **Arquivos:** `AGENTS.md`, `README.md`, `CHANGELOG.md`, `docs/specs/recrutador/spec.md`, `docs/specs/recrutador/plano.md`.
@@ -295,11 +295,11 @@ cd frontend && npx tsc --noEmit
   - `CHANGELOG.md` com uma entrada por tarefa, da 1 à 15.
 - **Anonimato:** a tarefa inclui a revisão final das saídas tocadas e o registro das pendências; nenhuma pendência conhecida pode ter sido ampliada além do que a spec autorizou (senha em texto puro e integridade das rotas novas).
 - **CHANGELOG:** Modificado — Documentação da feature do recrutador no `AGENTS.md` e no `README.md`, com a tabela do anonimato atualizada (spec `recrutador`, tarefa 15).
-- **Situação:** concluída.
+- **Situação:** concluída. O `AGENTS.md` e o `README.md` foram sincronizados na revisão de 2026-10-14, que também corrigiu as divergências encontradas entre o plano e o código (migração de `matches.id_recrutador`, página provisória do recrutador, gráfico restrito à empresa e a empresa na listagem do CLI). O checklist está preenchido em `revisao.md`, que na seção 7 registra a conferência em execução de 2026-10-14: `CA-17` a `CA-19` verificados e `CA-20` parcial, faltando só a passada visual no navegador.
 
 ## Pendências
 
 - **DER (`assets/der.png`):** atualizado pelo autor depois da tarefa 1, conforme a seção 8.2 da spec.
 - **Premissas P-02, P-04 e P-08** da spec continuam marcadas como a confirmar; as tarefas 10, 13 e 9, respectivamente, as implementam como estão escritas.
-- **Tabela do Princípio do Anonimato no `AGENTS.md`:** alterada somente na tarefa 15, com o texto aprovado pelo autor antes da edição.
-- **Conferências manuais** (`CA-17` a `CA-20`) dependem do autor: PostgreSQL com o script aplicado, Tomcat 9 com o WAR, CLI no IntelliJ e o site no navegador.
+- **Tabela do Princípio do Anonimato no `AGENTS.md`:** aplicada na revisão de 2026-10-14, com o texto submetido ao autor e aprovado antes da edição, nos termos da seção 4 da spec.
+- **Conferências manuais:** `CA-17`, `CA-18` e `CA-19` foram executados na revisão de 2026-10-14 (`revisao.md`, seção 7) contra PostgreSQL 18, Tomcat 9.0.122 e o CLI com banco real. Do `CA-20` falta só a passada visual no navegador, que depende do autor.

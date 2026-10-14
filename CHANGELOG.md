@@ -88,6 +88,17 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   com o frontend (spec `microservico`, tarefa 7).
 
 ### Modificado
+- Documentação da feature do recrutador no `AGENTS.md` e no `README.md`: domínio, estrutura,
+  regras do recrutador, rotas com `DELETE`, a tabela do Princípio do Anonimato com os três
+  perfis e as pendências de senha em texto puro e de integridade das rotas novas
+  (spec `recrutador`, tarefa 15).
+- Revisão da feature do recrutador registrada em `docs/specs/recrutador/revisao.md`, com o
+  checklist de `CA-01` a `CA-20`, os doze apontamentos e a conferência em execução contra
+  PostgreSQL, Tomcat e o site (spec `recrutador`, tarefa 15).
+- A listagem de recrutadores no CLI passa a mostrar a empresa, como a RN-27 da spec pede
+  (spec `recrutador`, tarefa 15).
+- O recrutador entra direto na página de vagas atribuídas compartilhada com a empresa, e o
+  gráfico de competências volta a ser exclusivo da empresa (spec `recrutador`, tarefa 15).
 - Frontend reorganizado: páginas em `frontend/paginas/`, uma tela por módulo em
   `ts/telas/` e `index.html` reduzido à escolha entre candidato e empresa.
 - Texto vindo do usuário ou do banco passa a entrar no DOM por `textContent`, e
@@ -98,6 +109,9 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   (spec `microservico`, tarefa 8).
 
 ### Corrigido
+- Bloco do recrutador em `database/Linketinder.sql` ganha
+  `ALTER TABLE matches ADD COLUMN IF NOT EXISTS id_recrutador`, para também poder ser
+  aplicado em um banco que já tinha o script antigo carregado (spec `recrutador`, tarefa 15).
 - Transação do microsserviço: falha no rollback não esconde mais o erro
   original da gravação (spec `microservico`, revisão AP-01).
 - Senha do banco só com espaços é recusada na subida do microsserviço, como a
@@ -111,6 +125,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   reservado `example.com` (spec `microservico`, revisão AP-08).
 
 ### Removido
+- `frontend/paginas/recrutador.html`, página provisória da tarefa 12, substituída pela
+  `minhasVagas.html`, que atende empresa e recrutador (spec `recrutador`, tarefa 15).
 - `frontend/ts/dados.ts` e a gravação de cadastros e senhas no `localStorage` do
   navegador: o frontend lê e grava pela API REST.
 - Páginas `candidato.html`, `empresa.html` e `vaga.html` da raiz do `frontend/` e

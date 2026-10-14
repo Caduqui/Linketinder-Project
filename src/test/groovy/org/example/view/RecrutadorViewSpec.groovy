@@ -12,7 +12,7 @@ import java.time.LocalDate
  */
 class RecrutadorViewSpec extends Specification {
 
-    def "lista recrutadores sem senha CPF ou data de nascimento"() {
+    def "lista recrutadores com a empresa e sem senha CPF ou data de nascimento"() {
         given:
         Recrutador recrutador = new Recrutador(
                 "Ana Paula",
@@ -36,6 +36,8 @@ class RecrutadorViewSpec extends Specification {
         saida.contains("Ana Paula")
         saida.contains("TI")
         saida.contains("ana@example.com")
+        saida.contains("Líder de tecnologia")
+        saida.contains("Empresa: 1")
         !saida.contains("senha-secreta")
         !saida.contains("120.120.120-12")
         !saida.contains("1990-07-12")

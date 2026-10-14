@@ -35,7 +35,7 @@ class RecrutadorView {
 
     void exibir(List<Recrutador> recrutadores) {
         recrutadores.each { Recrutador recrutador ->
-            println "\n${recrutador.descrever()}"
+            println "\n${recrutador.descreverParaEmpresa()}"
         }
     }
 

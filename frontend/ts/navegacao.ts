@@ -14,7 +14,7 @@ export const PAGINA_DE_ENTRADA = "index.html";
 export const PAGINA_INICIAL_POR_TIPO: Record<TipoUsuario, string> = {
     candidato: "candidato.html",
     empresa: "minhasVagas.html",
-    recrutador: "recrutador.html"
+    recrutador: "minhasVagas.html"
 };
 
 const PAGINA_POR_BOTAO: { [idBotao: string]: string } = {
