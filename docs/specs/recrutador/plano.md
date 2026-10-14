@@ -118,20 +118,20 @@ cd frontend && npx tsc --noEmit
 - **CHANGELOG:** Adicionado — Modelo `Recrutador` e as áreas de recrutamento, com descrição que nunca mostra senha, CPF nem data de nascimento (spec `recrutador`, tarefa 2).
 - **Situação:** concluída.
 
-### 3. Validação do cadastro
+### 3. Validação do cadastro [Concluída]
 
 - **O que:** criar `ValidadorDeRecrutador` com todas as regras da RN-04 e a área da RN-03: obrigatórios, tamanhos, formato de e-mail, CPF de 11 dígitos (só dígitos ou pontuado), data `AAAA-MM-DD` existente e não futura, senha de 6 a 50, remoção dos espaços das pontas e mensagens que citam o campo e **não** repetem o valor (RN-03, RN-04, RN-09).
 - **Arquivos:** `src/main/groovy/org/example/service/ValidadorDeRecrutador.groovy`; `src/test/groovy/org/example/service/ValidadorDeRecrutadorSpec.groovy`.
 - **Testes (escritos antes):**
   - given cada campo obrigatório ausente ou em branco, when valida, then lança `RegraDeNegocioException` citando aquele campo;
-  - given e-mail sem `@`, sem domínio com ponto ou com espaço; CPF com 10 dígitos, com letras ou com pontuação errada; data `2030-01-01`, `2026-02-30` ou `13/10/2026`; senha com 5 e com 51 caracteres, when valida, then lança a exceção certa em cada caso;
+  - given e-mail sem `@`, sem domínio com ponto, com espaço ou acima de 200 caracteres; CPF com 10 dígitos ou com pontuação fora dos dois formatos aceitos; data `2030-01-01`, `2026-02-30` ou `13/10/2026`; senha com 5 e com 51 caracteres, when valida, then lança a exceção certa em cada caso;
   - given área `Jurídico`, when valida, then a mensagem cita `area` e lista as áreas válidas;
-  - given campos válidos com espaços nas pontas, when valida, then devolve os valores sem os espaços e sem reformatar CPF nem mudar a caixa do e-mail;
+  - given campos válidos com espaços nas pontas, when valida, then remove esses espaços dos campos exceto da senha, que permanece exatamente como enviada; CPF não é reformatado nem a caixa do e-mail é alterada;
   - given qualquer falha, when a mensagem é lida, then ela não contém o valor enviado.
 - **Validação:** `./gradlew test --tests "org.example.service.ValidadorDeRecrutadorSpec"` e a suíte inteira; `CA-02`, `CA-03`, `CA-04`.
 - **Anonimato:** cobre a parte da RN-04 e da RN-09 que vale para mensagens de erro: nenhum valor enviado (e nenhum CPF ou e-mail) aparece no texto.
 - **CHANGELOG:** Adicionado — Validação do cadastro de recrutador, com mensagens que citam o campo e nunca repetem o valor (spec `recrutador`, tarefa 3).
-- **Situação:** pendente.
+- **Situação:** concluída.
 
 ### 4. Repositório e service: cadastro, consulta e exclusão
 

@@ -86,7 +86,7 @@ Nenhuma outra tabela muda. `candidatos`, `empresas`, `vagas`, `competencias`, `c
 
 **RN-03 — Área de uma lista fixa.** A área é um destes valores, definidos em constante no código: `TI`, `RH`, `Marketing`, `Segurança da Informação`, `Vendas`, `Financeiro`, `Outros`. Valor fora da lista é erro, e a mensagem cita o campo e lista as opções válidas. A lista fixa existe para a contagem por área (RN-15) fechar.
 
-**RN-04 — Validação.** Antes de gravar, o service valida. Qualquer falha é erro citando **qual campo** está errado e por quê, **sem repetir o valor enviado**, e nada é gravado. Espaços das pontas são removidos; os valores são gravados como enviados (sem reformatar CPF nem mudar a caixa do e-mail).
+**RN-04 — Validação.** Antes de gravar, o service valida. Qualquer falha é erro citando **qual campo** está errado e por quê, **sem repetir o valor enviado**, e nada é gravado. Espaços das pontas são removidos dos campos, exceto da senha, que é validada e gravada exatamente como enviada; nela, espaços são usados apenas para detectar se o valor está vazio. Os demais valores são gravados sem reformatar CPF nem mudar a caixa do e-mail.
 
 | Campo | Regra |
 | --- | --- |

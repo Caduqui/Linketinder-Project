@@ -20,6 +20,9 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   novo perfil.
 - Modelo do recrutador e enum das áreas de recrutamento, com descrições que
   nunca expõem senha, CPF ou data de nascimento.
+- Validação do cadastro de recrutador: campos obrigatórios, área da lista
+  fixa, e-mail, CPF, data de nascimento e senha com mensagens que citam o
+  campo e não repetem o valor informado.
 - Login na API REST: `POST /login` autentica candidato ou empresa e responde
   `tipo`, `id` e `nome`, sem a senha; credenciais erradas respondem `401` com
   mensagem genérica. Os repositórios e DAOs de candidato e empresa ganharam
