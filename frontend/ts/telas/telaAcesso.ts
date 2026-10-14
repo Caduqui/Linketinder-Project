@@ -13,7 +13,8 @@ export function configurarTelaDeAcesso(): void {
     }
 
     document.querySelectorAll<HTMLElement>("[data-tipo]").forEach(elemento => {
-        elemento.hidden = elemento.dataset.tipo !== tipo;
+        const tiposVisiveis = elemento.dataset.tipo?.split(",") ?? [];
+        elemento.hidden = !tiposVisiveis.includes(tipo);
     });
 
     document.querySelectorAll<HTMLAnchorElement>("a[data-pagina]").forEach(link => {

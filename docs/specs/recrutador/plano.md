@@ -255,12 +255,12 @@ cd frontend && npx tsc --noEmit
 ### 12. Frontend: terceiro perfil, tipos e acesso à API
 
 - **O que:** `TipoUsuario` ganha `recrutador`; tipos `Recrutador` (sem CPF e sem data de nascimento) e `NovoRecrutador`; funções novas em `api.ts`; `http.ts` ganha `del`; `sessao.ts` e `navegacao.ts` passam a conhecer o perfil e a página inicial do recrutador; `index.html` ganha a terceira opção de entrada e `login.html` passa a aceitar `?tipo=recrutador` (RN-10, RN-26, RN-28).
-- **Arquivos:** `frontend/ts/modelos.ts`, `frontend/ts/api/http.ts`, `frontend/ts/api/api.ts`, `frontend/ts/sessao.ts`, `frontend/ts/navegacao.ts`, `frontend/index.html`, `frontend/paginas/login.html`.
+- **Arquivos:** `frontend/ts/modelos.ts`, `frontend/ts/api/http.ts`, `frontend/ts/api/api.ts`, `frontend/ts/sessao.ts`, `frontend/ts/navegacao.ts`, `frontend/ts/formularios.ts`, `frontend/ts/telas/telaAcesso.ts`, `frontend/tsconfig.json`, `frontend/index.html`, `frontend/paginas/login.html`, `frontend/paginas/recrutador.html` (destino provisório até a tela de vagas atribuídas da tarefa 14).
 - **Testes (escritos antes):** o frontend não tem teste unitário e não precisa ter (`AGENTS.md`).
-- **Validação:** `npx tsc --noEmit` em `frontend/` sem erro; manual: entrar como recrutador pela tela inicial e cair na página dele; `CA-20` (parcial).
+- **Validação:** `npx tsc --noEmit` e `npm run build` em `frontend/` passaram. O `tsconfig.json` passa a incluir o diretório `ts/`, que contém os fontes reais do frontend, para que a checagem solicitada compile o projeto. O login ponta a ponta não foi exercitado, pois depende da API e de credenciais/banco disponíveis; `CA-20` permanece parcial.
 - **Anonimato:** o tipo `Recrutador` do frontend **não tem** `cpf` nem `dataNascimento`, então esses campos não podem ser renderizados por descuido. A sessão continua guardando só `tipo`, `id`, `nome` e agora `idEmpresa` do próprio usuário.
 - **CHANGELOG:** Adicionado — Recrutador como terceiro perfil de acesso do site, com os tipos e as chamadas de API correspondentes (spec `recrutador`, tarefa 12).
-- **Situação:** pendente.
+- **Situação:** concluída; validação manual do login ponta a ponta permanece pendente, e o fluxo completo de tela segue nas tarefas 13 e 14.
 
 ### 13. Frontend: tela "Recrutadores" da empresa
 

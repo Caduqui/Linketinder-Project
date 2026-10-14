@@ -41,6 +41,9 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   senha, CPF ou data de nascimento, e o CORS anuncia o método `DELETE`.
 - Login de recrutador pela API REST com resposta restrita a tipo, id, nome e
   id da empresa, e curtida de candidato pelo recrutador para vaga atribuída.
+- Perfil de recrutador no frontend: escolha na entrada, login, sessão tipada com
+  `idEmpresa`, tipos e chamadas da API; a checagem TypeScript inclui os fontes
+  no diretório `ts/`.
 - Login na API REST: `POST /login` autentica candidato ou empresa e responde
   `tipo`, `id` e `nome`, sem a senha; credenciais erradas respondem `401` com
   mensagem genérica. Os repositórios e DAOs de candidato e empresa ganharam

@@ -124,7 +124,7 @@ export function configurarFormularioLogin(): void {
         const tipo = lerTipoDaUrl();
 
         if (!tipo) {
-            mostrarMensagem("Escolha se você é candidato ou empresa antes de entrar.");
+            mostrarMensagem("Escolha se você é candidato, empresa ou recrutador antes de entrar.");
             return;
         }
 

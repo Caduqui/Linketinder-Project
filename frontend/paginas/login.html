@@ -24,6 +24,7 @@
         <div class="cadastro_container">
             <h3 data-tipo="candidato">Entrar como candidato</h3>
             <h3 data-tipo="empresa">Entrar como empresa</h3>
+            <h3 data-tipo="recrutador">Entrar como recrutador</h3>
 
             <form id="form-login">
                 <input type="email" id="login_email" placeholder="Email" autocomplete="email" required>
@@ -31,8 +32,11 @@
                 <button type="submit">Entrar</button>
             </form>
 
-            <p class="alternar-acesso">
+            <p class="alternar-acesso" data-tipo="candidato,empresa">
                 Ainda não tem uma conta? <a data-pagina="cadastro.html" href="cadastro.html">Registre-se</a>
+            </p>
+            <p class="alternar-acesso" data-tipo="recrutador">
+                O cadastro de recrutadores é realizado pela empresa.
             </p>
             <p class="alternar-acesso">
                 <a href="../index.html">Voltar e escolher outro perfil</a>
