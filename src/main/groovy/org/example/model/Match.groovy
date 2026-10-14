@@ -9,11 +9,17 @@ class Match {
     Candidato candidato
     Empresa empresa
     Vaga vaga
+    Integer idRecrutador
 
     Match(Candidato candidato, Empresa empresa, Vaga vaga) {
+        this(candidato, empresa, vaga, null)
+    }
+
+    Match(Candidato candidato, Empresa empresa, Vaga vaga, Integer idRecrutador) {
         this.candidato = candidato
         this.empresa = empresa
         this.vaga = vaga
+        this.idRecrutador = idRecrutador
     }
 
     String descrever() {

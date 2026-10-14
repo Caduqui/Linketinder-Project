@@ -46,4 +46,19 @@ class CurtidaDAO implements CurtidaRepositorio{
             statement.executeUpdate() > 0
         }
     }
+
+    @Override
+    boolean recrutadorCurtirCandidato(Integer idRecrutador, Integer idCandidato, Integer idVaga) {
+        String sql = """
+            INSERT INTO curtida_recrutador_candidato (id_recrutador, id_candidato, id_vaga) VALUES (?,?,?)
+            ON CONFLICT (id_recrutador, id_candidato, id_vaga) DO NOTHING
+        """
+
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setInt(1, idRecrutador)
+            statement.setInt(2, idCandidato)
+            statement.setInt(3, idVaga)
+            statement.executeUpdate() > 0
+        }
+    }
 }

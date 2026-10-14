@@ -168,18 +168,18 @@ cd frontend && npx tsc --noEmit
 
 ### 6. Curtida do recrutador e match
 
-- **O que:** `CurtidaRepositorio`/`CurtidaService` ganham a curtida do recrutador (validando o escopo da tarefa 5); `MatchRepositorio`/`Match` passam a carregar o recrutador que fechou; `CurtidaService.houveMatch` continua com a mesma assinatura e passa a valer para as três origens de curtida (RN-17 a RN-22).
-- **Arquivos:** `repositorio/CurtidaRepositorio.groovy`, `repositorio/MatchRepositorio.groovy`, `service/CurtidaService.groovy`, `model/Match.groovy`; `src/test/groovy/org/example/service/CurtidaServiceSpec.groovy`.
+- **O que:** `CurtidaRepositorio`/`CurtidaDAO`/`CurtidaService` ganham a gravação da curtida do recrutador; `CurtidaService` valida o escopo pela regra da tarefa 5; `Match` passa a carregar quem fechou; `CurtidaService.houveMatch` mantém a assinatura para os três fluxos (RN-17 a RN-22). A consulta que forma match considerando curtidas de recrutadores fica na tarefa 8.
+- **Arquivos:** `repositorio/CurtidaRepositorio.groovy`, `dao/CurtidaDAO.groovy`, `service/CurtidaService.groovy`, `model/Match.groovy`; `src/test/groovy/org/example/service/CurtidaServiceSpec.groovy`, `src/test/groovy/org/example/model/MatchSpec.groovy`.
 - **Testes (escritos antes):**
-  - given recrutador com a vaga atribuída, when curte um candidato, then o repositório grava a curtida e o service consulta o match;
+  - given recrutador com a vaga atribuída, when curte um candidato, then o repositório grava a curtida após validar o escopo; o fluxo chama `houveMatch` para consultar o match;
   - given curtida repetida do mesmo recrutador para o mesmo candidato e vaga, when curte, then o service informa que já havia sido curtido e nada é gravado de novo;
   - given recrutador sem a vaga atribuída, when curte, then lança a exceção e o repositório de curtida **não** é chamado;
   - given o repositório de match devolvendo `true`, when a curtida é registrada, then o service informa que houve match; devolvendo `false`, informa que não houve;
-  - given um `Match` com recrutador e outro sem, when é descrito, then o texto não muda em relação a hoje (RN fora do escopo: `Match.descrever()` não é alterado).
+  - given um `Match` com recrutador e outro sem, when é descrito, then o texto não muda em relação a hoje nem revela o recrutador (RN fora do escopo: `Match.descrever()` não é alterado).
 - **Validação:** `./gradlew test --tests "org.example.service.CurtidaServiceSpec"` e a suíte inteira; `CA-10`, `CA-11`, `CA-12` e `CA-13` na parte de regra (a ordem por curtida mais antiga é SQL e fecha na tarefa 8).
-- **Anonimato:** a curtida não devolve nada do candidato — só se houve match (RN-23). O teste confere que o retorno do service é booleano e que nenhuma mensagem cita dados do candidato.
+- **Anonimato:** a curtida não devolve nada do candidato — só se houve match (RN-23). Os testes conferem que o retorno do service é booleano e que `Match.descrever()` não revela o recrutador.
 - **CHANGELOG:** Adicionado — Curtida do recrutador em um candidato para uma vaga atribuída, valendo como interesse da empresa naquela vaga (spec `recrutador`, tarefa 6).
-- **Situação:** pendente.
+- **Situação:** concluída.
 
 ### 7. Persistência: `RecrutadorDAO`
 
@@ -193,8 +193,8 @@ cd frontend && npx tsc --noEmit
 
 ### 8. Persistência: curtida do recrutador e criação do match
 
-- **O que:** `CurtidaDAO.recrutadorCurtirCandidato` com `INSERT ... ON CONFLICT DO NOTHING`; `MatchDAO.criarMatchSePossivel` reescrito em uma consulta que aceita as duas origens de curtida e grava em `id_recrutador` o recrutador da curtida de recrutador mais antiga (ou nulo), mantendo `ON CONFLICT DO NOTHING` e o retorno "criado agora"; `MatchDAO.listar` passa a trazer o recrutador; `CandidatoDAO.deletar` e `VagaDAO.deletar` passam a apagar as curtidas de recrutador, e `VagaDAO` também os vínculos de vaga (RN-19, RN-20, RN-21, RN-25).
-- **Arquivos:** `dao/CurtidaDAO.groovy`, `dao/MatchDAO.groovy`, `dao/CandidatoDAO.groovy`, `dao/VagaDAO.groovy`.
+- **O que:** `MatchDAO.criarMatchSePossivel` reescrito em uma consulta que aceita as curtidas da empresa e de recrutadores e grava em `id_recrutador` o recrutador da curtida mais antiga (ou nulo), mantendo `ON CONFLICT DO NOTHING` e o retorno "criado agora"; `MatchDAO.listar` passa a trazer o recrutador; `CandidatoDAO.deletar` e `VagaDAO.deletar` passam a apagar as curtidas de recrutador, e `VagaDAO` também os vínculos de vaga (RN-19, RN-20, RN-21, RN-25).
+- **Arquivos:** `dao/MatchDAO.groovy`, `dao/CandidatoDAO.groovy`, `dao/VagaDAO.groovy`.
 - **Testes (escritos antes):** não se aplica (DAO). A regra equivalente já está coberta nas tarefas 6 e 10 com mocks.
 - **Validação:** a suíte inteira continua passando e `CA-17`, manual, repassando os cenários de `CA-11` a `CA-14` no banco: recrutador curte depois do candidato (match com ele); segundo recrutador curte depois (curtida gravada, nenhum match novo); dois recrutadores curtem antes e o candidato curte depois (match com o que curtiu primeiro); empresa curte e o candidato curte (match com `id_recrutador` nulo); match em duas vagas da mesma empresa com recrutadores diferentes; excluir candidato e vaga com curtidas de recrutador.
 - **Anonimato:** nenhuma saída. A consulta do match seleciona ids; `Match.descrever()` não muda nesta feature.
