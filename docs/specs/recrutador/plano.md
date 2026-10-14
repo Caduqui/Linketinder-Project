@@ -191,15 +191,15 @@ cd frontend && npx tsc --noEmit
 - **CHANGELOG:** Adicionado — Persistência do recrutador, das atribuições de vaga e das curtidas dele no PostgreSQL (spec `recrutador`, tarefa 7).
 - **Situação:** implementação concluída; conferência manual do CA-17 pendente em banco PostgreSQL descartável.
 
-### 8. Persistência: curtida do recrutador e criação do match
+### 8. Persistência: curtida do recrutador e criação do match [Concluída]
 
 - **O que:** `MatchDAO.criarMatchSePossivel` reescrito em uma consulta que aceita as curtidas da empresa e de recrutadores e grava em `id_recrutador` o recrutador da curtida mais antiga (ou nulo), mantendo `ON CONFLICT DO NOTHING` e o retorno "criado agora"; `MatchDAO.listar` passa a trazer o recrutador; `CandidatoDAO.deletar` e `VagaDAO.deletar` passam a apagar as curtidas de recrutador, e `VagaDAO` também os vínculos de vaga (RN-19, RN-20, RN-21, RN-25).
 - **Arquivos:** `dao/MatchDAO.groovy`, `dao/CandidatoDAO.groovy`, `dao/VagaDAO.groovy`.
 - **Testes (escritos antes):** não se aplica (DAO). A regra equivalente já está coberta nas tarefas 6 e 10 com mocks.
-- **Validação:** a suíte inteira continua passando e `CA-17`, manual, repassando os cenários de `CA-11` a `CA-14` no banco: recrutador curte depois do candidato (match com ele); segundo recrutador curte depois (curtida gravada, nenhum match novo); dois recrutadores curtem antes e o candidato curte depois (match com o que curtiu primeiro); empresa curte e o candidato curte (match com `id_recrutador` nulo); match em duas vagas da mesma empresa com recrutadores diferentes; excluir candidato e vaga com curtidas de recrutador.
+- **Validação:** a suíte inteira continua passando. A conferência manual de `CA-17` requer o PostgreSQL com o script atualizado e repassar os cenários de `CA-11` a `CA-14`: recrutador curte depois do candidato (match com ele); segundo recrutador curte depois (curtida gravada, nenhum match novo); dois recrutadores curtem antes e o candidato curte depois (match com o que curtiu primeiro); empresa curte e o candidato curte (match com `id_recrutador` nulo); match em duas vagas da mesma empresa com recrutadores diferentes; excluir candidato e vaga com curtidas de recrutador.
 - **Anonimato:** nenhuma saída. A consulta do match seleciona ids; `Match.descrever()` não muda nesta feature.
 - **CHANGELOG:** Adicionado — Match passa a ser criado também pela curtida do recrutador e registra quem o fechou (spec `recrutador`, tarefa 8).
-- **Situação:** pendente.
+- **Situação:** implementação concluída; conferência manual do CA-17 pendente em banco PostgreSQL descartável.
 
 ### 9. CLI: menu de recrutadores e curtida pelo terminal
 

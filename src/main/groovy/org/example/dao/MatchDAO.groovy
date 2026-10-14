@@ -32,23 +32,60 @@ class MatchDAO implements MatchRepositorio{
     @Override
     boolean criarMatchSePossivel(Integer idCandidato, Integer idEmpresa, Integer idVaga) {
         String sql = """
-            INSERT INTO matches (id_candidato,id_empresa,id_vaga)
-                SELECT ccv.id_candidato, cec.id_empresa, ccv.id_vaga
-                FROM curtida_candidato_vaga AS ccv, curtida_empresa_candidato AS cec, vagas AS v
+            WITH curtidas_compativeis AS (
+                SELECT
+                    ccv.id_candidato,
+                    v.id_empresa,
+                    ccv.id_vaga,
+                    (
+                        SELECT crc.id_recrutador
+                        FROM curtida_recrutador_candidato AS crc
+                        JOIN recrutadores AS r ON r.id = crc.id_recrutador
+                        JOIN recrutador_vaga AS rv
+                            ON rv.id_recrutador = crc.id_recrutador
+                            AND rv.id_vaga = crc.id_vaga
+                        WHERE crc.id_candidato = ccv.id_candidato
+                          AND crc.id_vaga = ccv.id_vaga
+                          AND r.id_empresa = v.id_empresa
+                        ORDER BY crc.id
+                        LIMIT 1
+                    ) AS id_recrutador
+                FROM curtida_candidato_vaga AS ccv
+                JOIN vagas AS v ON v.id = ccv.id_vaga
                 WHERE ccv.id_candidato = ?
-                AND cec.id_empresa = ?
-                AND ccv.id_vaga = ?
-                AND ccv.id_candidato = cec.id_candidato
-                AND ccv.id_vaga = cec.id_vaga
-                AND v.id = ccv.id_vaga
-                AND v.id_empresa = cec.id_empresa
-                ON CONFLICT (id_candidato,id_empresa,id_vaga) DO NOTHING
+                  AND ccv.id_vaga = ?
+                  AND v.id_empresa = ?
+                  AND (
+                      EXISTS (
+                          SELECT 1
+                          FROM curtida_empresa_candidato AS cec
+                          WHERE cec.id_empresa = v.id_empresa
+                            AND cec.id_candidato = ccv.id_candidato
+                            AND cec.id_vaga = ccv.id_vaga
+                      )
+                      OR EXISTS (
+                          SELECT 1
+                          FROM curtida_recrutador_candidato AS crc
+                          JOIN recrutadores AS r ON r.id = crc.id_recrutador
+                          JOIN recrutador_vaga AS rv
+                              ON rv.id_recrutador = crc.id_recrutador
+                              AND rv.id_vaga = crc.id_vaga
+                          WHERE crc.id_candidato = ccv.id_candidato
+                            AND crc.id_vaga = ccv.id_vaga
+                            AND r.id_empresa = v.id_empresa
+                      )
+                  )
+            )
+            INSERT INTO matches (id_candidato, id_empresa, id_vaga, id_recrutador)
+            SELECT id_candidato, id_empresa, id_vaga, id_recrutador
+            FROM curtidas_compativeis
+            ON CONFLICT (id_candidato, id_empresa, id_vaga) DO NOTHING
         """
 
         conexaoBanco.executar(sql) { PreparedStatement statement ->
             statement.setInt(1, idCandidato)
-            statement.setInt(2, idEmpresa)
-            statement.setInt(3, idVaga)
+            statement.setInt(2, idVaga)
+            statement.setInt(3, idEmpresa)
             statement.executeUpdate() > 0
         }
     }
@@ -71,10 +108,16 @@ class MatchDAO implements MatchRepositorio{
     }
 
     Match mapearMatch(ResultSet resultado) {
+        Integer idRecrutador = resultado.getInt("id_recrutador")
+        if (resultado.wasNull()) {
+            idRecrutador = null
+        }
+
         return new Match(
                 candidatoRepositorio.buscarPorId(resultado.getInt("id_candidato")),
                 empresaRepositorio.buscarPorId(resultado.getInt("id_empresa")),
-                vagaRepositorio.buscarPorId(resultado.getInt("id_vaga"))
+                vagaRepositorio.buscarPorId(resultado.getInt("id_vaga")),
+                idRecrutador
         )
     }
 }

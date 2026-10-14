@@ -110,7 +110,13 @@ class CandidatoDAO implements CandidatoRepositorio {
 
     @Override
     void deletar(Integer id) {
-        ["candidato_competencia", "curtida_candidato_vaga", "curtida_empresa_candidato", "matches"].each { String tabela ->
+        [
+                "candidato_competencia",
+                "curtida_candidato_vaga",
+                "curtida_empresa_candidato",
+                "curtida_recrutador_candidato",
+                "matches"
+        ].each { String tabela ->
             removerRegistrosDoCandidato(tabela, id)
         }
 

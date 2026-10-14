@@ -67,7 +67,14 @@ class VagaDAO implements VagaRepositorio{
 
     @Override
     void deletar(Integer id) {
-        ["vaga_competencia", "curtida_candidato_vaga", "curtida_empresa_candidato", "matches"].each { String tabela ->
+        [
+                "vaga_competencia",
+                "curtida_candidato_vaga",
+                "curtida_empresa_candidato",
+                "curtida_recrutador_candidato",
+                "matches",
+                "recrutador_vaga"
+        ].each { String tabela ->
             removerRegistrosDaVaga(tabela, id)
         }
 
