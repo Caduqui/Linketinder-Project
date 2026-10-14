@@ -181,15 +181,15 @@ cd frontend && npx tsc --noEmit
 - **CHANGELOG:** Adicionado — Curtida do recrutador em um candidato para uma vaga atribuída, valendo como interesse da empresa naquela vaga (spec `recrutador`, tarefa 6).
 - **Situação:** concluída.
 
-### 7. Persistência: `RecrutadorDAO`
+### 7. Persistência: `RecrutadorDAO` [Concluída]
 
-- **O que:** implementar `RecrutadorRepositorio` em JDBC: inserir (com `RETURNING id`), buscar por id, por e-mail e por CPF, listar por empresa, atualizar, excluir (apagando antes vínculos e curtidas e zerando `matches.id_recrutador`), atribuir vaga (`ON CONFLICT DO NOTHING`), remover vaga (apagando as curtidas daquele recrutador naquela vaga) e listar as vagas atribuídas; `EmpresaDAO` ganha `possuiRecrutadores` (RN-04 a RN-14, RN-24).
-- **Arquivos:** `dao/RecrutadorDAO.groovy` (novo), `dao/EmpresaDAO.groovy`.
+- **O que:** implementar `RecrutadorRepositorio` em JDBC: inserir (com `RETURNING id`), buscar por id, por e-mail e por CPF, listar por empresa sem carregar CPF, data de nascimento e senha, atualizar, excluir (apagando antes vínculos e curtidas e zerando `matches.id_recrutador`), atribuir vaga (`ON CONFLICT DO NOTHING`), remover vaga (apagando as curtidas daquela vaga e zerando o recrutador dos matches dela) e listar as vagas atribuídas. `EmpresaDAO.possuiRecrutadores` foi implementado na tarefa 4 (RN-04 a RN-14, RN-24).
+- **Arquivos:** `dao/RecrutadorDAO.groovy` (novo).
 - **Testes (escritos antes):** não se aplica — DAO depende de banco real e o projeto não tem teste automatizado de DAO (`AGENTS.md`, "Como testar").
-- **Validação:** a suíte inteira continua passando (nada deve quebrar) e `CA-17`, manual com o PostgreSQL: cadastrar recrutador, atribuir vaga, curtir, desatribuir (conferindo no banco que as curtidas daquela vaga saíram e o match ficou com `id_recrutador` nulo), excluir recrutador e tentar excluir a empresa com recrutadores. Todo SQL por `conexaoBanco.executar(sql) { PreparedStatement -> }` com `?`.
-- **Anonimato:** o DAO não imprime nem formata nada; as consultas selecionam apenas as colunas necessárias, e nenhuma consulta nova devolve senha de candidato ou de empresa.
+- **Validação:** a suíte inteira continua passando (nada deve quebrar). A conferência manual CA-17 requer aplicar o script atualizado em um banco PostgreSQL descartável: cadastrar recrutador, atribuir vaga, curtir, desatribuir (conferindo no banco que as curtidas daquela vaga saíram e o match ficou com `id_recrutador` nulo), excluir recrutador e tentar excluir a empresa com recrutadores. Todo SQL usa `conexaoBanco.executar(sql) { PreparedStatement -> }` e parâmetros `?`.
+- **Anonimato:** o DAO não imprime nem formata nada; a lista da empresa seleciona somente `id`, nome, área, descrição, e-mail e `id_empresa`, e não carrega CPF, data de nascimento ou senha.
 - **CHANGELOG:** Adicionado — Persistência do recrutador, das atribuições de vaga e das curtidas dele no PostgreSQL (spec `recrutador`, tarefa 7).
-- **Situação:** pendente.
+- **Situação:** implementação concluída; conferência manual do CA-17 pendente em banco PostgreSQL descartável.
 
 ### 8. Persistência: curtida do recrutador e criação do match
 
