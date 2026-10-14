@@ -23,6 +23,21 @@ Foi implementando a listagem dos candidatos disponíveis na visão da empresa e 
 Foi adicionado um cadastro ao lado, da empresa e do candidato.
 Por fim da listagem dos candidatos disponíveis há um gráfico em barras adicionado usando a biblioteca chart.js que indica o número de candidatos por competências
 
+## Perfil de recrutador
+
+A feature de recrutador adiciona um terceiro tipo de usuário em `frontend/` e na API REST. O recrutador entra com seu próprio login, vê apenas as vagas atribuídas pela empresa e pode curtir candidatos dentro desse escopo, sem ver dados pessoais sensíveis do candidato fora do que a própria empresa teria acesso.
+
+Rotas relevantes:
+
+- `POST /login` com `tipo: "recrutador"` devolve `{tipo, id, nome, idEmpresa}`
+- `POST /recrutadores` cadastra um recrutador da empresa
+- `GET /recrutadores?idEmpresa={id}` lista os recrutadores da empresa
+- `DELETE /recrutadores/{id}` remove o recrutador
+- `GET /recrutadores/{id}/vagas` lista as vagas atribuídas ao recrutador
+- `POST /recrutadores/{id}/vagas` atribui uma vaga
+- `DELETE /recrutadores/{id}/vagas/{idVaga}` desatribui a vaga
+- `POST /curtidas` com `tipo: "recrutador"` registra a curtida para a vaga atribuída
+
 # Banco de dados
 
 O banco de dados foi desenvolvido utilizando PostgreSQL, graças a ele pude observar um problema crítico em meu projeto que não considerava Empresa e Vaga como classes diferentes, ccom o desenvolvimento do banco de dados, pude perceber esse erro e corrigi-lo. O arquivo localizado em `database/Linketinder.sql` contém todas as criações, inserções e busca realizadas desde sua criação.

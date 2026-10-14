@@ -1,26 +1,37 @@
 import {obterUsuarioDoTipo} from "../sessao.ts";
-import {listarCandidatos, listarVagasDaEmpresa} from "../api/api.ts";
+import {listarCandidatos, listarVagasDaEmpresa, listarVagasDoRecrutador} from "../api/api.ts";
 import {criarCard, mostrarAviso} from "../dom.ts";
 import {desenharGraficoDeCompetencias} from "../graficoCompetencias.ts";
 import type {Vaga} from "../modelos.ts";
 
 export async function carregarMinhasVagas(): Promise<void> {
-    const empresa = obterUsuarioDoTipo("empresa");
+    const usuario = obterUsuarioDoTipo("empresa") ?? obterUsuarioDoTipo("recrutador");
     const lista = document.getElementById("lista-minhas-vagas");
 
-    if (!empresa || !lista) {
+    if (!usuario || !lista) {
         return;
     }
 
-    const [vagas, candidatos] = await Promise.all([listarVagasDaEmpresa(empresa.id), listarCandidatos()]);
+    if (usuario.tipo === "empresa") {
+        const [vagas, candidatos] = await Promise.all([listarVagasDaEmpresa(usuario.id), listarCandidatos()]);
+
+        if (vagas.length === 0) {
+            mostrarAviso(lista, "Você ainda não cadastrou nenhuma vaga. Use \"Cadastrar vagas\" no menu.");
+        } else {
+            lista.replaceChildren(...vagas.map(criarItemDeVaga));
+        }
+
+        desenharGraficoDeCompetencias(candidatos);
+        return;
+    }
+
+    const vagas = await listarVagasDoRecrutador(usuario.id);
 
     if (vagas.length === 0) {
-        mostrarAviso(lista, "Você ainda não cadastrou nenhuma vaga. Use \"Cadastrar vagas\" no menu.");
+        mostrarAviso(lista, "Você ainda não tem vagas atribuídas pela empresa.");
     } else {
         lista.replaceChildren(...vagas.map(criarItemDeVaga));
     }
-
-    desenharGraficoDeCompetencias(candidatos);
 }
 
 function criarItemDeVaga(vaga: Vaga): HTMLLIElement {

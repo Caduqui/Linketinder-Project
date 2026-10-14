@@ -280,7 +280,7 @@ cd frontend && npx tsc --noEmit
 - **Validação:** `npx tsc --noEmit` e `CA-20`, manual: como recrutador, ver só as vagas atribuídas, abrir a fila, curtir, ver a mensagem de match; abrir pela URL uma vaga não atribuída e conferir que nada da vaga aparece; e **conferir que o fluxo da empresa continua idêntico** ao de antes da feature.
 - **Anonimato:** o card do recrutador é o mesmo da empresa (`Candidato {id}`, formação, descrição, competências, afinidade), e a vaga não atribuída não exibe dado algum. A resposta da curtida só diz se houve match.
 - **CHANGELOG:** Adicionado — Telas do recrutador: vagas atribuídas e fila de candidatos com curtir e passar (spec `recrutador`, tarefa 14).
-- **Situação:** pendente.
+- **Situação:** concluída.
 
 ### 15. Regressão e documentação
 
@@ -295,7 +295,7 @@ cd frontend && npx tsc --noEmit
   - `CHANGELOG.md` com uma entrada por tarefa, da 1 à 15.
 - **Anonimato:** a tarefa inclui a revisão final das saídas tocadas e o registro das pendências; nenhuma pendência conhecida pode ter sido ampliada além do que a spec autorizou (senha em texto puro e integridade das rotas novas).
 - **CHANGELOG:** Modificado — Documentação da feature do recrutador no `AGENTS.md` e no `README.md`, com a tabela do anonimato atualizada (spec `recrutador`, tarefa 15).
-- **Situação:** pendente.
+- **Situação:** concluída.
 
 ## Pendências
 

@@ -1,6 +1,12 @@
 import {obterUsuarioDoTipo} from "../sessao.ts";
 import {mostrarMensagem} from "../dom.ts";
-import {curtirCandidato, listarCandidatos, listarVagasDaEmpresa} from "../api/api.ts";
+import {
+    curtirCandidato,
+    curtirCandidatoComoRecrutador,
+    listarCandidatos,
+    listarVagasDaEmpresa,
+    listarVagasDoRecrutador
+} from "../api/api.ts";
 import {calcularAfinidade, type ComAfinidade, ordenarPorAfinidade} from "../afinidade.ts";
 import type {Candidato, Vaga} from "../modelos.ts";
 import {iniciarFilaDeCards} from "../filaDeCards.ts";
@@ -11,9 +17,9 @@ function lerIdDaVagaNaUrl(): number | null {
 }
 
 export async function carregarCandidatosDaVaga(): Promise<void> {
-    const empresa = obterUsuarioDoTipo("empresa");
+    const usuario = obterUsuarioDoTipo("empresa") ?? obterUsuarioDoTipo("recrutador");
 
-    if (!empresa) {
+    if (!usuario) {
         return;
     }
 
@@ -24,16 +30,22 @@ export async function carregarCandidatosDaVaga(): Promise<void> {
         return;
     }
 
-    const [vagasDaEmpresa, candidatos] = await Promise.all([listarVagasDaEmpresa(empresa.id), listarCandidatos()]);
-    const vaga = vagasDaEmpresa.find(vagaDaEmpresa => vagaDaEmpresa.id === idVaga);
+    const vagas = usuario.tipo === "empresa"
+        ? await listarVagasDaEmpresa(usuario.id)
+        : await listarVagasDoRecrutador(usuario.id);
+    const vaga = vagas.find(vagaDaEmpresa => vagaDaEmpresa.id === idVaga);
 
     if (!vaga) {
-        mostrarMensagem("Esta vaga não existe ou não pertence à sua empresa.");
+        mostrarMensagem(usuario.tipo === "empresa"
+            ? "Esta vaga não existe ou não pertence à sua empresa."
+            : "Esta vaga não existe ou não está atribuída a você."
+        );
         return;
     }
 
     mostrarResumoDaVaga(vaga);
 
+    const candidatos = await listarCandidatos();
     const candidatosComAfinidade = ordenarPorAfinidade(candidatos,
         candidato => calcularAfinidade(candidato.competencias, vaga.competencias)
     ).filter(({afinidade}) => afinidade > 0);
@@ -49,7 +61,13 @@ export async function carregarCandidatosDaVaga(): Promise<void> {
                 ["Competências", candidato.competencias.join(", ")]
             ]
         }),
-        curtir: async ({item: candidato}) => (await curtirCandidato(empresa.id, candidato.id, vaga.id)).match,
+        curtir: async ({item: candidato}) => {
+            if (usuario.tipo === "empresa") {
+                return (await curtirCandidato(usuario.id, candidato.id, vaga.id)).match;
+            }
+
+            return (await curtirCandidatoComoRecrutador(usuario.id, candidato.id, vaga.id)).match;
+        },
         mensagemDeMatch: ({item: candidato}) => `Deu match com o candidato ${candidato.id} para a vaga "${vaga.nome}"!`,
         mensagemFinal: "Não há mais candidatos com afinidade para esta vaga."
     });

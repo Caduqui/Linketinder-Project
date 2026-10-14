@@ -14,6 +14,11 @@ Depois dele, três features entraram **sem spec** (em `docs/specs/` só existe `
 
 Qualquer mudança nova deve ser refletida aqui, na spec da feature (quando houver) e no `CHANGELOG.md` antes de fechar a tarefa.
 
+A feature de recrutador adiciona um terceiro tipo de usuário: o recrutador é
+colaborador de uma empresa, só atua nas vagas atribuídas a ele e nunca recebe
+dados pessoais restritos de candidatos. A empresa continua sendo a responsável
+por publicar vagas e por atribuir ou remover vagas dos recrutadores.
+
 ## Visão geral
 
 Linketinder é um projeto de LinkedIn com Tinder em que **candidatos curtem vagas**, **empresas curtem candidatos** e, quando a curtida é recíproca, acontece um **match**. Até o match, as partes não sabem quem está do outro lado (ver [Princípio do Anonimato](#princípio-do-anonimato-restrição-obrigatória)).

@@ -9,17 +9,19 @@
 <header class="cabecalho">
     <h1>Área do recrutador</h1>
     <nav>
-        <button id="buttonTelaRecrutadores" data-visivel-para="empresa" hidden>Recrutadores</button>
+        <button id="buttonTelaMinhasVagas" data-visivel-para="recrutador" hidden>Minhas vagas</button>
         <button id="buttonSair" data-visivel-para="logado" hidden>Sair</button>
     </nav>
     <p id="usuario-logado" class="usuario-logado"></p>
 </header>
 
 <main>
-    <section class="escolha-perfil">
-        <h3>Bem-vindo, recrutador</h3>
-        <p>As vagas atribuídas a você aparecerão aqui.</p>
-    </section>
+    <div class="minhas-vagas">
+        <section class="coluna-vagas">
+            <h3>Minhas vagas</h3>
+            <ul id="lista-minhas-vagas"></ul>
+        </section>
+    </div>
 </main>
 
 <script type="module" src="../ts/main.ts"></script>

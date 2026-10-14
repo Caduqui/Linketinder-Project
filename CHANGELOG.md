@@ -46,6 +46,9 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   no diretório `ts/`.
 - Tela de recrutadores da empresa com cadastro, contagem por área, atribuição e
   remoção de vagas e exclusão; os dados pessoais restritos não são exibidos.
+- Telas do recrutador com listagem das vagas atribuídas e fila de candidatos,
+  compartilhando a mesma lógica da área da empresa para curtir e passar sem
+  expor dados fora do escopo do perfil.
 - Login na API REST: `POST /login` autentica candidato ou empresa e responde
   `tipo`, `id` e `nome`, sem a senha; credenciais erradas respondem `401` com
   mensagem genérica. Os repositórios e DAOs de candidato e empresa ganharam
