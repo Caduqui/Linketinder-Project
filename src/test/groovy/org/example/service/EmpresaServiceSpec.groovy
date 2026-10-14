@@ -26,9 +26,24 @@ class EmpresaServiceSpec extends Specification{
         0 * empresaRepositorio.deletar(_)
     }
 
-    def "exclui empresa sem vagas"() {
+    def "não exclui empresa que possui recrutadores"() {
         given:
         empresaRepositorio.possuiVagas(1) >> false
+        empresaRepositorio.possuiRecrutadores(1) >> true
+
+        when:
+        empresaService.excluir(1)
+
+        then:
+        RegraDeNegocioException erro = thrown()
+        erro.message.contains("recrutadores")
+        0 * empresaRepositorio.deletar(_)
+    }
+
+    def "exclui empresa sem vagas nem recrutadores"() {
+        given:
+        empresaRepositorio.possuiVagas(1) >> false
+        empresaRepositorio.possuiRecrutadores(1) >> false
 
         when:
         empresaService.excluir(1)

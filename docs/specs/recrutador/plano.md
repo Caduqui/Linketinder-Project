@@ -133,13 +133,14 @@ cd frontend && npx tsc --noEmit
 - **CHANGELOG:** Adicionado — Validação do cadastro de recrutador, com mensagens que citam o campo e nunca repetem o valor (spec `recrutador`, tarefa 3).
 - **Situação:** concluída.
 
-### 4. Repositório e service: cadastro, consulta e exclusão
+### 4. Repositório e service: cadastro, consulta e exclusão [Concluída]
 
 - **O que:** criar a interface `RecrutadorRepositorio` e o `RecrutadorService` com cadastrar (validando e recusando e-mail ou CPF repetido com a mensagem genérica), listar por empresa, buscar por id, atualizar, excluir e autenticar; e alterar `EmpresaService`/`EmpresaRepositorio` para recusar a exclusão de empresa com recrutadores (RN-01, RN-05, RN-06, RN-07, RN-10, RN-24).
 - **Arquivos:** `repositorio/RecrutadorRepositorio.groovy` (novo), `repositorio/EmpresaRepositorio.groovy`, `service/RecrutadorService.groovy` (novo), `service/EmpresaService.groovy`; `src/test/groovy/org/example/service/RecrutadorServiceSpec.groovy` (nova), `service/EmpresaServiceSpec.groovy` (ampliada).
 - **Testes (escritos antes):**
   - given dados válidos e e-mail e CPF livres, when cadastra, then o repositório recebe o recrutador com a empresa vinculada;
   - given e-mail já usado (e, em outro caso, CPF já usado), when cadastra, then lança a exceção com a mensagem genérica, que não diz qual campo coincidiu, e o repositório **não** é chamado para inserir;
+  - given e-mail e CPF próprios (e, em outro caso, de outro recrutador), when atualiza, then mantém a atualização sem falso conflito e recusa duplicidade real;
   - given e-mail que existe em `candidatos` mas não em `recrutadores`, when cadastra, then o cadastro é aceito (RN-05);
   - given e-mail e senha corretos, when autentica, then devolve o recrutador; com senha errada ou e-mail inexistente, devolve nulo;
   - given uma empresa com recrutadores, when a empresa é excluída, then lança `RegraDeNegocioException` e o repositório não deleta;
@@ -147,7 +148,7 @@ cd frontend && npx tsc --noEmit
 - **Validação:** `./gradlew test --tests "org.example.service.RecrutadorServiceSpec"`, idem para `EmpresaServiceSpec`, e a suíte inteira; `CA-01`, `CA-05`, `CA-06` (parte do service), `CA-15` (parte da empresa).
 - **Anonimato:** nenhuma saída nova; o service devolve objetos de modelo, e quem formata é a `view` ou o `Json`. O teste de autenticação confere que o retorno não é usado para expor a senha.
 - **CHANGELOG:** Adicionado — Cadastro, consulta e autenticação de recrutador nas regras de negócio, e empresa com recrutadores não pode mais ser excluída (spec `recrutador`, tarefa 4).
-- **Situação:** pendente.
+- **Situação:** concluída.
 
 ### 5. Service: atribuição de vagas e escopo de atuação
 

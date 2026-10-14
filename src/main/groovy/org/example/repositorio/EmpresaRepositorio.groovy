@@ -15,4 +15,5 @@ interface EmpresaRepositorio {
     Empresa buscarPorEmail(String email)
     List<Empresa> listar()
     boolean possuiVagas(Integer idEmpresa)
+    boolean possuiRecrutadores(Integer idEmpresa)
 }

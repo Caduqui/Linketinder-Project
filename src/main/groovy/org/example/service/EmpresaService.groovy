@@ -48,6 +48,10 @@ class EmpresaService {
             throw new RegraDeNegocioException("Não é possível excluir a empresa porque ela possui vagas cadastradas")
         }
 
+        if (empresaRepositorio.possuiRecrutadores(id)) {
+            throw new RegraDeNegocioException("Não é possível excluir a empresa porque ela possui recrutadores cadastrados")
+        }
+
         empresaRepositorio.deletar(id)
     }
 }
