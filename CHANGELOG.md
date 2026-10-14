@@ -44,6 +44,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Perfil de recrutador no frontend: escolha na entrada, login, sessão tipada com
   `idEmpresa`, tipos e chamadas da API; a checagem TypeScript inclui os fontes
   no diretório `ts/`.
+- Tela de recrutadores da empresa com cadastro, contagem por área, atribuição e
+  remoção de vagas e exclusão; os dados pessoais restritos não são exibidos.
 - Login na API REST: `POST /login` autentica candidato ou empresa e responde
   `tipo`, `id` e `nome`, sem a senha; credenciais erradas respondem `401` com
   mensagem genérica. Os repositórios e DAOs de candidato e empresa ganharam

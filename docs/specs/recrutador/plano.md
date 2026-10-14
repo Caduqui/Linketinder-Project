@@ -265,12 +265,12 @@ cd frontend && npx tsc --noEmit
 ### 13. Frontend: tela "Recrutadores" da empresa
 
 - **O que:** página e tela em que a empresa cadastra recrutador, vê a lista com a área e a contagem por área, atribui e remove vagas e exclui recrutador; link no cabeçalho, visível só para a empresa (RN-06, RN-11, RN-13, RN-15, RN-28, P-04).
-- **Arquivos:** `frontend/paginas/recrutadores.html` (nova), `frontend/ts/telas/telaRecrutadores.ts` (novo), `frontend/ts/main.ts`, `frontend/ts/navegacao.ts`, `frontend/style.css`, e o cabeçalho das páginas existentes.
+- **Arquivos:** `frontend/paginas/recrutadores.html` (nova), `frontend/ts/telas/telaRecrutadores.ts` (novo), `frontend/ts/main.ts`, `frontend/ts/navegacao.ts`, `frontend/ts/dom.ts` (leitura de `textarea`), `frontend/style.css` e cabeçalhos das páginas existentes.
 - **Testes (escritos antes):** não se aplica (frontend).
-- **Validação:** `npx tsc --noEmit` e `CA-20`, manual: cadastrar um recrutador, ver a contagem por área, atribuir e remover vaga, excluir recrutador e conferir as mensagens de erro vindas da API.
-- **Anonimato:** a tela mostra nome, área, descrição, e-mail e vagas atribuídas — nunca CPF, data de nascimento ou senha (seção 4.2). Todo texto entra por `textContent`, como manda o `AGENTS.md`.
+- **Validação:** `npx tsc --noEmit` e `npm run build` em `frontend/` passaram. A conferência manual do `CA-20` (cadastro, atribuição, remoção, exclusão e erros da API) permanece pendente, pois exige a API e o banco disponíveis.
+- **Anonimato:** a tela mostra nome, área, descrição, e-mail e vagas atribuídas — nunca CPF, data de nascimento ou senha (seção 4.2). Todo texto dinâmico entra no DOM por `textContent` ou `createTextNode`, como manda o `AGENTS.md`.
 - **CHANGELOG:** Adicionado — Tela de recrutadores da empresa, com cadastro, contagem por área, atribuição de vagas e exclusão (spec `recrutador`, tarefa 13).
-- **Situação:** pendente.
+- **Situação:** implementação concluída; conferência manual do `CA-20` pendente.
 
 ### 14. Frontend: telas do recrutador
 

@@ -19,7 +19,8 @@ export const PAGINA_INICIAL_POR_TIPO: Record<TipoUsuario, string> = {
 const PAGINA_POR_BOTAO: { [idBotao: string]: string } = {
     buttonTelaCandidato: "candidato.html",
     buttonTelaMinhasVagas: "minhasVagas.html",
-    buttonTelaVaga: "vaga.html"
+    buttonTelaVaga: "vaga.html",
+    buttonTelaRecrutadores: "recrutadores.html"
 };
 
 export function lerTipoDaUrl(): TipoUsuario | null {

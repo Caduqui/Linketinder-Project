@@ -269,6 +269,96 @@ nav:empty, nav:not(:has(button:not([hidden]))) {
   gap: 2.5rem;
 }
 
+.painel-recrutadores {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 70rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.secao-recrutadores {
+  padding: 1rem;
+  border-radius: 10px;
+  background-color: #F0FDFA;
+}
+
+.secao-recrutadores h2 {
+  width: auto;
+  margin: 0 0 1rem 0;
+  padding: 0.5rem;
+  color: #FFFFFF;
+}
+
+#form-recrutador {
+  max-width: 35rem;
+  margin: 0 auto;
+}
+
+#form-recrutador input,
+#form-recrutador select,
+#form-recrutador textarea {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+#form-recrutador select {
+  margin: 0;
+}
+
+.contagem-areas,
+.lista-recrutadores,
+.vagas-recrutador {
+  width: 100%;
+  margin: 0;
+}
+
+.contagem-areas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.5rem;
+}
+
+.lista-recrutadores {
+  display: grid;
+  gap: 1rem;
+}
+
+.card-recrutador {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.card-recrutador h3,
+.card-recrutador h4,
+.card-recrutador p {
+  margin: 0;
+}
+
+.vagas-recrutador {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.vaga-atribuida,
+.atribuicao-vaga {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.atribuicao-vaga select {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.botao-excluir-recrutador {
+  align-self: flex-start;
+}
+
 .botao-acao {
   width: 4rem;
   height: 4rem;
