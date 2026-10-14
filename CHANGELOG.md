@@ -14,6 +14,10 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Sincronização da documentação do microsserviço com o estado atual do código e do repositório, incluindo `AGENTS.md`, `docs/specs/microservico/spec.md` e `docs/specs/microservico/plano.md` (revisão de 2026-10-13).
 
 ### Adicionado
+- Estrutura do recrutador no banco: tabelas `recrutadores`,
+  `recrutador_vaga` e `curtida_recrutador_candidato`, mais a coluna
+  `matches.id_recrutador` e carga fictícia para as atribuições e curtidas do
+  novo perfil.
 - Login na API REST: `POST /login` autentica candidato ou empresa e responde
   `tipo`, `id` e `nome`, sem a senha; credenciais erradas respondem `401` com
   mensagem genérica. Os repositórios e DAOs de candidato e empresa ganharam

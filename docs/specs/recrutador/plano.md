@@ -94,7 +94,7 @@ cd frontend && npx tsc --noEmit
 
 ## Tarefas
 
-### 1. Banco: tabelas, coluna e carga fictícia
+### 1. Banco: tabelas, coluna e carga fictícia [Concluída]
 
 - **O que:** acrescentar ao fim de `database/Linketinder.sql`, em bloco próprio, as tabelas `recrutadores`, `recrutador_vaga` e `curtida_recrutador_candidato`, a coluna `matches.id_recrutador`, as FKs e os `UNIQUE` da seção 2 da spec (inclusive a FK composta `(id_recrutador, id_vaga) → recrutador_vaga`), mais carga fictícia: alguns recrutadores de empresas da carga existente, atribuições e curtidas (RN-01, RN-09, RN-11, RN-17, RN-18, modelo de dados da spec).
 - **Arquivos:** `database/Linketinder.sql`.
@@ -102,7 +102,7 @@ cd frontend && npx tsc --noEmit
 - **Validação:** `CA-17`, manual: aplicar o bloco em um banco com o script antigo já carregado e conferir que a curtida duplicada é recusada pelo `UNIQUE`, que a curtida em vaga não atribuída é recusada pela FK composta e que `matches.id_recrutador` aceita nulo. Conferir também que nenhuma tabela existente foi alterada além da coluna em `matches`.
 - **Anonimato:** a carga usa **dados fictícios** (nomes inventados, e-mails em `example.com`, CPFs com dígito verificador inválido), como manda o `AGENTS.md`. Nenhuma senha real. O script não exibe nada: é carga.
 - **CHANGELOG:** Adicionado — Tabelas `recrutadores`, `recrutador_vaga` e `curtida_recrutador_candidato`, e o recrutador que fechou o match em `matches` (spec `recrutador`, tarefa 1).
-- **Situação:** pendente.
+- **Situação:** implementação concluída; conferência manual do CA-17 pendente em banco PostgreSQL descartável.
 - **Para o autor:** o DER (`assets/der.png`) precisa ganhar a entidade Recrutador (1:N com Empresa), a N:N Recrutador–Vaga, a N:N Recrutador–Candidato por vaga e a ligação opcional Match–Recrutador.
 
 ### 2. Model: `Recrutador` e `AreaDeRecrutamento`

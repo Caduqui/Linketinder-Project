@@ -344,6 +344,7 @@ CREATE TABLE "matches" (
                            "id_candidato" int NOT NULL,
                            "id_empresa" int NOT NULL,
                            "id_vaga" int NOT NULL,
+                           "id_recrutador" int NULL,
                            UNIQUE ("id_candidato", "id_empresa", "id_vaga"));
 
 ALTER TABLE "matches" ADD FOREIGN KEY ("id_candidato") REFERENCES "candidatos" ("id");
@@ -393,3 +394,75 @@ WHERE c.id = m.id_candidato
   AND e.id = m.id_empresa
   AND v.id = m.id_vaga;
 
+-- Recrutadores
+
+CREATE TABLE "recrutadores" (
+                               "id" serial PRIMARY KEY,
+                               "nome" varchar(50) NOT NULL,
+                               "area" varchar(50) NOT NULL,
+                               "descricao" varchar(500) NOT NULL,
+                               "email" varchar(200) UNIQUE NOT NULL,
+                               "cpf" varchar(15) UNIQUE NOT NULL,
+                               "data_nascimento" date NOT NULL,
+                               "senha" varchar(50) NOT NULL,
+                               "id_empresa" int NOT NULL
+);
+
+ALTER TABLE "recrutadores" ADD FOREIGN KEY ("id_empresa") REFERENCES "empresas" ("id");
+
+CREATE TABLE "recrutador_vaga" (
+                                   "id" serial PRIMARY KEY,
+                                   "id_recrutador" int NOT NULL,
+                                   "id_vaga" int NOT NULL,
+                                   UNIQUE ("id_recrutador", "id_vaga")
+);
+
+ALTER TABLE "recrutador_vaga" ADD FOREIGN KEY ("id_recrutador") REFERENCES "recrutadores" ("id");
+ALTER TABLE "recrutador_vaga" ADD FOREIGN KEY ("id_vaga") REFERENCES "vagas" ("id");
+
+CREATE TABLE "curtida_recrutador_candidato" (
+                                                "id" serial PRIMARY KEY,
+                                                "id_recrutador" int NOT NULL,
+                                                "id_candidato" int NOT NULL,
+                                                "id_vaga" int NOT NULL,
+                                                UNIQUE ("id_recrutador", "id_candidato", "id_vaga")
+);
+
+ALTER TABLE "curtida_recrutador_candidato" ADD FOREIGN KEY ("id_recrutador") REFERENCES "recrutadores" ("id");
+ALTER TABLE "curtida_recrutador_candidato" ADD FOREIGN KEY ("id_candidato") REFERENCES "candidatos" ("id");
+ALTER TABLE "curtida_recrutador_candidato" ADD FOREIGN KEY ("id_vaga") REFERENCES "vagas" ("id");
+ALTER TABLE "curtida_recrutador_candidato"
+    ADD CONSTRAINT "fk_recrutador_vaga"
+        FOREIGN KEY ("id_recrutador", "id_vaga")
+            REFERENCES "recrutador_vaga" ("id_recrutador", "id_vaga");
+
+ALTER TABLE "matches" ADD CONSTRAINT "fk_matches_recrutador"
+    FOREIGN KEY ("id_recrutador") REFERENCES "recrutadores" ("id");
+
+INSERT INTO recrutadores (nome, area, descricao, email, cpf, data_nascimento, senha, id_empresa)
+VALUES
+    ('Ana Paula', 'TI', 'Líder de tecnologia da empresa.', 'ana.paula@example.com', '120.120.120-12', '1990-07-12', '123456', 1),
+    ('Bruno Costa', 'TI', 'Especialista em recrutamento de desenvolvedores.', 'bruno.costa@example.com', '121.121.121-12', '1988-09-19', '123456', 1),
+    ('Carla Mendes', 'Marketing', 'Responsável pela atração de talentos.', 'carla.mendes@example.com', '122.122.122-12', '1993-03-04', '123456', 2),
+    ('Diana Souza', 'RH', 'Coordena processos de contratação.', 'diana.souza@example.com', '123.123.123-12', '1991-11-28', '123456', 5);
+
+INSERT INTO recrutador_vaga (id_recrutador, id_vaga)
+VALUES
+    (1, 1),
+    (2, 1),
+    (3, 2),
+    (4, 5);
+
+INSERT INTO curtida_recrutador_candidato (id_recrutador, id_candidato, id_vaga)
+VALUES
+    (1, 1, 1),
+    (2, 3, 1),
+    (4, 3, 5);
+
+UPDATE matches
+SET id_recrutador = 1
+WHERE id_candidato = 1 AND id_empresa = 1 AND id_vaga = 1;
+
+UPDATE matches
+SET id_recrutador = 4
+WHERE id_candidato = 3 AND id_empresa = 5 AND id_vaga = 5;
