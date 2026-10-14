@@ -6,20 +6,28 @@ Guia para agentes de IA que trabalham neste repositório. Leia inteiro antes de 
 
 Sempre que houver dúvida, ambiguidade ou uma decisão que não esteja escrita aqui (regra de negócio, mudança de schema, nova dependência, contrato da API, o que fazer com uma pendência listada abaixo), **pare e pergunte ao autor antes de decidir sozinho**. Explique o que encontrou e quais são as opções. Não "resolva" silenciosamente uma inconsistência entre este documento e o código.
 
+## Status atual do repositório (2026-10-13)
+
+O microsserviço de cadastro está implementado e validado em `microservico-cadastro/` e continua sendo a referência de arquitetura do cadastro no repositório.
+
+Depois dele, três features entraram **sem spec** (em `docs/specs/` só existe `microservico`): o login, as rotas de competências e de curtidas e o `CorsFilter` na API REST; a troca do `localStorage` do frontend pelo consumo da API REST; e a fila de cards com curtir/passar junto com a área da empresa. Este documento já descreve o estado posterior às três, e o `CHANGELOG.md` as registra. O frontend deixou de ser uma parte isolada: hoje ele é o cliente da API REST.
+
+Qualquer mudança nova deve ser refletida aqui, na spec da feature (quando houver) e no `CHANGELOG.md` antes de fechar a tarefa.
+
 ## Visão geral
 
 Linketinder é um projeto de LinkedIn com Tinder em que **candidatos curtem vagas**, **empresas curtem candidatos** e, quando a curtida é recíproca, acontece um **match**. Até o match, as partes não sabem quem está do outro lado (ver [Princípio do Anonimato](#princípio-do-anonimato-restrição-obrigatória)).
 
-O repositório tem quatro partes. O CLI, a API REST e o microsserviço gravam no mesmo banco, mas não se chamam entre si, e o frontend não fala com nenhum deles:
+O repositório tem quatro partes. O CLI, a API REST e o microsserviço gravam no mesmo banco e não se chamam entre si; o frontend consome a API REST pelo navegador e não fala com o CLI nem com o microsserviço:
 
 | Parte | O que é | Persistência |
 |---|---|---|
 | Backend CLI (`src/main/groovy`, `Main.groovy`) | Menus no terminal com CRUD, curtidas e matches | PostgreSQL |
-| API REST (`org.example.api`) | Servlets para candidatos, empresas e vagas (só `GET` e `POST`) | PostgreSQL |
+| API REST (`org.example.api`) | Servlets para candidatos, empresas, vagas, competências, login e curtidas (só `GET` e `POST`) | PostgreSQL |
 | Microsserviço de cadastro (`microservico-cadastro/`) | Aplicação independente e sem framework, que só cadastra: candidato, empresa e competências do candidato | PostgreSQL |
-| Frontend (`frontend/`) | Páginas estáticas em TypeScript | `localStorage` do navegador (não chama a API nem o microsserviço) |
+| Frontend (`frontend/`) | Páginas estáticas em TypeScript que consomem a API REST com `fetch` | Nenhuma própria: lê e grava pela API. O `sessionStorage` guarda apenas quem está logado (`tipo`, `id` e `nome`) |
 
-Curtida e match existem apenas no CLI e no banco; a API, o microsserviço e o frontend não têm esses fluxos.
+Curtida e match existem no CLI, na API REST e no banco; o microsserviço não tem esses fluxos.
 
 O microsserviço é um programa à parte: tem build Gradle e código próprios (pacote `org.linketinder.cadastro`) e **não importa nada de `org.example`**. Código não é compartilhado entre ele e o projeto principal.
 
@@ -27,10 +35,10 @@ O microsserviço é um programa à parte: tem build Gradle e código próprios (
 
 - **Backend:** Groovy 5.0.8 sobre JDK 25, Gradle 9.6 (wrapper), plugins `groovy`, `application`, `war`.
 - **Banco:** PostgreSQL via JDBC puro (`org.postgresql:postgresql:42.7.7`), sem ORM e sem ferramenta de migração.
-- **API:** `javax.servlet-api` 4.0.1 (`compileOnly`), implantada como WAR no **Tomcat 9** (não usar `jakarta.*` / Tomcat 10+); JSON com `groovy-json`.
+- **API:** `javax.servlet-api` 4.0.1 (`compileOnly`), implantada como WAR no **Tomcat 9** (não usar `jakarta.*` / Tomcat 10+); JSON com `groovy-json`; CORS por `CorsFilter` (`@WebFilter`), para o navegador poder chamar de outra porta.
 - **Microsserviço de cadastro:** mesmas versões de Groovy, driver e Spock, em build Gradle separado; HTTP pelo `com.sun.net.httpserver.HttpServer` do JDK, sem framework, Tomcat ou servlet.
 - **Testes:** Spock 2.4 (`groovy-5.0`) em JUnit Platform.
-- **Frontend:** TypeScript ~6.0 + Vite 8, Chart.js (carregado por CDN em `empresa.html`), HTML/CSS sem framework.
+- **Frontend:** TypeScript ~6.0 + Vite 8, HTML/CSS sem framework, `fetch` para falar com a API. Chart.js 4.5 está no `package.json`, mas o gráfico usa a cópia carregada por CDN em `paginas/minhasVagas.html` (`declare const Chart` em `graficoCompetencias.ts`).
 
 ## Estrutura
 
@@ -48,7 +56,8 @@ src/main/groovy/org/example/
   service/           regras de negócio + RegraDeNegocioException
   controller/        orquestram view <-> service; MenuController navega os menus
   view/              única camada que lê teclado e imprime (EntradaDados, *View)
-  api/               ApiServlet (base), *Servlet, Json (conversão), Dependencias, EncerradorDeConexao
+  api/               ApiServlet (base), *Servlet (candidato, empresa, vaga, competencia, login, curtida),
+                     CorsFilter, Json (conversão), Dependencias, EncerradorDeConexao
 src/test/groovy/org/example/              specs Spock espelhando os pacotes de main
 microservico-cadastro/                    aplicação independente (build, wrapper e .gitignore próprios)
   src/main/groovy/org/linketinder/cadastro/
@@ -64,8 +73,22 @@ docs/specs/<feature>/                     spec.md, plano.md e revisao.md de cada
 skills/                                   skills do fluxo: feature-com-spec e revisao-com-spec
 CHANGELOG.md                              mudanças por tarefa, no formato Keep a Changelog
 frontend/
-  index.html, candidato.html, empresa.html, vaga.html, style.css
-  ts/  main.ts, modelos.ts, dados.ts, formularios.ts, telaCandidato.ts, telaEmpresa.ts, telaVaga.ts
+  index.html         escolha do perfil: entrar como candidato ou como empresa
+  style.css, assets/
+  paginas/           login, cadastro, competencias, candidato, vaga, minhasVagas, vagaCandidatos
+  ts/
+    main.ts          único ponto de entrada das páginas; liga as telas presentes no HTML
+    modelos.ts       tipos do domínio e dos corpos da API
+    dom.ts           leitura de campos, mensagens, cards e envio de formulário
+    sessao.ts        quem está logado, no sessionStorage
+    navegacao.ts     caminhos entre páginas, cabeçalho e proteção por perfil
+    formularios.ts   cadastro de candidato, empresa e vaga + login
+    filaDeCards.ts   fila de um card por vez, com curtir e passar
+    afinidade.ts     índice de afinidade e ordenação por afinidade
+    graficoCompetencias.ts  gráfico de competências dos candidatos (Chart.js)
+    api/             http.ts (fetch, URL base e ErroApi) e api.ts (uma função por endpoint)
+    telas/           telaAcesso, telaCandidato, telaCompetencia, telaMinhasVagas,
+                     telaCandidatosDaVaga, telaVaga
 ```
 
 Fluxo das camadas: `view` ⇄ `controller` → `service` → `repositorio` (interface) ← `dao` → `Banco`.
@@ -85,22 +108,38 @@ Detalhes que costumam confundir:
 
 - Empresa e Vaga são entidades diferentes: quem publica é a empresa, quem é curtida pelo candidato é a **vaga**.
 - Em `Candidato` e `Vaga` as competências são `List<String>` com os **nomes**; os DAOs resolvem para `competencias` com `buscarOuInserir`, criando a competência se ela ainda não existir.
-- No backend `Vaga` guarda o objeto `Empresa`; no frontend guarda apenas `idEmpresa`.
+- No backend `Vaga` guarda o objeto `Empresa`; no frontend o tipo `Vaga` recebe `empresa: {id, nome}`, como a API devolve, e só o cadastro (`NovaVaga`) envia `idEmpresa`.
 
 ## Regras de negócio centrais
 
 ### Curtida
 
 - **Candidato → Vaga:** grava `(id_candidato, id_vaga)` em `curtida_candidato_vaga`.
-- **Empresa → Candidato, para uma vaga específica dela:** grava `(id_empresa, id_candidato, id_vaga)` em `curtida_empresa_candidato`. A empresa só pode curtir usando uma vaga própria: o CLI valida com `VagaService.buscarVagaDaEmpresa` e o banco garante com a FK composta `(id_empresa, id_vaga) → vagas(id_empresa, id)`.
+- **Empresa → Candidato, para uma vaga específica dela:** grava `(id_empresa, id_candidato, id_vaga)` em `curtida_empresa_candidato`. A empresa só pode curtir usando uma vaga própria: o CLI valida com `VagaService.buscarVagaDaEmpresa`, o `CurtidaServlet` compara o `idEmpresa` enviado com `vaga.empresa.id` (diferente → `400`), e o banco garante com a FK composta `(id_empresa, id_vaga) → vagas(id_empresa, id)`.
 - Curtidas são únicas. Repetir uma curtida não gera erro: o `INSERT ... ON CONFLICT DO NOTHING` não insere nada, o repositório devolve `false` e a view avisa que já foi curtido.
 - Não existe "descurtir".
+- **Pela API:** `POST /curtidas` atende os dois sentidos conforme o campo `tipo` (`candidato` ou `empresa`) e responde `201` com `{"match": true|false}`. Candidato ou vaga inexistente é `404`; `tipo` fora dos dois valores é `400`. Curtida repetida não é erro: a resposta é `201` com `match: false`, sem avisar que já havia sido curtido — a API, ao contrário da view, não distingue os dois casos.
 
 ### Match
 
 - O match acontece quando, **para a mesma vaga**, o candidato curtiu a vaga **e** a empresa dona da vaga curtiu esse candidato. A ordem das curtidas não importa.
-- Após cada curtida nova, `CurtidaController.informarMatch` chama `CurtidaService.houveMatch`, que delega a `MatchRepositorio.criarMatchSePossivel`: um `INSERT ... SELECT` em `matches` que só insere se as duas curtidas existirem e a vaga for da empresa. Devolve `true` apenas quando o match foi criado naquele momento.
+- Após cada curtida nova, `CurtidaController.informarMatch` (CLI) e o `CurtidaServlet` (API) chamam `CurtidaService.houveMatch`, que delega a `MatchRepositorio.criarMatchSePossivel`: um `INSERT ... SELECT` em `matches` que só insere se as duas curtidas existirem e a vaga for da empresa. Devolve `true` apenas quando o match foi criado naquele momento.
 - O match é do trio candidato–empresa–vaga: o mesmo candidato pode ter vários matches com a mesma empresa, um por vaga.
+- Quem acabou de curtir fica sabendo do match na hora: o CLI imprime a mensagem e a API devolve `match: true`, que o frontend mostra acima da fila de cards. O CLI também lista os matches já existentes (`CurtidaController.listarMatches`); a API e o frontend não têm rota nem tela para isso.
+
+### Login e sessão (API REST e frontend)
+
+- `POST /login` recebe `tipo` (`candidato` ou `empresa`), `email` e `senha`. `CandidatoService.autenticar` e `EmpresaService.autenticar` buscam pelo e-mail (`buscarPorEmail`, busca exata) e comparam a senha em texto puro.
+- Credenciais corretas respondem `200` com `{tipo, id, nome}` — nada mais, nunca a senha. E-mail ou senha errados respondem `401` com a mensagem genérica `E-mail ou senha inválidos`, que não diz qual dos dois falhou; `tipo` fora dos dois valores é `400`. `GET /login` é `405` com `Allow: POST`.
+- **Não há sessão no servidor:** nem token, nem cookie. A API não sabe quem está chamando e nenhuma outra rota exige login. Quem está logado é só o `{tipo, id, nome}` que o frontend guarda no `sessionStorage` (`sessao.ts`) e reenvia como `idCandidato`/`idEmpresa`; qualquer cliente pode enviar outro `id`.
+- No frontend, cada página declara no `<body>` quem pode vê-la (`data-perfil-exigido="candidato|empresa"` ou `data-somente-deslogado`) e `navegacao.ts` redireciona quem não se encaixa. É conveniência de navegação, não segurança.
+- Depois do cadastro o frontend já abre a sessão com os dados devolvidos pela API e segue para o próximo passo: candidato vai para as competências, empresa vai para o cadastro de vaga.
+
+### Competências pela API REST
+
+- `GET /competencias` lista as competências já cadastradas (`id` e `nome`), usada na tela em que o candidato marca as dele.
+- `POST /competencias` recebe `idCandidato` e `competencias` e **soma** as novas às que o candidato já tem, descartando repetidas sem diferenciar maiúsculas (`CandidatoService.adicionarCompetencias`). Lista vazia (ou só com nomes em branco) é `400`; candidato inexistente é `404`; sucesso é `201`.
+- A resolução no banco continua exata (`CompetenciaDAO.buscarOuInserir`), então por esta rota `java` e `Java` criam duas linhas em `competencias` — diferente do microsserviço, que reaproveita em qualquer caixa. O frontend contorna isso trocando o nome digitado pelo já cadastrado (`usarNomeJaCadastrado`), mas a API aceita qualquer caixa.
 
 ### Outras regras
 
@@ -108,15 +147,16 @@ Detalhes que costumam confundir:
 - Competência vinculada a candidato ou vaga não pode ser excluída; nome de competência não pode ser vazio nem duplicado (`CompetenciaService`).
 - Excluir um candidato ou uma vaga apaga antes suas competências, curtidas e matches (feito no DAO).
 - Senha tem no mínimo 6 caracteres; data de nascimento no formato `AAAA-MM-DD`; estado é a sigla com 2 letras.
-- Índice de afinidade (só no frontend, `calcularAfinidade`): competências em comum ÷ total de competências da vaga, em porcentagem arredondada, ignorando maiúsculas/minúsculas.
+- Índice de afinidade (só no frontend, `calcularAfinidade` em `ts/afinidade.ts`): competências em comum ÷ total de competências da vaga, em porcentagem arredondada, ignorando maiúsculas/minúsculas e espaços das pontas; vaga sem competências dá 0%.
+- As filas de cards vêm em ordem decrescente de afinidade, com empate desfeito por sorteio (`ordenarPorAfinidade` embaralha antes de ordenar). Na fila de candidatos de uma vaga, quem tem 0% de afinidade não aparece; na fila de vagas do candidato, todas as vagas aparecem.
 - Regra violada → o service lança `RegraDeNegocioException`; o `MenuController` exibe a mensagem no CLI e o `ApiServlet` responde `400`.
 
 ### Cadastro pelo microsserviço
 
-O microsserviço tem regras próprias, mais rígidas que as do CLI e da API REST. Os três caminhos gravam nas mesmas tabelas, então o comportamento depende de por onde o cadastro entra:
+O microsserviço tem regras próprias, mais rígidas que as do CLI e da API REST. Os três caminhos gravam nas mesmas tabelas, então o comportamento depende de por onde o cadastro entra. **O site não usa o microsserviço:** ele cadastra pela API REST, e o microsserviço segue sendo chamado só por `curl`.
 
-- **Dois passos para o candidato:** `POST /candidatos` grava os dados pessoais; depois `POST /candidatos/{id}/competencias` grava as competências. Empresa (`POST /empresas`) não tem competências.
-- **Ao menos uma competência:** a rota de competências recusa lista vazia. O serviço não consegue obrigar a segunda chamada; quem a torna obrigatória é o fluxo do site, quando for integrado. O CLI continua aceitando candidato sem competência.
+- **Dois passos para o candidato:** `POST /candidatos` grava os dados pessoais; depois `POST /candidatos/{id}/competencias` grava as competências. Empresa (`POST /empresas`) não tem competências. O site repete esse desenho de dois passos, mas com as rotas da API REST (`POST /candidatos` e `POST /competencias`).
+- **Ao menos uma competência:** a rota de competências recusa lista vazia, aqui e na API REST. Nenhum dos serviços consegue obrigar a segunda chamada; quem encaminha o candidato para ela é o site, que vai do cadastro direto para a tela de competências. O CLI continua aceitando candidato sem competência.
 - **Competências somadas e sem diferenciar maiúsculas:** a rota soma as competências novas às que o candidato já tem e reaproveita a que já existe no banco em qualquer caixa (`java` usa `Java`). No CLI e na API REST a busca é exata, e `java` criaria outra competência.
 - **Validação:** campos obrigatórios, tamanhos das colunas, senha de 6 a 50 caracteres, data existente e não futura, formato de e-mail, CPF (11 dígitos), CNPJ (14) e CEP (8), só os dígitos ou na pontuação padrão, sem conferir dígito verificador. Os valores são gravados como enviados.
 - **Cadastro repetido:** responde `409` com mensagem genérica, sem dizer qual campo coincidiu. Na API REST o mesmo caso vira `500`.
@@ -145,12 +185,13 @@ Regras derivadas:
 Não amplie nenhuma delas, não as use como exemplo a seguir e pergunte antes de alterá-las:
 
 - **CLI:** em `CurtidaController.candidatoCurtirVaga` as vagas são listadas com `Vaga.descrever()`, que imprime o nome da empresa antes do match.
-- **API:** `GET /vagas` devolve `empresa: {id, nome}`; `GET /candidatos`, `GET /candidatos/{id}`, `GET /empresas` e `GET /empresas/{id}` devolvem o cadastro completo (sem a senha) para qualquer cliente, sem autenticação.
+- **API:** `GET /vagas` devolve `empresa: {id, nome}`; `GET /candidatos`, `GET /candidatos/{id}`, `GET /empresas` e `GET /empresas/{id}` devolvem o cadastro completo (sem a senha) para qualquer cliente, sem autenticação. O frontend depende dessas rotas: as telas da empresa usam `GET /candidatos` e a do candidato usa `GET /vagas`.
+- **`POST /competencias`:** responde com o perfil completo do candidato (`Json.deCandidato`: nome, sobrenome, CPF, e-mail, data de nascimento, país e CEP, sem a senha) e aceita qualquer `idCandidato`, sem autenticação. Quem souber um `id` acrescenta competências e recebe o cadastro de volta. É mais grave que a pendência equivalente do microsserviço, cuja rota devolve só `id` e `competencias`; o frontend ignora essa resposta.
 - **Pós-match:** `Match.descrever()` mostra só nome e e-mail das partes; a regra permite o perfil completo sem a senha.
-- **Frontend:** `dados.ts` mantém todos os dados, inclusive senhas, no `localStorage`; as telas só renderizam os campos anônimos, mas os dados estão no navegador.
-- **Sem login:** "quem está vendo" é simulado escolhendo um candidato/empresa (`listarNomes` no CLI, `<select>` no frontend). Essa seleção mostra nomes por ser a própria parte se identificando, não a parte contrária.
+- **Frontend:** não guarda mais cadastro nem senha no navegador (o `dados.ts` e o `localStorage` saíram), mas recebe da API mais do que mostra: as telas da empresa trazem o cadastro completo de todos os candidatos e só renderizam `Candidato {id}`, formação, descrição e competências; a tela do candidato traz `empresa: {id, nome}` em cada vaga e não exibe a empresa. O dado proibido chega ao navegador e aparece no DevTools.
+- **Login sem autenticação das demais rotas:** existe `POST /login`, mas nenhuma outra rota confere quem chama. Quem está vendo é decidido pelo `sessionStorage` do navegador, então qualquer cliente pode chamar `GET /candidatos`, `POST /curtidas` ou `POST /competencias` com o `id` que quiser. No CLI a parte continua sendo escolhida numa lista de nomes (`listarNomes`), que mostra nomes por ser a própria parte se identificando, não a parte contrária.
 - **Microsserviço sem login:** `POST /candidatos/{id}/competencias` aceita qualquer `id`. Quem souber o `id` de um candidato pode acrescentar competências a ele e ver a lista dele na resposta. A lista é um dado permitido antes do match, então o risco é de integridade, não de exposição.
-- **Senha em texto puro:** os três caminhos de cadastro (CLI, API REST e microsserviço) gravam a senha sem hash na coluna `senha`. Ela nunca é devolvida nem registrada em log, mas está legível no banco. Corrigir exige alterar a coluna e os três caminhos.
+- **Senha em texto puro:** os três caminhos de cadastro (CLI, API REST e microsserviço) gravam a senha sem hash na coluna `senha`, e o `POST /login` compara a senha recebida com a do banco em texto puro. Ela nunca é devolvida nem registrada em log, mas está legível no banco e trafega assim no corpo da requisição (HTTP, sem TLS, em desenvolvimento). Corrigir exige alterar a coluna, os três caminhos e o login.
 
 O microsserviço **não tem rota de leitura** e deve continuar assim: as respostas de cadastro devolvem a quem se cadastrou os próprios dados, sem a senha, e a rota de competências devolve só `id` e `competencias`. O log dele registra apenas método, modelo da rota e status; nunca corpo, e-mail, CPF, CNPJ, senha ou o caminho digitado em rota desconhecida.
 
@@ -178,7 +219,8 @@ Todos os comandos do backend partem da raiz do repositório; no Windows use `gra
 - **API REST:**
   1. `./gradlew war` gera `build/libs/linketinder.war`;
   2. copie para `webapps/` de um Tomcat 9 e suba o servidor (`bin/startup.sh` ou `bin\startup.bat`);
-  3. base: `http://localhost:8080/linketinder` — `GET`/`POST` em `/candidatos`, `/empresas`, `/vagas`, `GET` em `/{recurso}/{id}` e `GET /vagas?idEmpresa={id}`. Demais métodos respondem `405`. O contrato completo está no `README.md`.
+  3. base: `http://localhost:8080/linketinder` — `GET`/`POST` em `/candidatos`, `/empresas`, `/vagas` e `/competencias`, `POST` em `/login` e `/curtidas`, `GET` em `/{recurso}/{id}` e `GET /vagas?idEmpresa={id}`. Demais métodos respondem `405`. O contrato completo está no `README.md`;
+  4. o `CorsFilter` libera o navegador para **uma** origem: `http://localhost:5173` (Vite) por padrão, ou o valor de `LINKETINDER_FRONTEND_ORIGEM`. Requisição `OPTIONS` responde `204` e toda resposta leva `Vary: Origin`. Chamada por `curl` não passa por CORS.
 - **Microsserviço de cadastro:** exige o PostgreSQL no ar e a variável de ambiente `LINKETINDER_CADASTRO_BANCO_SENHA` com a senha do banco (sem ela o serviço não sobe e diz qual variável falta). Abra a pasta `microservico-cadastro/` em outra janela do IntelliJ e rode `org.linketinder.cadastro.Main`, ou, pelo terminal, a partir dessa pasta:
 
   ```bash
@@ -186,14 +228,16 @@ Todos os comandos do backend partem da raiz do repositório; no Windows use `gra
   ```
 
   Sobe em `http://localhost:8081`, com `POST /candidatos`, `POST /empresas` e `POST /candidatos/{id}/competencias`. Porta, URL e usuário do banco têm padrão e podem ser trocados por `LINKETINDER_CADASTRO_PORTA`, `LINKETINDER_CADASTRO_BANCO_URL` e `LINKETINDER_CADASTRO_BANCO_USUARIO`. Rotas, exemplos e a exploração da integração com o frontend estão no `README.md`.
-- **Frontend:**
+- **Frontend:** exige a API REST no ar; sem ela as telas mostram "Não foi possível conectar ao servidor". A URL base é `http://localhost:8080/linketinder`, trocável pela variável `VITE_API_URL` (em um `.env` que **não** vai para o repositório).
 
   ```bash
   cd frontend
   npm install
-  npm run dev        # servidor Vite
+  npm run dev        # servidor Vite em http://localhost:5173
   npx tsc --noEmit   # checagem de tipos
   ```
+
+  O fluxo começa em `index.html` (escolher candidato ou empresa) e a sessão fica no `sessionStorage`: fechar a aba desloga.
 
 ## Como testar
 
@@ -211,7 +255,7 @@ cd microservico-cadastro
 ```
 
 - No microsserviço, regras e serviços usam `Mock` dos repositórios; as rotas são testadas subindo o servidor de verdade em uma porta livre e chamando com o `HttpClient` do JDK. Os dados de teste vêm de `DadosFicticios`. Os DAOs e a transação contra o PostgreSQL real dependem de conferência manual (`curl` e consulta ao banco).
-- Os testes **não precisam de banco**: services e controllers recebem `Mock` das interfaces de `repositorio`; servlets recebem `Dependencias` montadas com mocks.
+- Os testes **não precisam de banco**: services e controllers recebem `Mock` das interfaces de `repositorio`; servlets recebem `Dependencias` montadas com mocks. As rotas novas têm spec em `src/test/groovy/org/example/api` (`LoginServletSpec`, `CompetenciaServletSpec`, `CurtidaServletSpec`, `CorsFilterSpec`).
 - Utilitários de teste: `EntradaFalsa.comRespostas([...])` simula o teclado e `SaidaConsole.capturar { ... }` captura o que a view imprimiu.
 - Os DAOs e `ConexaoBanco` não têm testes automatizados (dependem de banco real); mudanças neles precisam de verificação manual com o PostgreSQL.
 - O frontend não tem testes unitários e não precisa ter (dispensado pelo desafio); valide com `npx tsc --noEmit` e manualmente no navegador.
@@ -232,7 +276,8 @@ cd microservico-cadastro
 - **Estilo Groovy:** tipos explícitos em vez de `def`; sem modificador de visibilidade em classes e métodos públicos; dependências como `private final`; constantes `static final` em `MAIUSCULAS`; indentação de 4 espaços; cabeçalho `@author Guilherme Lima Conte` nas classes.
 - **API:** servlets estendem `ApiServlet` e usam `responder*`/`lerCorpo`; a conversão de e para JSON fica em `Json` (`paraX` lê, `deX` escreve — e nunca inclui `senha`).
 - **Microsserviço:** as mesmas camadas, sem `view`: `http` → `service` → `repositorio` ← `dao` → `banco`. Só o `Main` conhece classes concretas; só `RegistroDoServidor` escreve no console; exceções de regra viram código de status no `Roteador`; rota nova é registrada em `RotasDeCadastro`.
-- **Frontend:** um módulo por tela em `ts/`, funções exportadas com nomes em português, tipos em `modelos.ts`, dados em `dados.ts`.
+- **Frontend:** uma tela por módulo em `ts/telas/`; o acesso à API fica em `ts/api/` (`http.ts` monta a requisição e lança `ErroApi`, `api.ts` tem uma função por endpoint) e nenhum outro módulo chama `fetch`; tipos em `modelos.ts`, DOM e mensagens em `dom.ts`, sessão em `sessao.ts`, caminhos entre páginas em `navegacao.ts`. Funções exportadas com nomes em português. `main.ts` é o único ponto de entrada e só liga o que existe na página aberta.
+- **Nada de `innerHTML`:** texto vindo do usuário ou do banco entra no DOM por `textContent` ou por elementos criados com `createElement`.
 
 ## Restrições
 
@@ -251,7 +296,7 @@ cd microservico-cadastro
 Código já commitado que ainda está fora das duas regras acima. Não amplie, não use como modelo e pergunte antes de corrigir:
 
 - `ProvedorPostgreSQL` e `ProvedorMySQL` trazem usuário e senha de banco fixos no código-fonte.
-- A carga inicial (`database/Linketinder.sql` e `frontend/ts/dados.ts`) e várias specs em `src/test/groovy` usam e-mails em domínio real (`@gmail.com`), que podem pertencer a alguém.
-- O `.gitignore` da raiz não ignora arquivos `.env`.
+- A carga inicial (`database/Linketinder.sql`) e várias specs em `src/test/groovy` usam e-mails em domínio real (`@gmail.com`), que podem pertencer a alguém. O `frontend/ts/dados.ts`, que tinha o mesmo problema, deixou de existir.
+- Nem o `.gitignore` da raiz nem o do `frontend/` ignoram arquivos `.env` — e o frontend agora pode ter um, para a `VITE_API_URL`.
 
 O microsserviço já segue as duas regras e serve de referência: a senha do banco vem só de variável de ambiente, o `.gitignore` dele ignora `.env`, e os testes usam e-mails em `example.com` e documentos com dígitos verificadores inválidos.
