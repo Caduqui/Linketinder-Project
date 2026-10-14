@@ -6,7 +6,34 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
 ## [Não lançado]
 
+### Documentado
+- Sincronização do `AGENTS.md` e do contrato da API no `README.md` com o login,
+  as rotas de competências e de curtidas, o CORS e o frontend integrado à API
+  (revisão de 2026-10-13). As três features abaixo entraram sem spec em
+  `docs/specs/`, onde só existe `microservico`.
+- Sincronização da documentação do microsserviço com o estado atual do código e do repositório, incluindo `AGENTS.md`, `docs/specs/microservico/spec.md` e `docs/specs/microservico/plano.md` (revisão de 2026-10-13).
+
 ### Adicionado
+- Login na API REST: `POST /login` autentica candidato ou empresa e responde
+  `tipo`, `id` e `nome`, sem a senha; credenciais erradas respondem `401` com
+  mensagem genérica. Os repositórios e DAOs de candidato e empresa ganharam
+  `buscarPorEmail` e os services, `autenticar`.
+- `CorsFilter` libera o navegador para a origem do frontend
+  (`LINKETINDER_FRONTEND_ORIGEM`, padrão `http://localhost:5173`) e responde
+  `204` ao `OPTIONS`.
+- Rotas de competências na API REST: `GET /competencias` lista as cadastradas e
+  `POST /competencias` soma competências a um candidato já cadastrado.
+- `POST /curtidas` registra a curtida do candidato na vaga e a da empresa no
+  candidato, recusa vaga que não é da empresa e responde se houve match.
+- Frontend: acesso à API em `ts/api/http.ts` e `ts/api/api.ts`, sessão no
+  `sessionStorage` (`ts/sessao.ts`), proteção das páginas por perfil e cabeçalho
+  em `ts/navegacao.ts` e utilitários de DOM em `ts/dom.ts`.
+- Telas de escolha de perfil e de login, tela de competências do candidato logo
+  após o cadastro, e área da empresa com "Minhas vagas", gráfico de competências
+  e os candidatos de cada vaga.
+- Fila de cards com os botões curtir e passar (`ts/filaDeCards.ts`), com vagas e
+  candidatos em ordem decrescente de afinidade (`ts/afinidade.ts`); candidatos
+  com 0% de afinidade ficam fora da fila da vaga.
 - Microsserviço de cadastro: aplicação independente em `microservico-cadastro/`,
   com servidor HTTP do JDK na porta 8081
   (spec `microservico`, tarefa 1).
@@ -26,6 +53,12 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   com o frontend (spec `microservico`, tarefa 7).
 
 ### Modificado
+- Frontend reorganizado: páginas em `frontend/paginas/`, uma tela por módulo em
+  `ts/telas/` e `index.html` reduzido à escolha entre candidato e empresa.
+- Texto vindo do usuário ou do banco passa a entrar no DOM por `textContent`, e
+  não mais por `innerHTML`.
+- O gráfico de competências passou para a página "Minhas vagas" da empresa, com
+  o Chart.js carregado por CDN em `paginas/minhasVagas.html`.
 - `AGENTS.md` passa a descrever o microsserviço de cadastro e suas pendências
   (spec `microservico`, tarefa 8).
 
@@ -43,3 +76,9 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   reservado `example.com` (spec `microservico`, revisão AP-08).
 
 ### Removido
+- `frontend/ts/dados.ts` e a gravação de cadastros e senhas no `localStorage` do
+  navegador: o frontend lê e grava pela API REST.
+- Páginas `candidato.html`, `empresa.html` e `vaga.html` da raiz do `frontend/` e
+  os módulos `ts/telaCandidato.ts`, `ts/telaEmpresa.ts` e `ts/telaVaga.ts`,
+  substituídos pelas páginas de `frontend/paginas/` e pelas telas de `ts/telas/`.
+- Seleção de "quem está vendo" por `<select>` no frontend, substituída pelo login.
