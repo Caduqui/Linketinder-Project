@@ -105,7 +105,7 @@ cd frontend && npx tsc --noEmit
 - **Situação:** implementação concluída; conferência manual do CA-17 pendente em banco PostgreSQL descartável.
 - **Para o autor:** o DER (`assets/der.png`) precisa ganhar a entidade Recrutador (1:N com Empresa), a N:N Recrutador–Vaga, a N:N Recrutador–Candidato por vaga e a ligação opcional Match–Recrutador.
 
-### 2. Model: `Recrutador` e `AreaDeRecrutamento`
+### 2. Model: `Recrutador` e `AreaDeRecrutamento` [Concluída]
 
 - **O que:** criar o enum das áreas e a classe de modelo, com `descrever()` e `descreverParaEmpresa()` que **nunca** incluem senha, CPF e data de nascimento (RN-01, RN-02, RN-03, RN-09).
 - **Arquivos:** `src/main/groovy/org/example/model/AreaDeRecrutamento.groovy`, `src/main/groovy/org/example/model/Recrutador.groovy`; `src/test/groovy/org/example/model/RecrutadorSpec.groovy`.
@@ -116,7 +116,7 @@ cd frontend && npx tsc --noEmit
 - **Validação:** `./gradlew test --tests "org.example.model.RecrutadorSpec"` e a suíte inteira; `CA-16` na parte de model.
 - **Anonimato:** esta tarefa é exatamente a garantia da RN-09 no model. O teste prova que senha, CPF e data de nascimento não aparecem em nenhuma representação em texto.
 - **CHANGELOG:** Adicionado — Modelo `Recrutador` e as áreas de recrutamento, com descrição que nunca mostra senha, CPF nem data de nascimento (spec `recrutador`, tarefa 2).
-- **Situação:** pendente.
+- **Situação:** concluída.
 
 ### 3. Validação do cadastro
 

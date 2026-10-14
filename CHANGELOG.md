@@ -18,6 +18,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   `recrutador_vaga` e `curtida_recrutador_candidato`, mais a coluna
   `matches.id_recrutador` e carga fictícia para as atribuições e curtidas do
   novo perfil.
+- Modelo do recrutador e enum das áreas de recrutamento, com descrições que
+  nunca expõem senha, CPF ou data de nascimento.
 - Login na API REST: `POST /login` autentica candidato ou empresa e responde
   `tipo`, `id` e `nome`, sem a senha; credenciais erradas respondem `401` com
   mensagem genérica. Os repositórios e DAOs de candidato e empresa ganharam
