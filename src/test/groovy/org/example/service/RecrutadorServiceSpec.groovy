@@ -1,7 +1,10 @@
 package org.example.service
 
+import org.example.model.Empresa
 import org.example.model.Recrutador
+import org.example.model.Vaga
 import org.example.repositorio.RecrutadorRepositorio
+import org.example.repositorio.VagaRepositorio
 import spock.lang.Specification
 
 import java.time.LocalDate
@@ -13,7 +16,8 @@ import java.time.LocalDate
 class RecrutadorServiceSpec extends Specification {
 
     RecrutadorRepositorio recrutadorRepositorio = Mock(RecrutadorRepositorio)
-    RecrutadorService recrutadorService = new RecrutadorService(recrutadorRepositorio)
+    VagaRepositorio vagaRepositorio = Mock(VagaRepositorio)
+    RecrutadorService recrutadorService = new RecrutadorService(recrutadorRepositorio, vagaRepositorio)
 
     Recrutador criarRecrutador() {
         return new Recrutador(
@@ -26,6 +30,15 @@ class RecrutadorServiceSpec extends Specification {
                 "123456",
                 1
         )
+    }
+
+    Vaga criarVaga(Empresa empresa = new Empresa("Alfa", "alfa@example.com", "12.345.678/0001-99", "Brasil", "01000-000", "Empresa", "123456")) {
+        if (empresa.id == null) {
+            empresa.id = 1
+        }
+        Vaga vaga = new Vaga("Dev Groovy", "Vaga de backend", "SP", "São Paulo", empresa, ["Groovy", "Java"])
+        vaga.id = 10
+        return vaga
     }
 
     def "cadastra recrutador válido"() {
@@ -112,5 +125,95 @@ class RecrutadorServiceSpec extends Specification {
         expect:
         recrutadorService.autenticar("ana.paula@example.com", "123456") == recrutador
         recrutadorService.autenticar("ana.paula@example.com", "senha-errada") == null
+    }
+
+    def "atribui vaga da própria empresa"() {
+        given:
+        Recrutador recrutador = criarRecrutador()
+        Vaga vaga = criarVaga()
+        recrutadorRepositorio.buscarPorId(1) >> recrutador
+        vagaRepositorio.buscarPorId(10) >> vaga
+        recrutadorRepositorio.listarVagasDoRecrutador(1) >> []
+
+        when:
+        boolean atribuida = recrutadorService.atribuirVaga(1, 10)
+
+        then:
+        atribuida
+        1 * recrutadorRepositorio.atribuirVaga(1, 10)
+    }
+
+    def "recusa vaga de outra empresa"() {
+        given:
+        Recrutador recrutador = criarRecrutador()
+        Empresa empresaOutra = new Empresa("Beta", "beta@example.com", "11.111.111/0001-11", "Brasil", "20000-000", "Outra", "123456")
+        empresaOutra.id = 2
+        Vaga vaga = criarVaga(empresaOutra)
+        recrutadorRepositorio.buscarPorId(1) >> recrutador
+        vagaRepositorio.buscarPorId(10) >> vaga
+
+        when:
+        recrutadorService.atribuirVaga(1, 10)
+
+        then:
+        RegraDeNegocioException erro = thrown()
+        erro.message == "A vaga não pertence à empresa do recrutador"
+        0 * recrutadorRepositorio.atribuirVaga(_, _)
+    }
+
+    def "não grava atribuição repetida"() {
+        given:
+        Recrutador recrutador = criarRecrutador()
+        Vaga vaga = criarVaga()
+        recrutadorRepositorio.buscarPorId(1) >> recrutador
+        vagaRepositorio.buscarPorId(10) >> vaga
+        recrutadorRepositorio.listarVagasDoRecrutador(1) >> [vaga]
+
+        when:
+        boolean atribuida = recrutadorService.atribuirVaga(1, 10)
+
+        then:
+        !atribuida
+        0 * recrutadorRepositorio.atribuirVaga(_, _)
+    }
+
+    def "lista vagas atribuídas ao recrutador"() {
+        given:
+        Vaga vaga = criarVaga()
+        recrutadorRepositorio.listarVagasDoRecrutador(1) >> [vaga]
+
+        expect:
+        recrutadorService.listarVagasDoRecrutador(1) == [vaga]
+    }
+
+    def "remove vaga atribuída ao recrutador"() {
+        given:
+        Recrutador recrutador = criarRecrutador()
+        Vaga vaga = criarVaga()
+        recrutadorRepositorio.buscarPorId(1) >> recrutador
+        vagaRepositorio.buscarPorId(10) >> vaga
+        recrutadorRepositorio.listarVagasDoRecrutador(1) >> [vaga]
+
+        when:
+        recrutadorService.removerVaga(1, 10)
+
+        then:
+        1 * recrutadorRepositorio.removerVaga(1, 10)
+    }
+
+    def "escopo recusa vaga não atribuída"() {
+        given:
+        Recrutador recrutador = criarRecrutador()
+        Vaga vaga = criarVaga()
+        recrutadorRepositorio.buscarPorId(1) >> recrutador
+        vagaRepositorio.buscarPorId(10) >> vaga
+        recrutadorRepositorio.listarVagasDoRecrutador(1) >> []
+
+        when:
+        recrutadorService.validarEscopo(1, 10)
+
+        then:
+        RegraDeNegocioException erro = thrown()
+        erro.message == "A vaga não está atribuída ao recrutador"
     }
 }

@@ -25,6 +25,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
   campo e não repetem o valor informado.
 - Repositório e service do recrutador: cadastro, consulta, autenticação e
   proteção de exclusão de empresa que ainda tem recrutadores ligados a ela.
+- Atribuição e desatribuição de vagas aos recrutadores, com validação de
+  escopo para impedir atuação fora do conjunto permitido de vagas da empresa.
 - Login na API REST: `POST /login` autentica candidato ou empresa e responde
   `tipo`, `id` e `nome`, sem a senha; credenciais erradas respondem `401` com
   mensagem genérica. Os repositórios e DAOs de candidato e empresa ganharam

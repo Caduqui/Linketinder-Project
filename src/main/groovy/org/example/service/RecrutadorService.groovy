@@ -1,7 +1,9 @@
 package org.example.service
 
 import org.example.model.Recrutador
+import org.example.model.Vaga
 import org.example.repositorio.RecrutadorRepositorio
+import org.example.repositorio.VagaRepositorio
 
 /**
  *
@@ -10,9 +12,11 @@ import org.example.repositorio.RecrutadorRepositorio
 class RecrutadorService {
 
     private final RecrutadorRepositorio recrutadorRepositorio
+    private final VagaRepositorio vagaRepositorio
 
-    RecrutadorService(RecrutadorRepositorio recrutadorRepositorio) {
+    RecrutadorService(RecrutadorRepositorio recrutadorRepositorio, VagaRepositorio vagaRepositorio) {
         this.recrutadorRepositorio = recrutadorRepositorio
+        this.vagaRepositorio = vagaRepositorio
     }
 
     List<Recrutador> listarPorEmpresa(Integer idEmpresa) {
@@ -48,6 +52,59 @@ class RecrutadorService {
 
     void excluir(Integer id) {
         recrutadorRepositorio.deletar(id)
+    }
+
+    boolean atribuirVaga(Integer idRecrutador, Integer idVaga) {
+        Recrutador recrutador = recrutadorRepositorio.buscarPorId(idRecrutador)
+        if (recrutador == null) {
+            throw new RegraDeNegocioException("Recrutador não encontrado")
+        }
+
+        Vaga vaga = vagaRepositorio.buscarPorId(idVaga)
+        if (vaga == null) {
+            throw new RegraDeNegocioException("Vaga não encontrada")
+        }
+
+        if (vaga.empresa == null || vaga.empresa.id != recrutador.idEmpresa) {
+            throw new RegraDeNegocioException("A vaga não pertence à empresa do recrutador")
+        }
+
+        if (recrutadorRepositorio.listarVagasDoRecrutador(idRecrutador)?.any { it.id == idVaga }) {
+            return false
+        }
+
+        recrutadorRepositorio.atribuirVaga(idRecrutador, idVaga)
+        return true
+    }
+
+    void removerVaga(Integer idRecrutador, Integer idVaga) {
+        validarEscopo(idRecrutador, idVaga)
+        recrutadorRepositorio.removerVaga(idRecrutador, idVaga)
+    }
+
+    List<Vaga> listarVagasDoRecrutador(Integer idRecrutador) {
+        return recrutadorRepositorio.listarVagasDoRecrutador(idRecrutador)
+    }
+
+    void validarEscopo(Integer idRecrutador, Integer idVaga) {
+        Recrutador recrutador = recrutadorRepositorio.buscarPorId(idRecrutador)
+        if (recrutador == null) {
+            throw new RegraDeNegocioException("Recrutador não encontrado")
+        }
+
+        Vaga vaga = vagaRepositorio.buscarPorId(idVaga)
+        if (vaga == null) {
+            throw new RegraDeNegocioException("Vaga não encontrada")
+        }
+
+        if (vaga.empresa == null || vaga.empresa.id != recrutador.idEmpresa) {
+            throw new RegraDeNegocioException("A vaga não pertence à empresa do recrutador")
+        }
+
+        boolean atribuida = recrutadorRepositorio.listarVagasDoRecrutador(idRecrutador)?.any { it.id == idVaga }
+        if (!atribuida) {
+            throw new RegraDeNegocioException("A vaga não está atribuída ao recrutador")
+        }
     }
 
     private void validar(Recrutador recrutador) {

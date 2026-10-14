@@ -1,6 +1,7 @@
 package org.example.repositorio
 
 import org.example.model.Recrutador
+import org.example.model.Vaga
 
 /**
  *
@@ -14,4 +15,7 @@ interface RecrutadorRepositorio {
     Recrutador buscarPorEmail(String email)
     Recrutador buscarPorCpf(String cpf)
     List<Recrutador> listarPorEmpresa(Integer idEmpresa)
+    void atribuirVaga(Integer idRecrutador, Integer idVaga)
+    void removerVaga(Integer idRecrutador, Integer idVaga)
+    List<Vaga> listarVagasDoRecrutador(Integer idRecrutador)
 }

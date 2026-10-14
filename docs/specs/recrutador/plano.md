@@ -152,19 +152,19 @@ cd frontend && npx tsc --noEmit
 
 ### 5. Service: atribuição de vagas e escopo de atuação
 
-- **O que:** no `RecrutadorService`, atribuir vaga (só vaga da própria empresa e só a recrutador da própria empresa; repetida não é erro), desatribuir (apagando as curtidas daquele recrutador naquela vaga), listar as vagas atribuídas e a verificação de escopo usada pela curtida (RN-11, RN-12, RN-13, RN-14, RN-15, RN-16).
+- **O que:** no `RecrutadorService`, atribuir vaga (só vaga da própria empresa e só a recrutador da própria empresa; repetida não é erro e o retorno distingue se foi atribuída agora), desatribuir (apagando as curtidas daquele recrutador naquela vaga), listar as vagas atribuídas e a verificação de escopo usada pela curtida (RN-11, RN-12, RN-13, RN-14, RN-15, RN-16).
 - **Arquivos:** `service/RecrutadorService.groovy`, `repositorio/RecrutadorRepositorio.groovy`; `src/test/groovy/org/example/service/RecrutadorServiceSpec.groovy`.
 - **Testes (escritos antes):**
   - given recrutador da empresa A e vaga da empresa A, when atribui, then o repositório grava o vínculo;
   - given vaga da empresa B, when atribui ao recrutador da empresa A, then lança a exceção e nada é gravado;
-  - given vínculo já existente, when atribui de novo, then nada é gravado e a operação informa que já estava atribuída;
+  - given vínculo já existente, when atribui de novo, then nada é gravado e o retorno informa que já estava atribuída;
   - given três vagas da empresa e duas atribuídas, when lista as vagas do recrutador, then devolve as duas;
   - given uma vaga atribuída, when desatribui, then o repositório remove o vínculo e as curtidas daquele recrutador naquela vaga;
   - given vaga não atribuída ao recrutador, when a verificação de escopo é chamada, then lança a exceção.
 - **Validação:** `./gradlew test --tests "org.example.service.RecrutadorServiceSpec"` e a suíte inteira; `CA-07`, `CA-08`, `CA-09`, `CA-15` (parte da desatribuição).
 - **Anonimato:** a listagem devolve vagas da própria empresa do recrutador, o que é permitido (seção 4.1). Nenhum dado de candidato entra aqui.
 - **CHANGELOG:** Adicionado — A empresa atribui e remove vagas dos recrutadores dela, e o recrutador só atua nas vagas atribuídas (spec `recrutador`, tarefa 5).
-- **Situação:** pendente.
+- **Situação:** concluída.
 
 ### 6. Curtida do recrutador e match
 
