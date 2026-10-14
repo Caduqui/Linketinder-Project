@@ -34,6 +34,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Criação de matches considerando curtidas da empresa ou dos recrutadores, com
   identificação de quem curtiu primeiro, além da limpeza das curtidas e
   atribuições de recrutador ao excluir candidato ou vaga.
+- Menu de recrutadores no CLI, com cadastro, atualização, exclusão, atribuição
+  e remoção de vagas, listagem das vagas atribuídas e curtida de candidatos.
 - Login na API REST: `POST /login` autentica candidato ou empresa e responde
   `tipo`, `id` e `nome`, sem a senha; credenciais erradas respondem `401` com
   mensagem genérica. Os repositórios e DAOs de candidato e empresa ganharam

@@ -201,21 +201,21 @@ cd frontend && npx tsc --noEmit
 - **CHANGELOG:** Adicionado — Match passa a ser criado também pela curtida do recrutador e registra quem o fechou (spec `recrutador`, tarefa 8).
 - **Situação:** implementação concluída; conferência manual do CA-17 pendente em banco PostgreSQL descartável.
 
-### 9. CLI: menu de recrutadores e curtida pelo terminal
+### 9. CLI: menu de recrutadores e curtida pelo terminal [Concluída]
 
-- **O que:** `RecrutadorView` e `RecrutadorController` (CRUD + atribuir, remover e listar vagas), opção "Recrutador curtir um candidato" no `CurtidaController`/`CurtidaView`, menu novo no `MenuController`/`MenuView` e montagem no `Main` (RN-06, RN-07, RN-09, RN-27 e P-08).
-- **Arquivos:** `view/RecrutadorView.groovy` (novo), `controller/RecrutadorController.groovy` (novo), `view/CurtidaView.groovy`, `controller/CurtidaController.groovy`, `controller/MenuController.groovy`, `view/MenuView.groovy`, `Main.groovy`; `src/test/groovy/org/example/view/RecrutadorViewSpec.groovy` (nova), `controller/RecrutadorControllerSpec.groovy` (nova), `controller/CurtidaControllerSpec.groovy` (ampliada).
+- **O que:** `RecrutadorView` e `RecrutadorController` (CRUD + atribuir, remover e listar vagas), opção "Recrutador curtir um candidato" no `CurtidaController`/`CurtidaView`, menu novo no `MenuController` usando o `MenuView` genérico e montagem no `Main` (RN-06, RN-07, RN-09, RN-27 e P-08).
+- **Arquivos:** `view/RecrutadorView.groovy` (novo), `controller/RecrutadorController.groovy` (novo), `view/CurtidaView.groovy`, `controller/CurtidaController.groovy`, `controller/MenuController.groovy`, `Main.groovy`; `src/test/groovy/org/example/view/RecrutadorViewSpec.groovy` (nova), `controller/RecrutadorControllerSpec.groovy` (nova), `controller/MenuControllerSpec.groovy` (nova), `controller/CurtidaControllerSpec.groovy` (ampliada).
 - **Testes (escritos antes):** com `EntradaFalsa.comRespostas([...])` e `SaidaConsole.capturar { ... }`:
   - given uma lista de recrutadores, when a view lista, then a saída traz id, nome, área, descrição e e-mail e **não** traz senha, CPF nem data de nascimento;
   - given as respostas de um cadastro válido, when o controller cadastra, then o service recebe os dados digitados;
-  - given o service lançando `RegraDeNegocioException`, when o controller cadastra, then a mensagem aparece na saída e nada mais é chamado;
-  - given um recrutador e as vagas atribuídas a ele, when o controller lista as vagas, then só as atribuídas aparecem;
+  - given o service lançando `RegraDeNegocioException`, when a operação é acionada pelo menu, then a mensagem aparece na saída e o menu continua disponível;
+  - given um recrutador e as vagas atribuídas a ele, when o controller lista e seleciona uma vaga, then somente as atribuídas podem ser escolhidas;
   - given recrutador, vaga atribuída e candidato, when o controller registra a curtida, then o service é chamado e a saída informa se houve match;
   - given a curtida de recrutador, when a saída é capturada, then ela usa a representação anônima do candidato e não contém nome, e-mail nem CPF do candidato.
-- **Validação:** `./gradlew test --tests "org.example.controller.RecrutadorControllerSpec"`, idem para as outras specs da tarefa, e a suíte inteira; `CA-19` (manual, com o banco) e `CA-16`.
+- **Validação:** as specs direcionadas de view, controllers e menu e a suíte inteira passaram; `CA-19` (manual, com o banco) permanece pendente; `CA-16` passou nas garantias de anonimato.
 - **Anonimato:** duas garantias testadas — a listagem de recrutadores sem senha, CPF e data de nascimento (RN-09) e a curtida usando `Candidato.descreverAnonimo()` (regra 5 do `AGENTS.md`).
 - **CHANGELOG:** Adicionado — Menu de recrutadores no CLI, com CRUD, atribuição de vagas e a curtida do recrutador (spec `recrutador`, tarefa 9).
-- **Situação:** pendente.
+- **Situação:** implementação e testes automatizados concluídos; conferência manual do CA-19 pendente em PostgreSQL descartável.
 
 ### 10. API: `Json`, `RecrutadorServlet` e as rotas de recrutador
 
