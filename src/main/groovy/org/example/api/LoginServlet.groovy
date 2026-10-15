@@ -2,6 +2,7 @@ package org.example.api
 
 import org.example.model.Candidato
 import org.example.model.Empresa
+import org.example.model.Recrutador
 import org.example.service.RegraDeNegocioException
 
 import javax.servlet.annotation.WebServlet
@@ -17,6 +18,7 @@ import javax.servlet.http.HttpServletResponse
 class LoginServlet extends ApiServlet {
     static final String TIPO_CANDIDATO = "candidato"
     static final String TIPO_EMPRESA = "empresa"
+    static final String TIPO_RECRUTADOR = "recrutador"
     static final String CREDENCIAIS_INVALIDAS = "E-mail ou senha inválidos"
 
     @Override
@@ -53,6 +55,16 @@ class LoginServlet extends ApiServlet {
             return empresa == null ? null : [tipo: TIPO_EMPRESA, id: empresa.id, nome: empresa.nome]
         }
 
-        throw new RegraDeNegocioException("O campo 'tipo' deve ser '${TIPO_CANDIDATO}' ou '${TIPO_EMPRESA}'")
+        if (tipo == TIPO_RECRUTADOR) {
+            Recrutador recrutador = dependencias.recrutadorService.autenticar(email, senha)
+            return recrutador == null ? null : [
+                    tipo: TIPO_RECRUTADOR,
+                    id: recrutador.id,
+                    nome: recrutador.nome,
+                    idEmpresa: recrutador.idEmpresa
+            ]
+        }
+
+        throw new RegraDeNegocioException("O campo 'tipo' deve ser '${TIPO_CANDIDATO}', '${TIPO_EMPRESA}' ou '${TIPO_RECRUTADOR}'")
     }
 }

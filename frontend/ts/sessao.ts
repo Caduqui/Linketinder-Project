@@ -26,6 +26,9 @@ export function obterUsuarioLogado(): UsuarioLogado | null {
     }
 }
 
+export function obterUsuarioDoTipo(tipo: "candidato"): Extract<UsuarioLogado, {tipo: "candidato"}> | null;
+export function obterUsuarioDoTipo(tipo: "empresa"): Extract<UsuarioLogado, {tipo: "empresa"}> | null;
+export function obterUsuarioDoTipo(tipo: "recrutador"): Extract<UsuarioLogado, {tipo: "recrutador"}> | null;
 export function obterUsuarioDoTipo(tipo: TipoUsuario): UsuarioLogado | null {
     const usuario = obterUsuarioLogado();
     return usuario?.tipo === tipo ? usuario : null;

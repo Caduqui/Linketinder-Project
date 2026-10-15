@@ -8,6 +8,7 @@ import org.example.service.EmpresaService
 import org.example.service.VagaService
 import org.example.service.CompetenciaService
 import org.example.service.CurtidaService
+import org.example.service.RecrutadorService
 import spock.lang.Specification
 
 import javax.servlet.http.HttpServletRequest
@@ -29,7 +30,7 @@ class CompetenciaServletSpec extends Specification{
     CompetenciaServlet servlet = new CompetenciaServlet()
 
     def setup() {
-        servlet.dependencias = new Dependencias(candidatoService, Mock(EmpresaService), Mock(VagaService), competenciaService, Mock(CurtidaService))
+        servlet.dependencias = new Dependencias(candidatoService, Mock(EmpresaService), Mock(VagaService), competenciaService, Mock(CurtidaService), Mock(RecrutadorService))
         resposta.writer >> new PrintWriter(saida)
     }
 

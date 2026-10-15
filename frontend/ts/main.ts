@@ -12,6 +12,7 @@ import {mostrarEmpresaDaVaga} from "./telas/telaVaga.ts";
 import {carregarCandidatosDaVaga} from "./telas/telaCandidatosDaVaga.ts";
 import {carregarVagasParaCandidato} from "./telas/telaCandidato.ts";
 import {carregarMinhasVagas} from "./telas/telaMinhasVagas.ts";
+import {carregarRecrutadores, configurarFormularioRecrutador} from "./telas/telaRecrutadores.ts";
 
 /**
  *
@@ -39,12 +40,14 @@ export function inicializarApp(): void {
     configurarFormularioEmpresa();
     configurarFormularioVaga();
     configurarFormularioLogin();
+    configurarFormularioRecrutador();
     configurarFormularioCompetencias();
     mostrarEmpresaDaVaga();
 
     carregarSePresente("lista-competencias", mostrarCompetencias);
     carregarSePresente("painel-candidato", carregarVagasParaCandidato);
     carregarSePresente("lista-minhas-vagas", carregarMinhasVagas);
+    carregarSePresente("lista-recrutadores", carregarRecrutadores);
     carregarSePresente("painel-candidatos-da-vaga", carregarCandidatosDaVaga);
 }
 

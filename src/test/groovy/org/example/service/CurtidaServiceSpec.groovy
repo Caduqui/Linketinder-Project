@@ -13,7 +13,8 @@ class CurtidaServiceSpec extends Specification{
 
     CurtidaRepositorio curtidaRepositorio = Mock(CurtidaRepositorio)
     MatchRepositorio matchRepositorio = Mock(MatchRepositorio)
-    CurtidaService curtidaService = new CurtidaService(curtidaRepositorio, matchRepositorio)
+    RecrutadorService recrutadorService = Mock(RecrutadorService)
+    CurtidaService curtidaService = new CurtidaService(curtidaRepositorio, matchRepositorio, recrutadorService)
 
     def "candidatoCurtirVaga informa quando a curtida é nova"() {
         given:
@@ -29,6 +30,42 @@ class CurtidaServiceSpec extends Specification{
 
         expect:
         !curtidaService.candidatoCurtirVaga(1, 10)
+    }
+
+    def "recrutadorCurtirCandidato informa quando a curtida é nova"() {
+        given:
+        curtidaRepositorio.recrutadorCurtirCandidato(7, 1, 10) >> true
+
+        when:
+        boolean nova = curtidaService.recrutadorCurtirCandidato(7, 1, 10)
+
+        then:
+        1 * recrutadorService.validarEscopo(7, 10)
+        nova
+    }
+
+    def "recrutadorCurtirCandidato informa quando a curtida é repetida"() {
+        given:
+        curtidaRepositorio.recrutadorCurtirCandidato(7, 1, 10) >> false
+
+        when:
+        boolean nova = curtidaService.recrutadorCurtirCandidato(7, 1, 10)
+
+        then:
+        1 * recrutadorService.validarEscopo(7, 10)
+        !nova
+    }
+
+    def "não registra curtida quando o recrutador não tem a vaga atribuída"() {
+        when:
+        curtidaService.recrutadorCurtirCandidato(7, 1, 10)
+
+        then:
+        1 * recrutadorService.validarEscopo(7, 10) >> {
+            throw new RegraDeNegocioException("A vaga não está atribuída ao recrutador")
+        }
+        0 * curtidaRepositorio.recrutadorCurtirCandidato(_, _, _)
+        thrown(RegraDeNegocioException)
     }
 
     def "houveMatch consulta o repositório de matches"() {

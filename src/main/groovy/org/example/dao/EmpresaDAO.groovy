@@ -122,6 +122,21 @@ class EmpresaDAO implements EmpresaRepositorio {
         }
     }
 
+    @Override
+    boolean possuiRecrutadores(Integer idEmpresa) {
+        String sql = """
+            SELECT EXISTS
+                (SELECT 1 FROM recrutadores WHERE id_empresa = ?) AS possui
+        """
+
+        conexaoBanco.executar(sql) { PreparedStatement statement ->
+            statement.setInt(1, idEmpresa)
+            statement.executeQuery().withCloseable { ResultSet resultado ->
+                resultado.next() && resultado.getBoolean("possui")
+            }
+        }
+    }
+
     static void preencherDados(PreparedStatement statement, Empresa empresa) {
         statement.setString(1, empresa.nome)
         statement.setString(2, empresa.email)

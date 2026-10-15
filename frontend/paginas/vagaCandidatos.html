@@ -5,14 +5,15 @@
     <title>Linketinder</title>
     <link rel="stylesheet" href="../style.css">
 </head>
-<body data-perfil-exigido="empresa">
+<body data-perfil-exigido="empresa,recrutador">
 
 <header class="cabecalho">
     <h1>Seja bem-vindo ao LinkeTinder</h1>
     <nav>
         <button id="buttonTelaCandidato" data-visivel-para="candidato" hidden>Vagas</button>
-        <button id="buttonTelaMinhasVagas" data-visivel-para="empresa" hidden>Minhas vagas</button>
+        <button id="buttonTelaMinhasVagas" data-visivel-para="empresa,recrutador" hidden>Minhas vagas</button>
         <button id="buttonTelaVaga" data-visivel-para="empresa" hidden>Cadastrar vagas</button>
+        <button id="buttonTelaRecrutadores" data-visivel-para="empresa" hidden>Recrutadores</button>
         <button id="buttonSair" data-visivel-para="logado" hidden>Sair</button>
     </nav>
     <p id="usuario-logado" class="usuario-logado"></p>

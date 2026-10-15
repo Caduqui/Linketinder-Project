@@ -1,6 +1,6 @@
 const URL_BASE: string = import.meta.env.VITE_API_URL ?? "http://localhost:8080/linketinder";
 
-type MetodoHttp = "GET" | "POST";
+type MetodoHttp = "GET" | "POST" | "DELETE";
 
 export class ErroApi extends Error {
     readonly status: number;
@@ -59,5 +59,6 @@ function extrairMensagemDeErro(dados: unknown, status: number): string {
 
 export const http = {
     get: <T>(caminho: string): Promise<T> => requisitar<T>("GET", caminho),
-    post: <T>(caminho: string, corpo: unknown): Promise<T> => requisitar<T>("POST", caminho, corpo)
+    post: <T>(caminho: string, corpo: unknown): Promise<T> => requisitar<T>("POST", caminho, corpo),
+    del: <T>(caminho: string): Promise<T> => requisitar<T>("DELETE", caminho)
 };

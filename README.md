@@ -23,6 +23,12 @@ Foi implementando a listagem dos candidatos disponíveis na visão da empresa e 
 Foi adicionado um cadastro ao lado, da empresa e do candidato.
 Por fim da listagem dos candidatos disponíveis há um gráfico em barras adicionado usando a biblioteca chart.js que indica o número de candidatos por competências
 
+## Perfil de recrutador
+
+A feature de recrutador adiciona um terceiro tipo de usuário em `frontend/` e na API REST. O recrutador entra com seu próprio login, vê apenas as vagas atribuídas pela empresa e pode curtir candidatos dentro desse escopo, sem ver dados pessoais sensíveis do candidato fora do que a própria empresa teria acesso.
+
+O recrutador não se autocadastra: a empresa cadastra, atribui e remove vagas dele e pode excluí-lo. Atualizar os dados de um recrutador é só pelo CLI. As rotas estão no contrato da API REST, mais abaixo, e o que cada perfil pode ver está na spec, em `docs/specs/recrutador/spec.md`.
+
 # Banco de dados
 
 O banco de dados foi desenvolvido utilizando PostgreSQL, graças a ele pude observar um problema crítico em meu projeto que não considerava Empresa e Vaga como classes diferentes, ccom o desenvolvimento do banco de dados, pude perceber esse erro e corrigi-lo. O arquivo localizado em `database/Linketinder.sql` contém todas as criações, inserções e busca realizadas desde sua criação.
@@ -109,7 +115,7 @@ Devido a construção do código aplicando os princípios SOLID e MVC foi possí
 
 Base: `http://localhost:8080/linketinder`
 
-Temos 10 endpoints, todos sendo POST e GET:
+Temos 20 endpoints. Todos usam `GET` ou `POST`, menos os dois `DELETE` das rotas de recrutador, que são a única exceção à convenção:
 POST em `/candidatos` cadastra um candidato, se houver sucesso lança 201 + `Location` e se der erro apresenta 400
 GET em `/candidatos` lista todos os candidatos, se houver sucesso lança 200 e se der erro apresenta 500
 GET em `/candidatos/{id}` busca um candidato, se houver sucesso lança 200 e se der erro apresenta 400 se o id não for número e 404 se não existir
@@ -120,8 +126,18 @@ POST em `/vagas` cadastra uma vaga, se houver sucesso lança 201 + `Location` e 
 GET em `/vagas` lista todas as vagas, se houver sucesso lança 200 e se der erro apresenta 500
 GET em `/vagas?idEmpresa={id}` lista todas as vagas de uma empresa, se houver sucesso lança 200 e se der erro apresenta 400
 GET em `/vagas/{id}` busca uma vaga, se houver sucesso lança 200 e se houver erro apresenta 400 se o id não for número e 404 se não existir
+GET em `/competencias` lista as competências já cadastradas, se houver sucesso lança 200 e se der erro apresenta 500
+POST em `/competencias` soma competências a um candidato já cadastrado, se houver sucesso lança 201, apresenta 400 se a lista vier vazia e 404 se o candidato não existir
+POST em `/login` autentica candidato, empresa ou recrutador conforme o campo `tipo`, devolvendo 200 com `{tipo, id, nome}` — mais `idEmpresa` para o recrutador —, 401 com mensagem genérica quando o e-mail ou a senha estão errados e 400 se o `tipo` não for um dos três. Nunca devolve a senha
+POST em `/curtidas` registra a curtida do candidato na vaga, da empresa no candidato ou do recrutador no candidato conforme o campo `tipo`, se houver sucesso lança 201 com `{"match": true|false}`, apresenta 400 se o `tipo` for inválido, se a vaga não for da empresa ou se não estiver atribuída ao recrutador, e 404 se candidato, vaga ou recrutador não existir
+POST em `/recrutadores` cadastra um recrutador da empresa, se houver sucesso lança 201 + `Location` com id, nome, área, descrição, e-mail e idEmpresa, e se der erro apresenta 400; nunca devolve senha, CPF nem data de nascimento
+GET em `/recrutadores?idEmpresa={id}` lista os recrutadores de uma empresa, se houver sucesso lança 200, apresenta 400 sem o parâmetro ou com id não numérico e 404 se a empresa não existir
+DELETE em `/recrutadores/{id}` remove o recrutador, se houver sucesso lança 204 sem corpo e apresenta 404 se ele não existir
+GET em `/recrutadores/{id}/vagas` lista as vagas atribuídas ao recrutador, se houver sucesso lança 200 e apresenta 404 se o recrutador não existir
+POST em `/recrutadores/{id}/vagas` atribui uma vaga ao recrutador (corpo `{"idVaga": n}`), se houver sucesso lança 201 com a lista atualizada de vagas dele, apresenta 400 se a vaga não for da empresa dele e 404 se recrutador ou vaga não existir
+DELETE em `/recrutadores/{id}/vagas/{idVaga}` desatribui a vaga, se houver sucesso lança 204 sem corpo, apresenta 400 se a vaga não estiver atribuída a ele e 404 se recrutador ou vaga não existir
 
-Qualquer outra requisição como DELETE, PUT é respondido com erro 405 e qualquer requisição pode dar erro 500 caso o banco falhe.
+`PUT` é respondido com erro 405 e o cabeçalho `Allow`, e o mesmo acontece com `DELETE` fora das rotas de recrutador. Qualquer requisição pode dar erro 500 caso o banco falhe.
 
 ## Recursos utilizados
 

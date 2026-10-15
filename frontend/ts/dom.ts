@@ -6,9 +6,10 @@
 type TipoMensagem = "erro" | "sucesso";
 
 export function lerCampo(id: string): string {
-    const campo = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | null;
-
-    if (!campo) {
+    const campo = document.getElementById(id);
+    if (!(campo instanceof HTMLInputElement)
+        && !(campo instanceof HTMLSelectElement)
+        && !(campo instanceof HTMLTextAreaElement)) {
         throw new Error(`Campo #${id} não encontrado na página.`);
     }
 

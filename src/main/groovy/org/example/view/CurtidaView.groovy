@@ -30,6 +30,14 @@ class CurtidaView {
         println "A empresa já curtiu esse candidato para essa vaga"
     }
 
+    void avisarCandidatoCurtidoPorRecrutador(Vaga vaga) {
+        println "\nCandidato curtido com sucesso para a vaga ${vaga.nome}!"
+    }
+
+    void avisarCurtidaRepetidaDoRecrutador() {
+        println "O recrutador já curtiu esse candidato para essa vaga"
+    }
+
     void anunciarMatch() {
         println "\nMATCH!! A curtida entre vocês dois foi recíproca!"
     }

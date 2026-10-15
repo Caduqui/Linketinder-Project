@@ -5,7 +5,11 @@ import type {
     Empresa,
     NovaEmpresa,
     NovaVaga,
-    NovoCandidato, ResultadoCurtida, UsuarioLogado,
+    NovoCandidato,
+    NovoRecrutador,
+    Recrutador,
+    ResultadoCurtida,
+    UsuarioLogado,
     Vaga
 } from "../modelos.ts";
 import {http} from "./http.ts";
@@ -50,6 +54,30 @@ export function inserirCompetencias(idCandidato: number, competencias: string[])
     return http.post<Candidato>("/competencias", {idCandidato, competencias});
 }
 
+export function cadastrarRecrutador(recrutador: NovoRecrutador): Promise<Recrutador> {
+    return http.post<Recrutador>("/recrutadores", recrutador);
+}
+
+export function listarRecrutadoresDaEmpresa(idEmpresa: number): Promise<Recrutador[]> {
+    return http.get<Recrutador[]>(`/recrutadores?idEmpresa=${idEmpresa}`);
+}
+
+export function excluirRecrutador(idRecrutador: number): Promise<void> {
+    return http.del<void>(`/recrutadores/${idRecrutador}`);
+}
+
+export function listarVagasDoRecrutador(idRecrutador: number): Promise<Vaga[]> {
+    return http.get<Vaga[]>(`/recrutadores/${idRecrutador}/vagas`);
+}
+
+export function atribuirVagaAoRecrutador(idRecrutador: number, idVaga: number): Promise<Vaga[]> {
+    return http.post<Vaga[]>(`/recrutadores/${idRecrutador}/vagas`, {idVaga});
+}
+
+export function removerVagaDoRecrutador(idRecrutador: number, idVaga: number): Promise<void> {
+    return http.del<void>(`/recrutadores/${idRecrutador}/vagas/${idVaga}`);
+}
+
 export function fazerLogin(credenciais: Credenciais): Promise<UsuarioLogado> {
     return http.post<UsuarioLogado>("/login", credenciais);
 }
@@ -62,3 +90,6 @@ export function curtirCandidato(idEmpresa: number, idCandidato: number, idVaga: 
     return http.post<ResultadoCurtida>("/curtidas", {tipo: "empresa", idEmpresa, idCandidato, idVaga});
 }
 
+export function curtirCandidatoComoRecrutador(idRecrutador: number, idCandidato: number, idVaga: number): Promise<ResultadoCurtida> {
+    return http.post<ResultadoCurtida>("/curtidas", {tipo: "recrutador", idRecrutador, idCandidato, idVaga});
+}

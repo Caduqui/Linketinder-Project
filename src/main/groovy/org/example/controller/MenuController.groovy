@@ -20,19 +20,21 @@ class MenuController {
     private final CompetenciaController competenciaController
     private final VagaController vagaController
     private final CurtidaController curtidaController
+    private final RecrutadorController recrutadorController
 
-    MenuController(MenuView menuView, CandidatoController candidatoController, EmpresaController empresaController, CompetenciaController competenciaController, VagaController vagaController, CurtidaController curtidaController) {
+    MenuController(MenuView menuView, CandidatoController candidatoController, EmpresaController empresaController, CompetenciaController competenciaController, VagaController vagaController, CurtidaController curtidaController, RecrutadorController recrutadorController) {
         this.menuView = menuView
         this.candidatoController = candidatoController
         this.empresaController = empresaController
         this.competenciaController = competenciaController
         this.vagaController = vagaController
         this.curtidaController = curtidaController
+        this.recrutadorController = recrutadorController
     }
 
     void executar() {
         while (true) {
-            String opcao = menuView.lerOpcao("Bem vindo ao linketinder", ["Candidatos", "Empresas", "Competências", "Vagas", "Venha encontrar seu match"], "Sair")
+            String opcao = menuView.lerOpcao("Bem vindo ao linketinder", ["Candidatos", "Empresas", "Competências", "Vagas", "Recrutadores", "Venha encontrar seu match"], "Sair")
 
             if (opcao == menuView.OPCAO_VOLTAR) {
                 return
@@ -63,6 +65,9 @@ class MenuController {
                 menuCrud("Vagas", vagaController)
                 break
             case "5":
+                menuRecrutadores()
+                break
+            case "6":
                 menuCurtidas()
                 break
             default:
@@ -104,9 +109,49 @@ class MenuController {
         }
     }
 
+    private void menuRecrutadores() {
+        List<String> opcoes = OPCOES_CRUD + ["Atribuir vaga", "Remover vaga", "Listar vagas atribuídas"]
+        while (true) {
+            String opcao = menuView.lerOpcao("Recrutadores", opcoes, "Voltar")
+            if (opcao == MenuView.OPCAO_VOLTAR) {
+                return
+            }
+
+            try {
+                switch (opcao) {
+                    case "1":
+                        recrutadorController.listar()
+                        break
+                    case "2":
+                        recrutadorController.cadastrar()
+                        break
+                    case "3":
+                        recrutadorController.atualizar()
+                        break
+                    case "4":
+                        recrutadorController.excluir()
+                        break
+                    case "5":
+                        recrutadorController.atribuirVaga()
+                        break
+                    case "6":
+                        recrutadorController.removerVaga()
+                        break
+                    case "7":
+                        recrutadorController.listarVagas()
+                        break
+                    default:
+                        menuView.avisarOpcaoInvalida()
+                }
+            } catch (RegraDeNegocioException e) {
+                menuView.exibirMensagem(e.message)
+            }
+        }
+    }
+
     private void menuCurtidas() {
         while (true) {
-            String opcao = menuView.lerOpcao("Matches", ["Candidato curtir uma vaga", "Empresa curtir um candidato", "Listar matches"], "Voltar")
+            String opcao = menuView.lerOpcao("Matches", ["Candidato curtir uma vaga", "Empresa curtir um candidato", "Recrutador curtir um candidato", "Listar matches"], "Voltar")
 
             if (opcao == MenuView.OPCAO_VOLTAR) {
                 return
@@ -129,6 +174,9 @@ class MenuController {
                 curtidaController.empresaCurtirCandidato()
                 break
             case "3":
+                curtidaController.recrutadorCurtirCandidato()
+                break
+            case "4":
                 curtidaController.listarMatches()
                 break
             default:
