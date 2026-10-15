@@ -7,6 +7,9 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 ## [Não lançado]
 
 ### Documentado
+- Prompts da feature do recrutador no `PROMPTS.md` (etapas 9 a 15), reconstruídos
+  a partir da spec, do plano, do `revisao.md` e dos commits, porque a sessão
+  original do agente se perdeu; o arquivo passou a separar as duas features.
 - Sincronização do `AGENTS.md` e do contrato da API no `README.md` com o login,
   as rotas de competências e de curtidas, o CORS e o frontend integrado à API
   (revisão de 2026-10-13). As três features abaixo entraram sem spec em
